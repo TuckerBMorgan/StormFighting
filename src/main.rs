@@ -102,9 +102,6 @@ fn launch_session() -> (P2PSession, usize) {
 
 fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
 
-    let light_attack_loaded = CollisionInfo::from_file(String::from("src/resources/light_attack.ase"));
-    let load = CollisionInfo::from_file(String::from("src/resources/idle.ase"));
-    println!("{:?}", load);
     let (mut p2p_session, local_handle) = launch_session();
 
 

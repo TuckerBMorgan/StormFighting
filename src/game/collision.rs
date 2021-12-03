@@ -14,8 +14,8 @@ pub enum CollisionBoxType {
 }
 #[derive(Debug)]
 pub struct CollisionBox {
-    box_type: CollisionBoxType,
-    aabb: AABB2D
+    pub box_type: CollisionBoxType,
+    pub aabb: AABB2D
 }
 
 impl CollisionBox {

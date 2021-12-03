@@ -2,7 +2,6 @@ use storm::*;
 
 use ggrs::{Frame, GGRSRequest, GameInput, GameState, GameStateCell, PlayerHandle, NULL_FRAME};
 
-use serde::{Deserialize, Serialize};
 use super::{Round, Input, CollisionLibrary};
 
 pub const CHECKSUM_PERIOD: i32 = 100;
@@ -34,15 +33,6 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new(current_round: Round) -> Game {
-        Game {
-            current_round,
-            local_input: Input::new(),
-            last_checksum: (NULL_FRAME, 0),
-            periodic_checksum: (NULL_FRAME, 0),
-            collision_library: CollisionLibrary::load_collision_data()
-        }
-    }
     
     pub fn key_down(&mut self, keyboard_button: KeyboardButton) {
         self.local_input.key_down(keyboard_button);

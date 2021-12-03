@@ -232,19 +232,10 @@ impl Character {
             self.character_velocity.x = CHARACTER_X_SPEED * self.screen_side.direction();
         }
     }
-
-    pub fn get_current_aabb(&self) -> AABB2D {
-        let min_x =  self.character_position.x + 150.0;
-        let mix_y = self.character_position.y + 53.0;
-        AABB2D { 
-            min: Vector2 { x: min_x, y:  mix_y},
-            max: Vector2 { x: min_x + 38.0, y:  mix_y + 106.0} 
-        }
-    }
     
     //A function used to get the information need to lookup a collision box
     pub fn get_collision_box_lookup_info(&self) -> (AnimationState, u32) {
-        let mut current_animation = self.animation_configs.get(&self.animation_state).unwrap();
+        let current_animation = self.animation_configs.get(&self.animation_state).unwrap();
         let current_frame = current_animation.current_frame;
         return (self.animation_state, current_frame);
     }
