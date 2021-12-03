@@ -3,7 +3,6 @@ use ggrs::GameInput;
 use super::{INPUT_LEFT, INPUT_RIGHT, INPUT_LIGHT_ATTACK, AnimationState, AnimationConfig};
 
 use storm::*;
-use storm::math::AABB2D;
 use serde::{Deserialize, Serialize};
 use storm::cgmath::Vector2;
 

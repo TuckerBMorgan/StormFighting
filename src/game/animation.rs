@@ -5,13 +5,12 @@ use serde::{Deserialize, Serialize};
 
 pub static IDLE_TEXTURE: &[u8] = include_bytes!("../resources/idle.png");
 pub static FORWARD_RUN_TEXTURE: &[u8] = include_bytes!("../resources/forward_run.png");
-pub static BACKGROUND_RUN_TEXTURE: &[u8] = include_bytes!("../resources/back_run.png");
+pub static BACKGROUND_RUN_TEXTURE: &[u8] = include_bytes!("../resources/backward_run.png");
 pub static LIGHT_ATTACK_TEXTURE: &[u8] = include_bytes!("../resources/light_attack.png");
 
 pub static FRAME_HEIGHT: u32 =  178;
 pub static FRAME_WIDTH: u32 =  290;
 
-//TODO: comment this file
 #[derive(Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum AnimationState {
     Idle,

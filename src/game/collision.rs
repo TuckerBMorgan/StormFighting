@@ -40,6 +40,7 @@ impl CollisionInfo {
     }
 
     pub fn from_file(file_name: String) -> CollisionInfo {
+        println!("Loading collision info from {:?}", file_name);
         //TODO: undo all of this when https://github.com/aseprite/aseprite/issues/721 is finished
         // Read file into memory
         let file = Path::new(file_name.as_str());
