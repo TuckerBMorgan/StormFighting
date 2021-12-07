@@ -7,7 +7,7 @@ use hashbrown::HashMap;
 
 use super::{FRAME_WIDTH, AnimationState};
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum CollisionBoxType {
     Hurt,
     Hit
@@ -23,6 +23,20 @@ impl CollisionBox {
         CollisionBox {
             box_type,
             aabb
+        }
+    }
+}
+
+pub struct CollisionReport {
+    pub collider_type: CollisionBoxType,
+    pub collide_type: CollisionBoxType
+}
+
+impl CollisionReport {
+    pub fn new(collider_type: CollisionBoxType, collide_type: CollisionBoxType) -> CollisionReport {
+        CollisionReport {
+            collider_type,
+            collide_type
         }
     }
 }

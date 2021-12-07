@@ -1,8 +1,8 @@
 use hashbrown::HashMap;
 use ggrs::GameInput;
 use super::{INPUT_LEFT, INPUT_RIGHT, INPUT_LIGHT_ATTACK, AnimationState, AnimationConfig};
-
 use storm::*;
+use storm::math::*;
 use serde::{Deserialize, Serialize};
 use storm::cgmath::Vector2;
 
@@ -98,7 +98,8 @@ pub struct Character {
     pub animation_configs: HashMap<AnimationState, AnimationConfig>,
     pub character_position: Vector2<f32>,
     pub character_velocity: Vector2<f32>,
-    pub screen_side: ScreenSide
+    pub screen_side: ScreenSide,
+    pub health: u32
 }
 
 impl Character {
@@ -109,7 +110,8 @@ impl Character {
             animation_configs: HashMap::new(),
             character_position: Vector2::new(0.0, 0.0),
             character_velocity: Vector2::new(0.0, 0.0),
-            screen_side
+            screen_side,
+            health: 100
         }
     }
 
@@ -237,5 +239,18 @@ impl Character {
         let current_animation = self.animation_configs.get(&self.animation_state).unwrap();
         let current_frame = current_animation.current_frame;
         return (self.animation_state, current_frame);
+    }
+
+    pub fn do_damage(&mut self, amount: u32) {
+        self.health -= amount;
+    }
+
+    // The "Walk box" is what AABB used to move the character
+    // It is not part of the collision system used for combat
+    pub fn get_walk_box(&self)  -> AABB2D {
+        //These numbers are ones that I grabbed off of my old first passs on hit boxes
+        //They need to be data driven at some point
+        return AABB2D::new(self.character_position.x + 131.0, self.character_position.y + 57.0, 
+                           self.character_position.x + 131.0, self.character_position.y + 57.0);
     }
 }
