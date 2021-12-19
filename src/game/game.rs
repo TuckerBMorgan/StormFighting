@@ -9,6 +9,7 @@ pub const CHECKSUM_PERIOD: i32 = 100;
 pub const INPUT_LIGHT_ATTACK: u8 = 1 << 0;
 pub const INPUT_LEFT: u8 = 1 << 1;
 pub const INPUT_RIGHT: u8 = 1 << 2;
+pub const INPUT_DOWN: u8 = 1 << 3;
 
 /// computes the fletcher16 checksum, copied from wikipedia: <https://en.wikipedia.org/wiki/Fletcher%27s_checksum>
 fn fletcher16(data: &[u8]) -> u16 {
@@ -62,6 +63,9 @@ impl Game {
     fn advance_frame(&mut self, inputs: Vec<GameInput>) {
         // advance the game state
         self.current_round.advance(inputs, &self.collision_library);
+        if self.current_round.round_done {
+            self.current_round = Round::default();
+        }
 
         // remember checksum to render it later
         // it is very inefficient to serialize the gamestate here just for the checksum
@@ -97,6 +101,9 @@ impl Game {
             }
             if self.local_input.right_key_down {
                 input |= INPUT_RIGHT;
+            }
+            if self.local_input.down_key_down {
+                input |= INPUT_DOWN;
             }
             if self.local_input.light_attack {
                 input |= INPUT_LIGHT_ATTACK;

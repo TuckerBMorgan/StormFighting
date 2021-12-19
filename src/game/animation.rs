@@ -1,13 +1,19 @@
-use storm::*;
 use hashbrown::HashMap;
-
 use serde::{Deserialize, Serialize};
-
+use storm::graphics::Texture;
 pub static IDLE_TEXTURE: &[u8] = include_bytes!("../resources/idle.png");
 pub static FORWARD_RUN_TEXTURE: &[u8] = include_bytes!("../resources/forward_run.png");
 pub static BACKGROUND_RUN_TEXTURE: &[u8] = include_bytes!("../resources/backward_run.png");
 pub static LIGHT_ATTACK_TEXTURE: &[u8] = include_bytes!("../resources/light_attack.png");
+pub static LIGHT_HIT_RECOVERY: &[u8] = include_bytes!("../resources/light_hit.png");
+pub static BACKGROUND_CASTLE: &[u8] = include_bytes!("../resources/background_castle.png");
+pub static BLOCKING: &[u8] = include_bytes!("../resources/blocking.png");
 
+pub static CROUCHED: &[u8] = include_bytes!("../resources/crouched.png");
+pub static CROUCHING: &[u8] = include_bytes!("../resources/crouching.png");
+
+
+use storm::graphics::TextureSection;
 pub static FRAME_HEIGHT: u32 =  178;
 pub static FRAME_WIDTH: u32 =  290;
 
@@ -16,7 +22,11 @@ pub enum AnimationState {
     Idle,
     ForwardRun,
     BackwardRun,
-    LightAttack
+    LightAttack,
+    LightHitRecovery,
+    Crouched,
+    Crouching,
+    Blocking
 }
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
 //A frame number based timer for sprites IE: Does not use delta timer/real time it is an monotonic timer
@@ -85,7 +95,7 @@ impl AnimationConfig {
 }
 
 pub struct AnimationTextureLibrary {
-    pub animations: HashMap<AnimationState, Texture<RGBA8>>,
+    pub animations: HashMap<AnimationState, Texture>,
 }
 
 impl AnimationTextureLibrary {
@@ -97,20 +107,20 @@ impl AnimationTextureLibrary {
 
     // Given atlas(a u8 representation of the image we want) and the animation state we want
     // Build a mapping between the two so that we can look it up later
-    pub fn load_animation(&mut self, ctx: &mut Context, atlas: &[u8], animation_state: AnimationState) {
+    pub fn load_animation(&mut self, atlas: &[u8], animation_state: AnimationState) {
         if self.animations.contains_key(&animation_state) {
             panic!("{:?} was already in animation dictionary", animation_state);
         }
 
         // Use storm to load the image
-        let loaded_texture = ctx.load_png(atlas);
+        let loaded_texture = Texture::from_png(atlas);
         self.animations.insert(animation_state, loaded_texture);
     }
 
     //Returns a immutable reference to the underalying loaded atlas, which has been loaded by Storm
-    pub fn get_atlas_for_animation(&self, animation_state: AnimationState) -> &Texture<RGBA8> {
+    pub fn get_atlas_for_animation(&self, animation_state: AnimationState) -> Texture {
         let current_animation = self.animations.get(&animation_state).unwrap();
-        return &current_animation;
+        return current_animation.clone();
     }
 
     //Returns the subsection of an atlas used for rendering
@@ -119,5 +129,20 @@ impl AnimationTextureLibrary {
     pub fn get_atlas_subsection(& self, animation: AnimationState, frame_number: u32) -> TextureSection {
         let left = frame_number * FRAME_WIDTH;
         return self.animations.get(&animation).unwrap().subsection(left, left + FRAME_WIDTH, 0, FRAME_HEIGHT);
+    }
+}
+
+impl Default for AnimationTextureLibrary {
+    fn default() -> AnimationTextureLibrary {
+        let mut animation_library = AnimationTextureLibrary::new();
+        animation_library.load_animation(IDLE_TEXTURE, AnimationState::Idle);
+        animation_library.load_animation(FORWARD_RUN_TEXTURE, AnimationState::ForwardRun);
+        animation_library.load_animation(BACKGROUND_RUN_TEXTURE, AnimationState::BackwardRun);
+        animation_library.load_animation(LIGHT_ATTACK_TEXTURE, AnimationState::LightAttack);
+        animation_library.load_animation(LIGHT_HIT_RECOVERY, AnimationState::LightHitRecovery);
+        animation_library.load_animation(BLOCKING, AnimationState::Blocking);
+        animation_library.load_animation(CROUCHING, AnimationState::Crouching);
+        animation_library.load_animation(CROUCHED, AnimationState::Crouched);
+        return animation_library;
     }
 }
