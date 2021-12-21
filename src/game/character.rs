@@ -1,6 +1,6 @@
 use hashbrown::HashMap;
 use ggrs::GameInput;
-use super::{INPUT_LEFT, INPUT_RIGHT, INPUT_DOWN, INPUT_LIGHT_ATTACK, AnimationState, AnimationConfig};
+use super::{INPUT_LEFT, INPUT_RIGHT, INPUT_DOWN, INPUT_LIGHT_ATTACK, INPUT_MEDIUM_ATTACK, INPUT_HEAVY_ATTACK, AnimationState, AnimationConfig};
 use storm::*;
 use storm::math::*;
 use serde::{Deserialize, Serialize};
@@ -13,7 +13,9 @@ pub struct Input {
     pub left_key_down: bool,
     pub right_key_down: bool,
     pub down_key_down: bool,
-    pub light_attack: bool
+    pub light_attack: bool,
+    pub medium_attack: bool,
+    pub heavy_attack: bool
 }
 
 impl Input {
@@ -22,7 +24,9 @@ impl Input {
             left_key_down: false,
             right_key_down: false,
             down_key_down: false,
-            light_attack: false
+            light_attack: false,
+            medium_attack: false,
+            heavy_attack: false
         }
     }
 
@@ -31,7 +35,9 @@ impl Input {
             left_key_down:  (game_input.buffer[0] & INPUT_LEFT) != 0,
             right_key_down: (game_input.buffer[0] & INPUT_RIGHT) != 0,
             down_key_down:  (game_input.buffer[0] & INPUT_DOWN) != 0,
-            light_attack:   (game_input.buffer[0] & INPUT_LIGHT_ATTACK) != 0
+            light_attack:   (game_input.buffer[0] & INPUT_LIGHT_ATTACK) != 0,
+            medium_attack:   (game_input.buffer[0] & INPUT_MEDIUM_ATTACK) != 0,
+            heavy_attack: (game_input.buffer[0] & INPUT_HEAVY_ATTACK) != 0
         }
     }
 
@@ -48,6 +54,12 @@ impl Input {
             },
             KeyboardButton::Down => {
                 self.down_key_down = true;
+            },
+            KeyboardButton::W => {
+                self.medium_attack = true;
+            },
+            KeyboardButton::E => {
+                self.heavy_attack = true;
             }
             _ => {}
         }
@@ -66,6 +78,12 @@ impl Input {
             },
             KeyboardButton::Down => {
                 self.down_key_down = false;
+            }
+            KeyboardButton::W => {
+                self.medium_attack = false;
+            },
+            KeyboardButton::E => {
+                self.heavy_attack = false;
             }
             _ => {}
         }
@@ -99,7 +117,9 @@ pub enum CharacterState {
     LightAttack,
     LightHitRecovery,
     Blocking,
-    Crouching
+    Crouching,
+    MediumAttack,
+    HeavyAttack
 }
 
 
@@ -155,7 +175,12 @@ impl Character {
                 animation_state = AnimationState::BackwardRun;
             },
             CharacterState::LightAttack => {
-                animation_state = AnimationState::LightAttack;
+                if self.is_crouched {
+                    animation_state = AnimationState::LightCrouchAttack;
+                }
+                else {
+                    animation_state = AnimationState::LightAttack;
+                }
             },
             CharacterState::LightHitRecovery => {
                 animation_state = AnimationState::LightHitRecovery;
@@ -165,6 +190,23 @@ impl Character {
             },
             CharacterState::Crouching => {
                 animation_state = AnimationState::Crouching;
+            },
+            CharacterState::MediumAttack => {
+                if self.is_crouched {
+                    animation_state = AnimationState::LightCrouchAttack;
+                }
+                else {
+                    animation_state = AnimationState::MediumAttack;
+                }
+            },
+            CharacterState::HeavyAttack => {
+                if self.is_crouched {
+                    animation_state = AnimationState::HeavyCrouchingAttack;
+                }
+                else {
+                    animation_state = AnimationState::HeavyAttack;
+                }
+
             }
         }
 
@@ -185,6 +227,12 @@ impl Character {
                 CharacterState::BackwardRun
             },
             CharacterState::LightAttack => {
+                CharacterState::Idle
+            },
+            CharacterState::MediumAttack => {
+                CharacterState::Idle
+            },
+            CharacterState::HeavyAttack => {
                 CharacterState::Idle
             },
             CharacterState::LightHitRecovery => {
@@ -218,7 +266,20 @@ impl Character {
                 self.set_character_state(CharacterState::LightAttack);
             }
         }
-
+        else if frame_input.medium_attack {
+            if self.character_state == CharacterState::Idle 
+                || self.character_state == CharacterState::ForwardRun 
+                || self.character_state == CharacterState::BackwardRun {
+                self.set_character_state(CharacterState::MediumAttack);
+            }
+        }
+        else if frame_input.heavy_attack {
+            if self.character_state == CharacterState::Idle 
+                || self.character_state == CharacterState::ForwardRun 
+                || self.character_state == CharacterState::BackwardRun {
+                self.set_character_state(CharacterState::HeavyAttack);
+            }
+        }
         //If we are in the normal crouched animation, Idle + IsCrouched, and we are no longer holding the down key
         //Stand the character up
         //TODO: add in a "standing_up" state and animation
@@ -289,7 +350,13 @@ impl Character {
         else if self.character_state == CharacterState::Idle {
             self.character_velocity.x = 0.0;
         }
-        else if self.character_state == CharacterState::LightAttack {
+        else if self.character_state == CharacterState::LightAttack  
+                || self.character_state == CharacterState::MediumAttack 
+                || self.character_state == CharacterState::HeavyAttack 
+        {
+            self.character_velocity.x = 0.0;
+        }
+        else if self.is_crouched {
             self.character_velocity.x = 0.0;
         }
     }
@@ -327,15 +394,36 @@ impl Character {
     // The "Walk box" is what AABB used to move the character
     // It is not part of the collision system used for combat
     pub fn get_walk_box(&self)  -> AABB2D {
+        /*
         //If the character is crouched the walk box is shorter
         if self.is_crouched {
             return AABB2D::new(self.character_position.x + 131.0, self.character_position.y + 30.0, 
                 self.character_position.x + 131.0 + 33.0, self.character_position.y + 30.0 + 103.0);
         }
+        */
         //These numbers are ones that I grabbed off of my old first passs on hit boxes
         //They need to be data driven at some point
         //TODO: REMOVE THE MAGJIC NUMBERS
         return AABB2D::new(self.character_position.x + 131.0, self.character_position.y + 57.0, 
                            self.character_position.x + 131.0 + 33.0, self.character_position.y + 57.0 + 103.0);
+    }
+}
+
+impl Default for Character {
+    fn default() -> Self {
+        let mut character = Character::new(ScreenSide::Left);
+        character.load_animation_config(AnimationState::Idle, AnimationConfig::new(10, 4));
+        character.load_animation_config(AnimationState::ForwardRun, AnimationConfig::new(12, 4));
+        character.load_animation_config(AnimationState::BackwardRun, AnimationConfig::new(10, 4));
+        character.load_animation_config(AnimationState::LightAttack, AnimationConfig::new(5, 4));
+        character.load_animation_config(AnimationState::MediumAttack, AnimationConfig::new(8, 4));
+        character.load_animation_config(AnimationState::HeavyAttack, AnimationConfig::new(11, 4));
+        character.load_animation_config(AnimationState::LightHitRecovery, AnimationConfig::new(4, 4));
+        character.load_animation_config(AnimationState::Blocking, AnimationConfig::new(4, 4));
+        character.load_animation_config(AnimationState::Crouched, AnimationConfig::new(4, 4));
+        character.load_animation_config(AnimationState::Crouching, AnimationConfig::new(2, 4));
+        character.load_animation_config(AnimationState::LightCrouchAttack, AnimationConfig::new(5, 4));
+        character.load_animation_config(AnimationState::HeavyCrouchingAttack, AnimationConfig::new(9, 4));
+        return character;
     }
 }

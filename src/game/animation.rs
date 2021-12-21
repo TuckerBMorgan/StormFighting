@@ -5,13 +5,15 @@ pub static IDLE_TEXTURE: &[u8] = include_bytes!("../resources/idle.png");
 pub static FORWARD_RUN_TEXTURE: &[u8] = include_bytes!("../resources/forward_run.png");
 pub static BACKGROUND_RUN_TEXTURE: &[u8] = include_bytes!("../resources/backward_run.png");
 pub static LIGHT_ATTACK_TEXTURE: &[u8] = include_bytes!("../resources/light_attack.png");
+pub static MEDIUM_ATTACK_TEXTURE: &[u8] = include_bytes!("../resources/medium_attack.png");
+pub static HEAVY_ATTACK : &[u8] = include_bytes!("../resources/heavy_attack.png");
 pub static LIGHT_HIT_RECOVERY: &[u8] = include_bytes!("../resources/light_hit.png");
 pub static BACKGROUND_CASTLE: &[u8] = include_bytes!("../resources/background_castle.png");
 pub static BLOCKING: &[u8] = include_bytes!("../resources/blocking.png");
-
 pub static CROUCHED: &[u8] = include_bytes!("../resources/crouched.png");
 pub static CROUCHING: &[u8] = include_bytes!("../resources/crouching.png");
-
+pub static LIGHT_CROUCH_ATTACK: &[u8] = include_bytes!("../resources/light_crouch_attack.png");
+pub static HEAVY_CROUCH_ATTACK: &[u8] = include_bytes!("../resources/heavy_crouching_attack.png");
 
 use storm::graphics::TextureSection;
 pub static FRAME_HEIGHT: u32 =  178;
@@ -23,10 +25,14 @@ pub enum AnimationState {
     ForwardRun,
     BackwardRun,
     LightAttack,
+    MediumAttack,
+    HeavyAttack,
     LightHitRecovery,
     Crouched,
     Crouching,
-    Blocking
+    Blocking,
+    LightCrouchAttack,
+    HeavyCrouchingAttack
 }
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
 //A frame number based timer for sprites IE: Does not use delta timer/real time it is an monotonic timer
@@ -139,10 +145,14 @@ impl Default for AnimationTextureLibrary {
         animation_library.load_animation(FORWARD_RUN_TEXTURE, AnimationState::ForwardRun);
         animation_library.load_animation(BACKGROUND_RUN_TEXTURE, AnimationState::BackwardRun);
         animation_library.load_animation(LIGHT_ATTACK_TEXTURE, AnimationState::LightAttack);
+        animation_library.load_animation(MEDIUM_ATTACK_TEXTURE, AnimationState::MediumAttack);
+        animation_library.load_animation(HEAVY_ATTACK, AnimationState::HeavyAttack);
         animation_library.load_animation(LIGHT_HIT_RECOVERY, AnimationState::LightHitRecovery);
         animation_library.load_animation(BLOCKING, AnimationState::Blocking);
         animation_library.load_animation(CROUCHING, AnimationState::Crouching);
         animation_library.load_animation(CROUCHED, AnimationState::Crouched);
+        animation_library.load_animation(LIGHT_CROUCH_ATTACK, AnimationState::LightCrouchAttack);
+        animation_library.load_animation(HEAVY_CROUCH_ATTACK, AnimationState::HeavyCrouchingAttack);
         return animation_library;
     }
 }

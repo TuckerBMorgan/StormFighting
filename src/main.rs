@@ -258,6 +258,12 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
             KeyboardButton::Down => {
                 game.key_down(key);
             }
+            KeyboardButton::W => {
+                game.key_down(key);
+            }
+            KeyboardButton::E => {
+                game.key_down(key);
+            }
             KeyboardButton::Q => game.key_down(key),
             KeyboardButton::Escape => ctx.stop(),
             _ => {}
@@ -273,6 +279,12 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
                 game.key_up(key);
             }
             KeyboardButton::Down => {
+                game.key_up(key);
+            }
+            KeyboardButton::W => {
+                game.key_up(key);
+            }
+            KeyboardButton::E => {
                 game.key_up(key);
             }
             KeyboardButton::Q => game.key_up(key),

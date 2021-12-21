@@ -161,28 +161,14 @@ impl Default for Round{
         //Build up the character by loading animations for each of the animation states
         //TODO: These animations could maybe be only loaded once, and also we are storing more info on a character then actually
         //Needs to be rolled back
-        let mut character_1 = Character::new(ScreenSide::Right);
-        character_1.load_animation_config(AnimationState::Idle, AnimationConfig::new(10, 4));
-        character_1.load_animation_config(AnimationState::ForwardRun, AnimationConfig::new(12, 4));
-        character_1.load_animation_config(AnimationState::LightAttack, AnimationConfig::new(5, 4));
-        character_1.load_animation_config(AnimationState::BackwardRun, AnimationConfig::new(10, 4));
-        character_1.load_animation_config(AnimationState::LightHitRecovery, AnimationConfig::new(4, 4));
-        character_1.load_animation_config(AnimationState::Blocking, AnimationConfig::new(4, 4));
-        character_1.load_animation_config(AnimationState::Crouched, AnimationConfig::new(4, 4));
-        character_1.load_animation_config(AnimationState::Crouching, AnimationConfig::new(2, 4));
+        let mut character_1 = Character::default();
+        character_1.screen_side = ScreenSide::Right;
         character_1.character_position.x = (FRAME_WIDTH as f32) / 3.5;
 
-        let mut character_2 = Character::new(ScreenSide::Left);
-        character_2.load_animation_config(AnimationState::Idle, AnimationConfig::new(10, 4));
-        character_2.load_animation_config(AnimationState::ForwardRun, AnimationConfig::new(12, 4));
-        character_2.load_animation_config(AnimationState::LightAttack, AnimationConfig::new(5, 4));
-        character_2.load_animation_config(AnimationState::BackwardRun, AnimationConfig::new(10, 4));
-        character_2.load_animation_config(AnimationState::LightHitRecovery, AnimationConfig::new(4, 4));
-        character_2.load_animation_config(AnimationState::Blocking, AnimationConfig::new(4, 4));
-        character_2.load_animation_config(AnimationState::Crouched, AnimationConfig::new(4, 4));
-        character_2.load_animation_config(AnimationState::Crouching, AnimationConfig::new(2, 4));
-
+        let mut character_2 = Character::default();
+        character_2.screen_side = ScreenSide::Left;
         character_2.character_position.x = -(FRAME_WIDTH as f32) * 1.2;
+        
         Round {
             character_1,
             character_2,

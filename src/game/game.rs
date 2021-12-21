@@ -10,6 +10,8 @@ pub const INPUT_LIGHT_ATTACK: u8 = 1 << 0;
 pub const INPUT_LEFT: u8 = 1 << 1;
 pub const INPUT_RIGHT: u8 = 1 << 2;
 pub const INPUT_DOWN: u8 = 1 << 3;
+pub const INPUT_MEDIUM_ATTACK: u8 = 1 << 4;
+pub const INPUT_HEAVY_ATTACK: u8 = 1 << 5;
 
 /// computes the fletcher16 checksum, copied from wikipedia: <https://en.wikipedia.org/wiki/Fletcher%27s_checksum>
 fn fletcher16(data: &[u8]) -> u16 {
@@ -107,6 +109,12 @@ impl Game {
             }
             if self.local_input.light_attack {
                 input |= INPUT_LIGHT_ATTACK;
+            }
+            if self.local_input.medium_attack {
+                input |= INPUT_MEDIUM_ATTACK;
+            }
+            if self.local_input.heavy_attack {
+                input |= INPUT_HEAVY_ATTACK;
             }
         }
         vec![input]
