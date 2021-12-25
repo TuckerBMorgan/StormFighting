@@ -14,6 +14,9 @@ pub static CROUCHED: &[u8] = include_bytes!("../resources/crouched.png");
 pub static CROUCHING: &[u8] = include_bytes!("../resources/crouching.png");
 pub static LIGHT_CROUCH_ATTACK: &[u8] = include_bytes!("../resources/light_crouch_attack.png");
 pub static HEAVY_CROUCH_ATTACK: &[u8] = include_bytes!("../resources/heavy_crouching_attack.png");
+pub static LIGHT_KICK: &[u8] = include_bytes!("../resources/light_kick.png");
+pub static MEDIUM_KICK: &[u8] = include_bytes!("../resources/medium_kick.png");
+pub static HEAVY_KICK: &[u8] = include_bytes!("../resources/heavy_kick.png");
 
 use storm::graphics::TextureSection;
 pub static FRAME_HEIGHT: u32 =  178;
@@ -32,7 +35,10 @@ pub enum AnimationState {
     Crouching,
     Blocking,
     LightCrouchAttack,
-    HeavyCrouchingAttack
+    HeavyCrouchingAttack,
+    LightKick,
+    MediumKick,
+    HeavyKick
 }
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
 //A frame number based timer for sprites IE: Does not use delta timer/real time it is an monotonic timer
@@ -153,6 +159,9 @@ impl Default for AnimationTextureLibrary {
         animation_library.load_animation(CROUCHED, AnimationState::Crouched);
         animation_library.load_animation(LIGHT_CROUCH_ATTACK, AnimationState::LightCrouchAttack);
         animation_library.load_animation(HEAVY_CROUCH_ATTACK, AnimationState::HeavyCrouchingAttack);
+        animation_library.load_animation(LIGHT_KICK, AnimationState::LightKick);
+        animation_library.load_animation(MEDIUM_KICK, AnimationState::MediumKick);
+        animation_library.load_animation(HEAVY_KICK, AnimationState::HeavyKick);
         return animation_library;
     }
 }

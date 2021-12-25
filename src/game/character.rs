@@ -1,94 +1,10 @@
 use hashbrown::HashMap;
-use ggrs::GameInput;
-use super::{INPUT_LEFT, INPUT_RIGHT, INPUT_DOWN, INPUT_LIGHT_ATTACK, INPUT_MEDIUM_ATTACK, INPUT_HEAVY_ATTACK, AnimationState, AnimationConfig};
-use storm::*;
+use super::*;
 use storm::math::*;
 use serde::{Deserialize, Serialize};
 use storm::cgmath::Vector2;
 
 pub static CHARACTER_X_SPEED : f32 = 3.0;
-
-#[derive(Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct Input {
-    pub left_key_down: bool,
-    pub right_key_down: bool,
-    pub down_key_down: bool,
-    pub light_attack: bool,
-    pub medium_attack: bool,
-    pub heavy_attack: bool
-}
-
-impl Input {
-    pub fn new() -> Input {
-        Input {
-            left_key_down: false,
-            right_key_down: false,
-            down_key_down: false,
-            light_attack: false,
-            medium_attack: false,
-            heavy_attack: false
-        }
-    }
-
-    pub fn from_game_input(game_input: GameInput) -> Input {
-        Input {
-            left_key_down:  (game_input.buffer[0] & INPUT_LEFT) != 0,
-            right_key_down: (game_input.buffer[0] & INPUT_RIGHT) != 0,
-            down_key_down:  (game_input.buffer[0] & INPUT_DOWN) != 0,
-            light_attack:   (game_input.buffer[0] & INPUT_LIGHT_ATTACK) != 0,
-            medium_attack:   (game_input.buffer[0] & INPUT_MEDIUM_ATTACK) != 0,
-            heavy_attack: (game_input.buffer[0] & INPUT_HEAVY_ATTACK) != 0
-        }
-    }
-
-    pub fn key_down(&mut self, keyboard_button: KeyboardButton) {
-        match keyboard_button {
-            KeyboardButton::Left => {
-                self.left_key_down = true;
-            },
-            KeyboardButton::Right => {
-                self.right_key_down = true;
-            },
-            KeyboardButton::Q => {
-                self.light_attack = true;
-            },
-            KeyboardButton::Down => {
-                self.down_key_down = true;
-            },
-            KeyboardButton::W => {
-                self.medium_attack = true;
-            },
-            KeyboardButton::E => {
-                self.heavy_attack = true;
-            }
-            _ => {}
-        }
-    }
-
-    pub fn key_up(&mut self, keyboard_button: KeyboardButton) {
-        match keyboard_button {
-            KeyboardButton::Left => {
-                self.left_key_down = false;
-            },
-            KeyboardButton::Right => {
-                self.right_key_down = false;
-            },
-            KeyboardButton::Q => {
-                self.light_attack = false;
-            },
-            KeyboardButton::Down => {
-                self.down_key_down = false;
-            }
-            KeyboardButton::W => {
-                self.medium_attack = false;
-            },
-            KeyboardButton::E => {
-                self.heavy_attack = false;
-            }
-            _ => {}
-        }
-    }
-}
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
 pub enum ScreenSide {
@@ -115,11 +31,14 @@ pub enum CharacterState {
     ForwardRun,
     BackwardRun,
     LightAttack,
+    MediumAttack,
+    HeavyAttack,
     LightHitRecovery,
     Blocking,
     Crouching,
-    MediumAttack,
-    HeavyAttack
+    LightKick,
+    MediumKick,
+    HeavyKick
 }
 
 
@@ -206,7 +125,15 @@ impl Character {
                 else {
                     animation_state = AnimationState::HeavyAttack;
                 }
-
+            },
+            CharacterState::LightKick => {
+                animation_state = AnimationState::LightKick;
+            },
+            CharacterState::MediumKick => {
+                animation_state = AnimationState::MediumKick;
+            },
+            CharacterState::HeavyKick => {
+                animation_state = AnimationState::HeavyKick;
             }
         }
 
@@ -243,6 +170,15 @@ impl Character {
             },
             CharacterState::Crouching => {
                 CharacterState::Idle
+            },
+            CharacterState::LightKick => {
+                CharacterState::Idle
+            },
+            CharacterState::MediumKick => {
+                CharacterState::Idle
+            },
+            CharacterState::HeavyKick => {
+                CharacterState::Idle
             }
         }
     }
@@ -259,25 +195,24 @@ impl Character {
     pub fn tick(&mut self, frame_input: Input) {
         //We want an hierarcy of input to handle people button mashing
         //A character should generally be Attacking Over Moving Over Doing Nothing
-        if frame_input.light_attack {
-            if self.character_state == CharacterState::Idle 
-                || self.character_state == CharacterState::ForwardRun 
-                || self.character_state == CharacterState::BackwardRun {
+        if self.can_attack() {
+            if frame_input.light_attack {
                 self.set_character_state(CharacterState::LightAttack);
             }
-        }
-        else if frame_input.medium_attack {
-            if self.character_state == CharacterState::Idle 
-                || self.character_state == CharacterState::ForwardRun 
-                || self.character_state == CharacterState::BackwardRun {
+            else if frame_input.medium_attack {
                 self.set_character_state(CharacterState::MediumAttack);
             }
-        }
-        else if frame_input.heavy_attack {
-            if self.character_state == CharacterState::Idle 
-                || self.character_state == CharacterState::ForwardRun 
-                || self.character_state == CharacterState::BackwardRun {
+            else if frame_input.heavy_attack {
                 self.set_character_state(CharacterState::HeavyAttack);
+            }
+            else if frame_input.light_kick {
+                self.set_character_state(CharacterState::LightKick);
+            }
+            else if frame_input.medium_kick {
+                self.set_character_state(CharacterState::MediumKick);
+            }
+            else if frame_input.heavy_kick {
+                self.set_character_state(CharacterState::HeavyKick);
             }
         }
         //If we are in the normal crouched animation, Idle + IsCrouched, and we are no longer holding the down key
@@ -347,16 +282,7 @@ impl Character {
         else if self.character_state == CharacterState::LightHitRecovery {
             self.character_velocity.x = CHARACTER_X_SPEED * self.screen_side.direction();
         }
-        else if self.character_state == CharacterState::Idle {
-            self.character_velocity.x = 0.0;
-        }
-        else if self.character_state == CharacterState::LightAttack  
-                || self.character_state == CharacterState::MediumAttack 
-                || self.character_state == CharacterState::HeavyAttack 
-        {
-            self.character_velocity.x = 0.0;
-        }
-        else if self.is_crouched {
+        else {
             self.character_velocity.x = 0.0;
         }
     }
@@ -407,6 +333,12 @@ impl Character {
         return AABB2D::new(self.character_position.x + 131.0, self.character_position.y + 57.0, 
                            self.character_position.x + 131.0 + 33.0, self.character_position.y + 57.0 + 103.0);
     }
+
+    pub fn can_attack(&self) -> bool {
+        return self.character_state == CharacterState::Idle 
+                || self.character_state == CharacterState::ForwardRun 
+                || self.character_state == CharacterState::BackwardRun;
+    }
 }
 
 impl Default for Character {
@@ -424,6 +356,9 @@ impl Default for Character {
         character.load_animation_config(AnimationState::Crouching, AnimationConfig::new(2, 4));
         character.load_animation_config(AnimationState::LightCrouchAttack, AnimationConfig::new(5, 4));
         character.load_animation_config(AnimationState::HeavyCrouchingAttack, AnimationConfig::new(9, 4));
+        character.load_animation_config(AnimationState::LightKick, AnimationConfig::new(6, 4));
+        character.load_animation_config(AnimationState::MediumKick, AnimationConfig::new(8, 4));
+        character.load_animation_config(AnimationState::HeavyKick, AnimationConfig::new(13, 4));
         return character;
     }
 }

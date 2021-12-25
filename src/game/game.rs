@@ -2,16 +2,10 @@ use storm::*;
 
 use ggrs::{Frame, GGRSRequest, GameInput, GameState, GameStateCell, PlayerHandle, NULL_FRAME};
 
-use super::{Round, Input, CollisionLibrary};
+use super::*;
 
 pub const CHECKSUM_PERIOD: i32 = 100;
 
-pub const INPUT_LIGHT_ATTACK: u8 = 1 << 0;
-pub const INPUT_LEFT: u8 = 1 << 1;
-pub const INPUT_RIGHT: u8 = 1 << 2;
-pub const INPUT_DOWN: u8 = 1 << 3;
-pub const INPUT_MEDIUM_ATTACK: u8 = 1 << 4;
-pub const INPUT_HEAVY_ATTACK: u8 = 1 << 5;
 
 /// computes the fletcher16 checksum, copied from wikipedia: <https://en.wikipedia.org/wiki/Fletcher%27s_checksum>
 fn fletcher16(data: &[u8]) -> u16 {
@@ -93,7 +87,7 @@ impl Game {
     #[allow(dead_code)]
     // creates a compact representation of currently pressed keys and serializes it
     pub fn local_input(&self, handle: PlayerHandle) -> Vec<u8> {
-        let mut input: u8 = 0;
+        let mut input: u16 = 0;
 
         // ugly, but it works...
         // player 1 with WASD
@@ -116,8 +110,18 @@ impl Game {
             if self.local_input.heavy_attack {
                 input |= INPUT_HEAVY_ATTACK;
             }
+            if self.local_input.light_kick {
+                input |= INPUT_LIGHT_KICK;
+            }
+            if self.local_input.medium_kick {
+                input |= INPUT_MEDIUM_KICK;
+            }
+            if self.local_input.heavy_kick {
+                input |= INPUT_HEAVY_KICK;
+            }
         }
-        vec![input]
+//        let as_las_bytes 
+        return input.to_le_bytes().to_vec();
     }
 }
 

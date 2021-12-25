@@ -159,8 +159,6 @@ impl Round {
 impl Default for Round{
     fn default() -> Round {
         //Build up the character by loading animations for each of the animation states
-        //TODO: These animations could maybe be only loaded once, and also we are storing more info on a character then actually
-        //Needs to be rolled back
         let mut character_1 = Character::default();
         character_1.screen_side = ScreenSide::Right;
         character_1.character_position.x = (FRAME_WIDTH as f32) / 3.5;

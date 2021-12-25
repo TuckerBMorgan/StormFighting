@@ -14,6 +14,9 @@ pub static CROUCHED_COLLISION: &[u8] = include_bytes!("../resources/crouched.ase
 pub static CROUCHING_COLLISION: &[u8] = include_bytes!("../resources/crouching.ase");
 pub static LIGHT_CROUCH_ATTACK_COLLISION: &[u8] = include_bytes!("../resources/light_crouch_attack.ase");
 pub static HEAVY_CROUCH_ATTACK_COLLISION: &[u8] = include_bytes!("../resources/heavy_crouching_attack.ase");
+pub static LIGHT_KICK_COLLISION: &[u8] = include_bytes!("../resources/light_kick.ase");
+pub static MEDIUM_KICK_COLLISION: &[u8] = include_bytes!("../resources/medium_kick.ase");
+pub static HEAVY_KICK_COLLISION: &[u8] = include_bytes!("../resources/heavy_kick.ase");
 
 pub trait Reflect {
     fn reflect(&self, x_axis: usize) -> AABB2D;
@@ -96,8 +99,9 @@ impl CollisionInfo {
         //Turn the slice array into a slice vec, just easier to process
         let slices = ase.slices().to_vec();    
         for slice in slices {
+            let slice_name = slice.name;
             //See if it is a hit or hurt box
-            let box_type_string = slice.user_data.unwrap().text.unwrap();
+            let box_type_string = slice.user_data.expect(&slice_name).text.expect(&slice_name);
             let box_type;
             if box_type_string == "HitBox" {
                 box_type = CollisionBoxType::Hit;
@@ -157,8 +161,10 @@ impl CollisionLibrary {
         let crouching = CollisionInfo::from_byte(CROUCHING_COLLISION);
         let light_crouch_attack = CollisionInfo::from_byte(LIGHT_CROUCH_ATTACK_COLLISION);
         let heavy_crouch_attack = CollisionInfo::from_byte(HEAVY_CROUCH_ATTACK_COLLISION);
-        
-        
+        let light_kick = CollisionInfo::from_byte(LIGHT_KICK_COLLISION);
+        let medium_kick = CollisionInfo::from_byte(MEDIUM_KICK_COLLISION);
+        let heavy_kick = CollisionInfo::from_byte(HEAVY_KICK_COLLISION);
+
         let mut collision_lib = CollisionLibrary::new();
         collision_lib.collision_info.insert(AnimationState::Idle, idle);
         collision_lib.collision_info.insert(AnimationState::ForwardRun, forward_run);
@@ -170,6 +176,9 @@ impl CollisionLibrary {
         collision_lib.collision_info.insert(AnimationState::Crouching, crouching);
         collision_lib.collision_info.insert(AnimationState::LightCrouchAttack, light_crouch_attack);
         collision_lib.collision_info.insert(AnimationState::HeavyCrouchingAttack, heavy_crouch_attack);
+        collision_lib.collision_info.insert(AnimationState::LightKick, light_kick);
+        collision_lib.collision_info.insert(AnimationState::MediumKick, medium_kick);
+        collision_lib.collision_info.insert(AnimationState::HeavyKick, heavy_kick);
 
         return collision_lib;
     }

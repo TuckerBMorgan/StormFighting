@@ -1,13 +1,14 @@
 use core::convert::{From};
 use core::time::Duration;
 
+extern crate simplelog;
+use simplelog::*;
 use std::net::SocketAddr;
 use storm::color::RGBA8;
 use storm::cgmath::{Vector2, Vector3};
 use storm::*;
 
 use storm::graphics::Texture;
-use storm::graphics::{shaders::sprite::*};
 use storm::math::Transform;
 use instant::{Instant};
 use storm::fontdue::layout::LayoutSettings;
@@ -17,13 +18,15 @@ use structopt::StructOpt;
 use ggrs::{GGRSError, P2PSession, PlayerType, SessionState};
 
 mod game;
+mod shaders;
 
 use game::*;
+use shaders::*;
 
 static FONT: &[u8] = include_bytes!("resources/ka1.ttf");
 
 const FPS: f64 = 60.0;
-const INPUT_SIZE: usize = std::mem::size_of::<u8>();
+const INPUT_SIZE: usize = std::mem::size_of::<[u8;2]>();
 
 const X_SCALE : u16 = 4;
 const Y_SCALE : u16 = 4;
@@ -46,6 +49,7 @@ pub enum AppState {
 }
 
 fn main() {
+    let simple_logger = SimpleLogger::init(LevelFilter::Warn, Config::default());
     // Create the engine context and describe the window.
     Context::start(
         WindowSettings {
@@ -106,7 +110,7 @@ fn launch_session() -> (P2PSession, usize) {
     return (sess, local_handle);
 }
 
-
+//Reusable function that loads the character sprite, the shader to render it, and where on the screen it will be
 fn load_character_sprite(animation_library: &AnimationTextureLibrary, ctx: &Context, character: &mut Character) -> ([Sprite; 1], SpriteShaderPass) { 
     let mut transform = Transform::new(ctx.window_logical_size());
     let mut sprite_1 = SpriteShaderPass::new(transform.matrix());
@@ -130,6 +134,7 @@ fn load_character_sprite(animation_library: &AnimationTextureLibrary, ctx: &Cont
     return (sprites_1, sprite_1);
 }
 
+//Load the background, this is a bad function, redo it
 fn setup_background(ctx: &Context) -> ([Sprite; 1], SpriteShaderPass) {
     let mut transform = Transform::new(ctx.window_logical_size());
     let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix());
@@ -149,6 +154,7 @@ fn setup_background(ctx: &Context) -> ([Sprite; 1], SpriteShaderPass) {
     return (background_sprite, background_sprite_pass);
 }
 
+//Load the sprites for te health bars, and there shader pass
 fn setup_healthbars(ctx: &Context) -> ([Sprite; 2], SpriteShaderPass){
     let mut transform = Transform::new(ctx.window_logical_size());
     let mut health_bar_render_pass = SpriteShaderPass::new(transform.matrix());
@@ -171,6 +177,7 @@ fn setup_healthbars(ctx: &Context) -> ([Sprite; 2], SpriteShaderPass){
     return (health_bars, health_bar_render_pass);
 }
 
+//Load the sprites and the text shader pass used for the timer
 fn setup_round_timer_text(ctx: &Context) -> (TextShaderPass, TextShader) {
     let mut transform = Transform::new(ctx.window_logical_size());
 
@@ -212,23 +219,23 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
 
     ctx.wait_periodic(Some(Duration::from_secs_f32(1.0 / 60.0)));
 
-
-
     let mut game = Game::default();
     //Load a sprite with the atlas of whatever the idle animation is
 
     let animation_library = AnimationTextureLibrary::default();
 
+    //Load the characters sprites and shaders
     let sprite_shader = SpriteShader::new();
     let (mut sprites_1, 
         mut sprite_1) = load_character_sprite(&animation_library, ctx, &mut game.current_round.character_1);
     let (mut sprites_2, 
         mut sprite_2) = load_character_sprite(&animation_library, ctx,&mut game.current_round.character_2);
 
-    let (mut background_sprite, mut background_sprite_pass) = setup_background(ctx);
+    //let (mut background_sprite, mut background_sprite_pass) = setup_background(ctx);
     let (mut health_bars, mut health_bar_render_pass)  = setup_healthbars(ctx);
-    let (mut text_layer, text_shader) = setup_round_timer_text(ctx);
+    //let (mut text_layer, text_shader) = setup_round_timer_text(ctx);
 
+    //load the font used for the timer
     let fonts = [Font::from_bytes(FONT, Default::default()).unwrap()];
     let layout_settings = LayoutSettings {
         x: -120.0,
@@ -246,48 +253,12 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
         //Others are used to control game flow, like Pause, or Debug
         Event::CloseRequested => ctx.stop(),
         Event::KeyPressed(key) => match key {
-            KeyboardButton::Left => {
-                game.key_down(key);
-            }
-            KeyboardButton::Right => {
-                game.key_down(key);
-            },
-            KeyboardButton::Up => {
-                game.key_down(key);
-            }
-            KeyboardButton::Down => {
-                game.key_down(key);
-            }
-            KeyboardButton::W => {
-                game.key_down(key);
-            }
-            KeyboardButton::E => {
-                game.key_down(key);
-            }
-            KeyboardButton::Q => game.key_down(key),
             KeyboardButton::Escape => ctx.stop(),
-            _ => {}
+            _ => {
+                game.key_down(key);
+            }
         },
         Event::KeyReleased(key) => match key {
-            KeyboardButton::Left => {
-                game.key_up(key);
-            }
-            KeyboardButton::Right => {
-                game.key_up(key);
-            }
-            KeyboardButton::Up => {
-                game.key_up(key);
-            }
-            KeyboardButton::Down => {
-                game.key_up(key);
-            }
-            KeyboardButton::W => {
-                game.key_up(key);
-            }
-            KeyboardButton::E => {
-                game.key_up(key);
-            }
-            KeyboardButton::Q => game.key_up(key),
             KeyboardButton::P => {
                 if app_state == AppState::Play {
                     app_state = AppState::Pause;
@@ -300,7 +271,9 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
                 app_state = AppState::Debug;
             }
             KeyboardButton::Escape => ctx.stop(),
-            _ => {}
+            _ => {
+                game.key_up(key);
+            }
         },
         
         Event::Update(_delta) => {
@@ -343,7 +316,7 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
                     sprites_2[0].pos.x = game.current_round.character_2.character_position.x * X_SCALE as f32;
 
                 }
-
+                /*
                 text_layer.clear_text();
                 text_layer.append(
                     &fonts,
@@ -358,9 +331,10 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
                 );
 
                 text_layer.draw(&text_shader);
+                */
                 //Commit the current images to the screen
-                background_sprite_pass.buffer.set(&mut background_sprite);
-                background_sprite_pass.draw(&sprite_shader);
+               // background_sprite_pass.buffer.set(&mut background_sprite);
+               // background_sprite_pass.draw(&sprite_shader);
 
                 sprite_1.buffer.set(&sprites_1);
                 sprite_1.draw(&sprite_shader);
