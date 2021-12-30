@@ -36,7 +36,7 @@ pub enum AppState {
 
 fn main() {
     //I am initing this logger to avoid an error on mac
-    let simple_logger = SimpleLogger::init(LevelFilter::Warn, Config::default());
+    let _ = SimpleLogger::init(LevelFilter::Warn, Config::default());
     // Create the engine context and describe the window.
     Context::start(
         WindowSettings {

@@ -4,7 +4,7 @@ use storm::math::*;
 use serde::{Deserialize, Serialize};
 use storm::cgmath::Vector2;
 
-pub static CHARACTER_X_SPEED : f32 = 3.0;
+pub const CHARACTER_X_SPEED : f32 = 3.0;
 pub const FRAME_HISTORY_LENGTH: usize = 15;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
@@ -42,6 +42,22 @@ pub enum CharacterState {
     HeavyKick,
     ForwardDash,
     BackwardDash
+}
+
+#[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
+pub enum CharacterAction {
+    None,
+    MoveForward,
+    MoveBackward,
+    DashForward,
+    DashBackward,
+    LightAttack,
+    MediumAttack,
+    HeavyAttack,
+    LightKick,
+    MediumKick,
+    HeavyKick,
+    Crouch
 }
 
 
@@ -177,7 +193,7 @@ impl Character {
         return *self.animation_configs.get(&self.animation_state).unwrap();
     }
     
-    pub fn process_new_input(&mut self, frame_input: ScreenSideAdjustedInput) -> bool {
+    pub fn process_new_input(&mut self, frame_input: ScreenSideAdjustedInput) -> CharacterAction {
         if self.past_inputs.len() >= FRAME_HISTORY_LENGTH {
             self.past_inputs.remove(0);
         }
@@ -206,39 +222,71 @@ impl Character {
             else if dash_go == true {
                 if element.forward_down {
                     self.past_inputs.clear();
-                    return true;
+                    return CharacterAction::DashForward;
                 }
             }
         }
-        return false;
+
+        if frame_input.light_attack {
+            return CharacterAction::LightAttack;
+        }
+        else if frame_input.medium_attack {
+            return CharacterAction::MediumAttack;
+        }
+        else if frame_input.heavy_attack {
+            return CharacterAction::HeavyAttack;
+        }
+        else if frame_input.light_kick {
+            return CharacterAction::LightKick;
+        }
+        else if frame_input.medium_kick {
+            return CharacterAction::MediumKick;
+        }
+        else if frame_input.heavy_kick {
+            return CharacterAction::HeavyKick;
+        }
+        else if frame_input.forward_down {
+            return CharacterAction::MoveForward;
+        }
+        else if frame_input.backward_down {
+            return CharacterAction::MoveBackward;
+        }
+        else if frame_input.down_key_down {
+            return CharacterAction::Crouch;
+        }
+
+        return CharacterAction::None;
     }
     
     pub fn tick(&mut self, frame_input: Input) {
         let frame_input = ScreenSideAdjustedInput::new(&frame_input, self.screen_side);
 
-        let should_dash = self.process_new_input(frame_input.clone());
-        if should_dash {
+        let character_action = self.process_new_input(frame_input.clone());
+        if character_action == CharacterAction::DashForward{
             self.set_character_state(CharacterState::ForwardDash);
+        }
+        else if character_action == CharacterAction::DashBackward {
+            self.set_character_state(CharacterState::BackwardDash);
         }
         //We want an hierarcy of input to handle people button mashing
         //A character should generally be Attacking Over Moving Over Doing Nothing
         if self.can_attack() {
-            if frame_input.light_attack {
+            if character_action == CharacterAction::LightAttack {
                 self.set_character_state(CharacterState::LightAttack);
             }
-            else if frame_input.medium_attack {
+            else if character_action == CharacterAction::MediumAttack {
                 self.set_character_state(CharacterState::MediumAttack);
             }
-            else if frame_input.heavy_attack {
+            else if character_action == CharacterAction::HeavyAttack {
                 self.set_character_state(CharacterState::HeavyAttack);
             }
-            else if frame_input.light_kick {
+            else if character_action == CharacterAction::LightKick {
                 self.set_character_state(CharacterState::LightKick);
             }
-            else if frame_input.medium_kick {
+            else if character_action == CharacterAction::MediumKick {
                 self.set_character_state(CharacterState::MediumKick);
             }
-            else if frame_input.heavy_kick {
+            else if character_action == CharacterAction::HeavyKick {
                 self.set_character_state(CharacterState::HeavyKick);
             }
         }
@@ -251,13 +299,13 @@ impl Character {
         }
 
         if self.character_state == CharacterState::Idle || self.character_state == CharacterState::BackwardRun || self.character_state == CharacterState::ForwardRun {
-            if frame_input.forward_down {
+            if character_action == CharacterAction::MoveForward {
                 self.set_character_state(CharacterState::ForwardRun);
             }
-            else if frame_input.backward_down {
+            else if character_action == CharacterAction::MoveBackward {
                 self.set_character_state(CharacterState::BackwardRun);
             }
-            else if frame_input.down_key_down {
+            else if character_action == CharacterAction::Crouch {
                 if self.is_crouched == false {
                     self.is_crouched = true;
                     self.set_character_state(CharacterState::Crouching);
