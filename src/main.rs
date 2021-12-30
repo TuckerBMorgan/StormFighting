@@ -3,19 +3,18 @@ use core::time::Duration;
 
 extern crate simplelog;
 use simplelog::*;
-use std::net::SocketAddr;
+
 use storm::color::RGBA8;
 use storm::cgmath::{Vector2, Vector3};
 use storm::*;
-
+use storm::event::*;
 use storm::graphics::Texture;
 use storm::math::Transform;
 use instant::{Instant};
 use storm::fontdue::layout::LayoutSettings;
 use storm::fontdue::Font;
 use storm::graphics::shaders::text::{Text, TextShader, TextShaderPass};
-use structopt::StructOpt;
-use ggrs::{GGRSError, P2PSession, PlayerType, SessionState};
+use ggrs::{GGRSError, SessionState};
 
 mod game;
 mod shaders;
@@ -25,22 +24,9 @@ use shaders::*;
 
 static FONT: &[u8] = include_bytes!("resources/ka1.ttf");
 
-const FPS: f64 = 60.0;
-const INPUT_SIZE: usize = std::mem::size_of::<[u8;2]>();
 
 const X_SCALE : u16 = 4;
 const Y_SCALE : u16 = 4;
-
-#[derive(StructOpt)]
-struct Opt {
-    #[structopt(short, long)]
-    local_port: u16,
-    #[structopt(short, long)]
-    players: Vec<String>,
-    #[structopt(short, long)]
-    spectators: Vec<SocketAddr>,
-}
-
 #[derive(Eq, PartialEq)]
 pub enum AppState {
     Play,
@@ -49,6 +35,7 @@ pub enum AppState {
 }
 
 fn main() {
+    //I am initing this logger to avoid an error on mac
     let simple_logger = SimpleLogger::init(LevelFilter::Warn, Config::default());
     // Create the engine context and describe the window.
     Context::start(
@@ -65,50 +52,6 @@ fn main() {
     );
 }
 
-fn launch_session() -> (P2PSession, usize) {
-    // read cmd line arguments
-    let opt = Opt::from_args();
-    let mut local_handle = 0;
-    let num_players = opt.players.len();
-    assert!(num_players > 0);
-
-    // create a GGRS session
-    let mut sess = P2PSession::new(num_players as u32, INPUT_SIZE, opt.local_port).unwrap();
-
-    // turn on sparse saving
-    sess.set_sparse_saving(true).unwrap();
-
-    // set FPS (default is 60, so this doesn't change anything as is)
-    sess.set_fps(FPS as u32).unwrap();
-
-    // add players
-    for (i, player_addr) in opt.players.iter().enumerate() {
-        // local player
-        if player_addr == "localhost" {
-            sess.add_player(PlayerType::Local, i).unwrap();
-            local_handle = i;
-        } else {
-            // remote players
-            let remote_addr: SocketAddr = player_addr.parse().unwrap();
-            sess.add_player(PlayerType::Remote(remote_addr), i).unwrap();
-        }
-    }
-
-    // optionally, add spectators
-    for (i, spec_addr) in opt.spectators.iter().enumerate() {
-        sess.add_player(PlayerType::Spectator(*spec_addr), num_players + i).unwrap();
-    }
-
-    // set input delay for the local player
-    sess.set_frame_delay(4, local_handle).unwrap();
-
-    // set change default expected update frequency
-    sess.set_fps(FPS as u32).unwrap();
-
-    // start the GGRS session
-    sess.start_session().unwrap();
-    return (sess, local_handle);
-}
 
 //Reusable function that loads the character sprite, the shader to render it, and where on the screen it will be
 fn load_character_sprite(animation_library: &AnimationTextureLibrary, ctx: &Context, character: &mut Character) -> ([Sprite; 1], SpriteShaderPass) { 
@@ -231,9 +174,9 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
     let (mut sprites_2, 
         mut sprite_2) = load_character_sprite(&animation_library, ctx,&mut game.current_round.character_2);
 
-    //let (mut background_sprite, mut background_sprite_pass) = setup_background(ctx);
+    let (mut background_sprite, mut background_sprite_pass) = setup_background(ctx);
     let (mut health_bars, mut health_bar_render_pass)  = setup_healthbars(ctx);
-    //let (mut text_layer, text_shader) = setup_round_timer_text(ctx);
+    let (mut text_layer, text_shader) = setup_round_timer_text(ctx);
 
     //load the font used for the timer
     let fonts = [Font::from_bytes(FONT, Default::default()).unwrap()];
@@ -316,7 +259,7 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
                     sprites_2[0].pos.x = game.current_round.character_2.character_position.x * X_SCALE as f32;
 
                 }
-                /*
+                
                 text_layer.clear_text();
                 text_layer.append(
                     &fonts,
@@ -331,10 +274,10 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
                 );
 
                 text_layer.draw(&text_shader);
-                */
+                
                 //Commit the current images to the screen
-               // background_sprite_pass.buffer.set(&mut background_sprite);
-               // background_sprite_pass.draw(&sprite_shader);
+                background_sprite_pass.buffer.set(&mut background_sprite);
+                background_sprite_pass.draw(&sprite_shader);
 
                 sprite_1.buffer.set(&sprites_1);
                 sprite_1.draw(&sprite_shader);

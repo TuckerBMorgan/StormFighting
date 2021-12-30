@@ -266,7 +266,7 @@ impl Character {
         }
 
         if self.character_state == CharacterState::ForwardRun || self.character_state == CharacterState::BackwardRun {
-            if frame_input.light_attack == false && frame_input.left_key_down == false && frame_input.right_key_down == false {
+            if frame_input.light_attack == false && frame_input.forward_down == false && frame_input.backward_down == false {
                 self.set_character_state(CharacterState::Idle);
             }
         }

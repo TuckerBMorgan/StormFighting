@@ -1,5 +1,6 @@
 use ggrs::GameInput;
-use storm::*;
+use storm::event::*;
+use super::*;
 use serde::{Deserialize, Serialize};
 
 //To reduce the size of the input we send between 
@@ -155,7 +156,7 @@ pub struct ScreenSideAdjustedInput {
 
 impl ScreenSideAdjustedInput {
     pub fn new(input: &Input, screen_side: ScreenSide) -> ScreenSideAdjustedInput {
-        let mut fowrard = false;
+        let mut forward = false;
         if screen_side == ScreenSide::Left && input.right_key_down {
             forward = true;
         }

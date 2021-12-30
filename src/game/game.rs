@@ -1,5 +1,5 @@
-use storm::*;
 
+use storm::event::*;
 use ggrs::{Frame, GGRSRequest, GameInput, GameState, GameStateCell, PlayerHandle, NULL_FRAME};
 
 use super::*;
