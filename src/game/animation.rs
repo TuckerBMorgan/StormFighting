@@ -1,6 +1,8 @@
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use storm::graphics::Texture;
+use storm::graphics::TextureSection;
+
 pub static IDLE_TEXTURE: &[u8] = include_bytes!("../resources/idle.png");
 pub static FORWARD_RUN_TEXTURE: &[u8] = include_bytes!("../resources/forward_run.png");
 pub static BACKGROUND_RUN_TEXTURE: &[u8] = include_bytes!("../resources/backward_run.png");
@@ -17,8 +19,9 @@ pub static HEAVY_CROUCH_ATTACK: &[u8] = include_bytes!("../resources/heavy_crouc
 pub static LIGHT_KICK: &[u8] = include_bytes!("../resources/light_kick.png");
 pub static MEDIUM_KICK: &[u8] = include_bytes!("../resources/medium_kick.png");
 pub static HEAVY_KICK: &[u8] = include_bytes!("../resources/heavy_kick.png");
+pub static FORWARD_DASH: &[u8] = include_bytes!("../resources/forward_dash.png");
+pub static BACKWARD_DASH: &[u8] = include_bytes!("../resources/backward_dash.png");
 
-use storm::graphics::TextureSection;
 pub static FRAME_HEIGHT: u32 =  178;
 pub static FRAME_WIDTH: u32 =  290;
 
@@ -38,7 +41,9 @@ pub enum AnimationState {
     HeavyCrouchingAttack,
     LightKick,
     MediumKick,
-    HeavyKick
+    HeavyKick,
+    ForwardDash,
+    BackwardDash
 }
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
 //A frame number based timer for sprites IE: Does not use delta timer/real time it is an monotonic timer
@@ -162,6 +167,8 @@ impl Default for AnimationTextureLibrary {
         animation_library.load_animation(LIGHT_KICK, AnimationState::LightKick);
         animation_library.load_animation(MEDIUM_KICK, AnimationState::MediumKick);
         animation_library.load_animation(HEAVY_KICK, AnimationState::HeavyKick);
+        animation_library.load_animation(FORWARD_DASH, AnimationState::ForwardDash);
+        animation_library.load_animation(BACKWARD_DASH, AnimationState::BackwardDash);
         return animation_library;
     }
 }

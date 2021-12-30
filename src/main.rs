@@ -341,8 +341,8 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
 
                 sprite_2.buffer.set(&sprites_2);
                 sprite_2.draw(&sprite_shader);
-                health_bars[0].size.x = (750.0 * (game.current_round.character_1.health as f32 / 100.0)) as u16;
-                health_bars[1].size.x = (750.0 * (game.current_round.character_2.health as f32 / 100.0)) as u16;
+                health_bars[0].size.x = (750.0 * (game.current_round.character_1.health as f32 / 250.0)) as u16;
+                health_bars[1].size.x = (750.0 * (game.current_round.character_2.health as f32 / 250.0)) as u16;
 
                 health_bar_render_pass.buffer.set(&health_bars);
                 health_bar_render_pass.draw(&sprite_shader);

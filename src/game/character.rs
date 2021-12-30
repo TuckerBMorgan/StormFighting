@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use storm::cgmath::Vector2;
 
 pub static CHARACTER_X_SPEED : f32 = 3.0;
+pub const FRAME_HISTORY_LENGTH: usize = 15;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
 pub enum ScreenSide {
@@ -38,24 +39,28 @@ pub enum CharacterState {
     Crouching,
     LightKick,
     MediumKick,
-    HeavyKick
+    HeavyKick,
+    ForwardDash,
+    BackwardDash
 }
 
 
 #[derive(Serialize, Deserialize)]
 pub struct Character {
-    pub animation_state: AnimationState,
-    pub character_state: CharacterState,
-    pub animation_configs: HashMap<AnimationState, AnimationConfig>,
-    pub character_position: Vector2<f32>,
-    pub character_velocity: Vector2<f32>,
-    pub screen_side: ScreenSide,
-    pub health: u32,
-    pub is_crouched: bool
+    pub animation_state: AnimationState, //The characters current animation it is playing
+    pub character_state: CharacterState, //The current character states
+    pub animation_configs: HashMap<AnimationState, AnimationConfig>,//TODO: lift this up one level, it is getting rolled back when it does not need to
+    pub character_position: Vector2<f32>, //Where in the world it is
+    pub character_velocity: Vector2<f32>, //How far it wants to move this frame
+    pub screen_side: ScreenSide, //Which side of the screen it is on
+    pub health: u32, //How much health it has
+    pub is_crouched: bool, //Is character crouched at the moment, used so we don't have a set of "crouched" states
+    pub past_inputs: Vec<ScreenSideAdjustedInput>, //A ring buffer that contains the last 60 input states(about 1 second of input)
 }
 
 impl Character {
-    pub fn new(screen_side: ScreenSide) ->Character{
+    pub fn new(screen_side: ScreenSide) -> Character {
+
         Character {
             animation_state: AnimationState::Idle,
             character_state: CharacterState::Idle,
@@ -63,8 +68,9 @@ impl Character {
             character_position: Vector2::new(0.0, 0.0),
             character_velocity: Vector2::new(0.0, 0.0),
             screen_side,
-            health: 100,
-            is_crouched: false
+            health: 250,
+            is_crouched: false,
+            past_inputs: vec![]
         }
     }
 
@@ -134,6 +140,12 @@ impl Character {
             },
             CharacterState::HeavyKick => {
                 animation_state = AnimationState::HeavyKick;
+            },
+            CharacterState::ForwardDash => {
+                animation_state = AnimationState::ForwardDash;
+            },
+            CharacterState::BackwardDash => {
+                animation_state = AnimationState::BackwardDash;
             }
         }
 
@@ -144,40 +156,13 @@ impl Character {
         //This is a State machine that controls which states a character
         //can move between
         match self.character_state {
-            CharacterState::Idle => {
-                CharacterState::Idle
-            },
             CharacterState::ForwardRun => {
                 CharacterState::ForwardRun
             },
             CharacterState::BackwardRun => {
                 CharacterState::BackwardRun
             },
-            CharacterState::LightAttack => {
-                CharacterState::Idle
-            },
-            CharacterState::MediumAttack => {
-                CharacterState::Idle
-            },
-            CharacterState::HeavyAttack => {
-                CharacterState::Idle
-            },
-            CharacterState::LightHitRecovery => {
-                CharacterState::Idle
-            },
-            CharacterState::Blocking => {
-                CharacterState::Idle
-            },
-            CharacterState::Crouching => {
-                CharacterState::Idle
-            },
-            CharacterState::LightKick => {
-                CharacterState::Idle
-            },
-            CharacterState::MediumKick => {
-                CharacterState::Idle
-            },
-            CharacterState::HeavyKick => {
+            _ => {
                 CharacterState::Idle
             }
         }
@@ -192,7 +177,49 @@ impl Character {
         return *self.animation_configs.get(&self.animation_state).unwrap();
     }
     
+    pub fn process_new_input(&mut self, frame_input: ScreenSideAdjustedInput) -> bool {
+        if self.past_inputs.len() >= FRAME_HISTORY_LENGTH {
+            self.past_inputs.remove(0);
+        }
+        
+        self.past_inputs.push(frame_input);
+
+        let mut dash_start = false;
+        let mut dash_confirm = false;
+        let mut dash_go = false;
+        for element in &self.past_inputs {
+            if dash_start == false {
+                if element.forward_down == false {
+                    dash_start = true;
+                }
+            }
+            else if dash_start && dash_confirm == false {
+                if element.forward_down {
+                    dash_confirm = true;
+                }
+            }
+            else if dash_start && dash_confirm && dash_go == false {
+                if element.forward_down == false {
+                    dash_go = true;
+                }
+            }
+            else if dash_go == true {
+                if element.forward_down {
+                    self.past_inputs.clear();
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
     pub fn tick(&mut self, frame_input: Input) {
+        let frame_input = ScreenSideAdjustedInput::new(&frame_input, self.screen_side);
+
+        let should_dash = self.process_new_input(frame_input.clone());
+        if should_dash {
+            self.set_character_state(CharacterState::ForwardDash);
+        }
         //We want an hierarcy of input to handle people button mashing
         //A character should generally be Attacking Over Moving Over Doing Nothing
         if self.can_attack() {
@@ -217,28 +244,18 @@ impl Character {
         }
         //If we are in the normal crouched animation, Idle + IsCrouched, and we are no longer holding the down key
         //Stand the character up
-        //TODO: add in a "standing_up" state and animation
+        //TODO: add in a "standing_up" animation state and animation
         if self.character_state == CharacterState::Idle && self.is_crouched && frame_input.down_key_down == false {
             self.is_crouched = false;
             self.set_character_state(CharacterState::Idle);
         }
 
         if self.character_state == CharacterState::Idle || self.character_state == CharacterState::BackwardRun || self.character_state == CharacterState::ForwardRun {
-            if frame_input.left_key_down {
-                if self.screen_side == ScreenSide::Right {
-                    self.set_character_state(CharacterState::ForwardRun);
-                }
-                else {
-                    self.set_character_state(CharacterState::BackwardRun);
-                }
+            if frame_input.forward_down {
+                self.set_character_state(CharacterState::ForwardRun);
             }
-            else if frame_input.right_key_down {
-                if self.screen_side == ScreenSide::Right {
-                    self.set_character_state(CharacterState::BackwardRun);
-                }
-                else {
-                    self.set_character_state(CharacterState::ForwardRun);
-                }
+            else if frame_input.backward_down {
+                self.set_character_state(CharacterState::BackwardRun);
             }
             else if frame_input.down_key_down {
                 if self.is_crouched == false {
@@ -275,6 +292,9 @@ impl Character {
         //Lasting state doing state based actions like, moving
         if self.character_state == CharacterState::ForwardRun {
             self.character_velocity.x = -(CHARACTER_X_SPEED * self.screen_side.direction());
+        }
+        else if self.character_state == CharacterState::ForwardDash {
+            self.character_velocity.x = -(CHARACTER_X_SPEED * self.screen_side.direction()) * 2.0;
         }
         else if self.character_state == CharacterState::BackwardRun {
             self.character_velocity.x = CHARACTER_X_SPEED * self.screen_side.direction();
@@ -315,8 +335,6 @@ impl Character {
         return (self.animation_state, current_frame);
     }
 
-
-
     // The "Walk box" is what AABB used to move the character
     // It is not part of the collision system used for combat
     pub fn get_walk_box(&self)  -> AABB2D {
@@ -329,36 +347,61 @@ impl Character {
         */
         //These numbers are ones that I grabbed off of my old first passs on hit boxes
         //They need to be data driven at some point
-        //TODO: REMOVE THE MAGJIC NUMBERS
+        //TODO: REMOVE THE MAGIC NUMBERS
         return AABB2D::new(self.character_position.x + 131.0, self.character_position.y + 57.0, 
                            self.character_position.x + 131.0 + 33.0, self.character_position.y + 57.0 + 103.0);
     }
 
+    pub fn get_current_damage(&self) -> u32 {
+        match self.character_state  {
+            CharacterState::LightAttack 
+                | CharacterState::LightKick => {
+                    return 10;
+            },
+            CharacterState::MediumAttack 
+                | CharacterState::MediumKick => {
+                    return 20;
+            },
+            CharacterState::HeavyAttack 
+                | CharacterState::HeavyKick => {
+                return 30;
+            }
+            _ => {
+                return 0;
+            }
+        }
+    }
+
+    #[inline(always)]
     pub fn can_attack(&self) -> bool {
         return self.character_state == CharacterState::Idle 
                 || self.character_state == CharacterState::ForwardRun 
-                || self.character_state == CharacterState::BackwardRun;
+                || self.character_state == CharacterState::BackwardRun
+                || self.character_state == CharacterState::ForwardDash;
     }
 }
 
+//TODO: make this data driven, this is tedious and error prone
 impl Default for Character {
     fn default() -> Self {
         let mut character = Character::new(ScreenSide::Left);
-        character.load_animation_config(AnimationState::Idle, AnimationConfig::new(10, 4));
-        character.load_animation_config(AnimationState::ForwardRun, AnimationConfig::new(12, 4));
-        character.load_animation_config(AnimationState::BackwardRun, AnimationConfig::new(10, 4));
-        character.load_animation_config(AnimationState::LightAttack, AnimationConfig::new(5, 4));
-        character.load_animation_config(AnimationState::MediumAttack, AnimationConfig::new(8, 4));
-        character.load_animation_config(AnimationState::HeavyAttack, AnimationConfig::new(11, 4));
-        character.load_animation_config(AnimationState::LightHitRecovery, AnimationConfig::new(4, 4));
-        character.load_animation_config(AnimationState::Blocking, AnimationConfig::new(4, 4));
-        character.load_animation_config(AnimationState::Crouched, AnimationConfig::new(4, 4));
-        character.load_animation_config(AnimationState::Crouching, AnimationConfig::new(2, 4));
-        character.load_animation_config(AnimationState::LightCrouchAttack, AnimationConfig::new(5, 4));
+        character.load_animation_config(AnimationState::Idle,                 AnimationConfig::new(10, 4));
+        character.load_animation_config(AnimationState::ForwardRun,           AnimationConfig::new(12, 4));
+        character.load_animation_config(AnimationState::BackwardRun,          AnimationConfig::new(10, 4));
+        character.load_animation_config(AnimationState::LightAttack,          AnimationConfig::new(5, 4));
+        character.load_animation_config(AnimationState::MediumAttack,         AnimationConfig::new(8, 4));
+        character.load_animation_config(AnimationState::HeavyAttack,          AnimationConfig::new(11, 4));
+        character.load_animation_config(AnimationState::LightHitRecovery,     AnimationConfig::new(4, 4));
+        character.load_animation_config(AnimationState::Blocking,             AnimationConfig::new(4, 4));
+        character.load_animation_config(AnimationState::Crouched,             AnimationConfig::new(4, 4));
+        character.load_animation_config(AnimationState::Crouching,            AnimationConfig::new(2, 4));
+        character.load_animation_config(AnimationState::LightCrouchAttack,    AnimationConfig::new(5, 4));
         character.load_animation_config(AnimationState::HeavyCrouchingAttack, AnimationConfig::new(9, 4));
-        character.load_animation_config(AnimationState::LightKick, AnimationConfig::new(6, 4));
-        character.load_animation_config(AnimationState::MediumKick, AnimationConfig::new(8, 4));
-        character.load_animation_config(AnimationState::HeavyKick, AnimationConfig::new(13, 4));
+        character.load_animation_config(AnimationState::LightKick,            AnimationConfig::new(6, 4));
+        character.load_animation_config(AnimationState::MediumKick,           AnimationConfig::new(8, 4));
+        character.load_animation_config(AnimationState::HeavyKick,            AnimationConfig::new(13, 4));
+        character.load_animation_config(AnimationState::ForwardDash,          AnimationConfig::new(6, 4));
+        character.load_animation_config(AnimationState::BackwardDash,         AnimationConfig::new(6, 4));
         return character;
     }
 }

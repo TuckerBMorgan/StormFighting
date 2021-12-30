@@ -11,13 +11,19 @@ pub struct Round {
     pub character_2: Character,
     pub frame: i32,
     pub round_timer: SpriteTimer,
-    pub round_done: bool
+    pub round_done: bool,
+    pub hit_stun_counter: usize
 
 }
 
 impl Round {
     pub fn advance(&mut self, inputs: Vec<GameInput>, collision_library: &CollisionLibrary) {
+        
         self.frame += 1;
+        if self.hit_stun_counter > 0 {
+            self.hit_stun_counter -= 1;
+            return;
+        }
         self.character_1.tick(Input::from_game_input(inputs[0]));
         self.character_2.tick(Input::from_game_input(inputs[1]));
 
@@ -136,20 +142,25 @@ impl Round {
             
         }
 
+        //Preform strikes and assign damage
         for strike in strikes {
             match strike.collider_character {
                 CharacterNumber::Number1 =>  {
-                    self.character_2.do_damage(10);
+                    self.character_2.do_damage(self.character_1.get_current_damage());
+                    self.hit_stun_counter += 3;
                 },
                 CharacterNumber::Number2 => {
-                    self.character_1.do_damage(10);
+                    self.character_1.do_damage(self.character_2.get_current_damage());
+                    self.hit_stun_counter += 3;
                 }
             }
         }
 
+        //If either player has died
         if self.character_1.health == 0 || self.character_2.health == 0 {
             self.round_done = true;
         }
+        //Or we have just finished the game
         else if self.round_timer.finished() {
             self.round_done = true;
         }
@@ -172,7 +183,8 @@ impl Default for Round{
             character_2,
             frame: 0,
             round_timer: SpriteTimer::new(60 * 60),
-            round_done: false
+            round_done: false,
+            hit_stun_counter: 0
         }
     }
 }

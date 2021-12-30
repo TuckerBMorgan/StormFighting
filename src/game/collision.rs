@@ -17,6 +17,8 @@ pub static HEAVY_CROUCH_ATTACK_COLLISION: &[u8] = include_bytes!("../resources/h
 pub static LIGHT_KICK_COLLISION: &[u8] = include_bytes!("../resources/light_kick.ase");
 pub static MEDIUM_KICK_COLLISION: &[u8] = include_bytes!("../resources/medium_kick.ase");
 pub static HEAVY_KICK_COLLISION: &[u8] = include_bytes!("../resources/heavy_kick.ase");
+pub static FORWARD_DASH_COLLISION: &[u8] = include_bytes!("../resources/forward_dash.ase");
+pub static BACKWARD_DASH_COLLISION: &[u8] = include_bytes!("../resources/backward_dash.ase");
 
 pub trait Reflect {
     fn reflect(&self, x_axis: usize) -> AABB2D;
@@ -164,6 +166,8 @@ impl CollisionLibrary {
         let light_kick = CollisionInfo::from_byte(LIGHT_KICK_COLLISION);
         let medium_kick = CollisionInfo::from_byte(MEDIUM_KICK_COLLISION);
         let heavy_kick = CollisionInfo::from_byte(HEAVY_KICK_COLLISION);
+        let forward_dash = CollisionInfo::from_byte(FORWARD_DASH_COLLISION);
+        let backward_dash = CollisionInfo::from_byte(BACKWARD_DASH_COLLISION);
 
         let mut collision_lib = CollisionLibrary::new();
         collision_lib.collision_info.insert(AnimationState::Idle, idle);
@@ -179,6 +183,8 @@ impl CollisionLibrary {
         collision_lib.collision_info.insert(AnimationState::LightKick, light_kick);
         collision_lib.collision_info.insert(AnimationState::MediumKick, medium_kick);
         collision_lib.collision_info.insert(AnimationState::HeavyKick, heavy_kick);
+        collision_lib.collision_info.insert(AnimationState::ForwardDash, forward_dash);
+        collision_lib.collision_info.insert(AnimationState::BackwardDash, backward_dash);
 
         return collision_lib;
     }
