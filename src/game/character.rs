@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use storm::cgmath::Vector2;
 
 pub const CHARACTER_X_SPEED : f32 = 3.0;
-pub const FRAME_HISTORY_LENGTH: usize = 15;
+pub const FRAME_HISTORY_LENGTH: usize = 30;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
 pub enum ScreenSide {
@@ -26,7 +26,7 @@ impl ScreenSide {
     }
 }
 
-#[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
+#[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone, Debug)]
 pub enum CharacterState {
     Idle,
     ForwardRun,
@@ -41,10 +41,11 @@ pub enum CharacterState {
     MediumKick,
     HeavyKick,
     ForwardDash,
-    BackwardDash
+    BackwardDash,
+    Special1
 }
 
-#[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
+#[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone, Debug)]
 pub enum CharacterAction {
     None,
     MoveForward,
@@ -57,9 +58,23 @@ pub enum CharacterAction {
     LightKick,
     MediumKick,
     HeavyKick,
-    Crouch
+    Crouch,
+    Special1
 }
 
+pub struct AnimationStateForCharacterState {
+    pub crouched: AnimationState,
+    pub standing: AnimationState
+}
+
+impl AnimationStateForCharacterState {
+    pub fn new(crouched: AnimationState, standing: AnimationState) -> AnimationStateForCharacterState {
+        AnimationStateForCharacterState {
+            crouched,
+            standing
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize)]
 pub struct Character {
@@ -71,7 +86,7 @@ pub struct Character {
     pub screen_side: ScreenSide, //Which side of the screen it is on
     pub health: u32, //How much health it has
     pub is_crouched: bool, //Is character crouched at the moment, used so we don't have a set of "crouched" states
-    pub past_inputs: Vec<ScreenSideAdjustedInput>, //A ring buffer that contains the last 60 input states(about 1 second of input)
+    pub past_inputs: Vec<ScreenSideAdjustedInput>, //A buffer that contains the last FRAME_HISTORY_LENGTH input states
 }
 
 impl Character {
@@ -94,78 +109,15 @@ impl Character {
         self.animation_configs.insert(animation_state, animation_config);
     }
 
-    pub fn set_character_state(&mut self, new_state: CharacterState) {
+    pub fn set_character_state(&mut self, new_state: CharacterState, animation_for_character_state_library: &HashMap<CharacterState, AnimationStateForCharacterState>) {
 
         self.character_state = new_state;
-        //Find out which of the animation states corresponds to the character state 
-        //transitioning into
-        let animation_state;
-        match self.character_state {
-            CharacterState::Idle => {
-                if self.is_crouched {
-                    animation_state = AnimationState::Crouched;
-                }
-                else {
-                    animation_state = AnimationState::Idle;
-                }
-            },
-            CharacterState::ForwardRun => {
-                animation_state = AnimationState::ForwardRun;
-            },
-            CharacterState::BackwardRun => {
-                animation_state = AnimationState::BackwardRun;
-            },
-            CharacterState::LightAttack => {
-                if self.is_crouched {
-                    animation_state = AnimationState::LightCrouchAttack;
-                }
-                else {
-                    animation_state = AnimationState::LightAttack;
-                }
-            },
-            CharacterState::LightHitRecovery => {
-                animation_state = AnimationState::LightHitRecovery;
-            },
-            CharacterState::Blocking => {
-                animation_state = AnimationState::Blocking;
-            },
-            CharacterState::Crouching => {
-                animation_state = AnimationState::Crouching;
-            },
-            CharacterState::MediumAttack => {
-                if self.is_crouched {
-                    animation_state = AnimationState::LightCrouchAttack;
-                }
-                else {
-                    animation_state = AnimationState::MediumAttack;
-                }
-            },
-            CharacterState::HeavyAttack => {
-                if self.is_crouched {
-                    animation_state = AnimationState::HeavyCrouchingAttack;
-                }
-                else {
-                    animation_state = AnimationState::HeavyAttack;
-                }
-            },
-            CharacterState::LightKick => {
-                animation_state = AnimationState::LightKick;
-            },
-            CharacterState::MediumKick => {
-                animation_state = AnimationState::MediumKick;
-            },
-            CharacterState::HeavyKick => {
-                animation_state = AnimationState::HeavyKick;
-            },
-            CharacterState::ForwardDash => {
-                animation_state = AnimationState::ForwardDash;
-            },
-            CharacterState::BackwardDash => {
-                animation_state = AnimationState::BackwardDash;
-            }
+        if self.is_crouched {
+            self.set_animation_state(animation_for_character_state_library.get(&self.character_state).unwrap().crouched);
         }
-
-        self.set_animation_state(animation_state);
+        else {
+            self.set_animation_state(animation_for_character_state_library.get(&self.character_state).unwrap().standing);
+        }
     }
 
     pub fn finished_animation_whats_next(&mut self) -> CharacterState {
@@ -193,36 +145,26 @@ impl Character {
         return *self.animation_configs.get(&self.animation_state).unwrap();
     }
     
-    pub fn process_new_input(&mut self, frame_input: ScreenSideAdjustedInput) -> CharacterAction {
+    pub fn process_new_input(&mut self, frame_input: ScreenSideAdjustedInput, combo_library: &mut ComboLibrary) -> CharacterAction {
+
         if self.past_inputs.len() >= FRAME_HISTORY_LENGTH {
             self.past_inputs.remove(0);
         }
-        
+
+        combo_library.reset();
         self.past_inputs.push(frame_input);
 
-        let mut dash_start = false;
-        let mut dash_confirm = false;
-        let mut dash_go = false;
         for element in &self.past_inputs {
-            if dash_start == false {
-                if element.forward_down == false {
-                    dash_start = true;
-                }
-            }
-            else if dash_start && dash_confirm == false {
-                if element.forward_down {
-                    dash_confirm = true;
-                }
-            }
-            else if dash_start && dash_confirm && dash_go == false {
-                if element.forward_down == false {
-                    dash_go = true;
-                }
-            }
-            else if dash_go == true {
-                if element.forward_down {
-                    self.past_inputs.clear();
-                    return CharacterAction::DashForward;
+            for combo in combo_library.combos.iter_mut() {
+                match combo.process_input(element) {
+                    Some(character_action) => {
+                        self.past_inputs.clear();
+                        println!("{:?}", character_action);
+                        return character_action;
+                    }
+                    None => {
+
+                    }
                 }
             }
         }
@@ -254,106 +196,11 @@ impl Character {
         else if frame_input.down_key_down {
             return CharacterAction::Crouch;
         }
+        
 
         return CharacterAction::None;
     }
-    
-    pub fn tick(&mut self, frame_input: Input) {
-        let frame_input = ScreenSideAdjustedInput::new(&frame_input, self.screen_side);
 
-        let character_action = self.process_new_input(frame_input.clone());
-        if character_action == CharacterAction::DashForward{
-            self.set_character_state(CharacterState::ForwardDash);
-        }
-        else if character_action == CharacterAction::DashBackward {
-            self.set_character_state(CharacterState::BackwardDash);
-        }
-        //We want an hierarcy of input to handle people button mashing
-        //A character should generally be Attacking Over Moving Over Doing Nothing
-        if self.can_attack() {
-            if character_action == CharacterAction::LightAttack {
-                self.set_character_state(CharacterState::LightAttack);
-            }
-            else if character_action == CharacterAction::MediumAttack {
-                self.set_character_state(CharacterState::MediumAttack);
-            }
-            else if character_action == CharacterAction::HeavyAttack {
-                self.set_character_state(CharacterState::HeavyAttack);
-            }
-            else if character_action == CharacterAction::LightKick {
-                self.set_character_state(CharacterState::LightKick);
-            }
-            else if character_action == CharacterAction::MediumKick {
-                self.set_character_state(CharacterState::MediumKick);
-            }
-            else if character_action == CharacterAction::HeavyKick {
-                self.set_character_state(CharacterState::HeavyKick);
-            }
-        }
-        //If we are in the normal crouched animation, Idle + IsCrouched, and we are no longer holding the down key
-        //Stand the character up
-        //TODO: add in a "standing_up" animation state and animation
-        if self.character_state == CharacterState::Idle && self.is_crouched && frame_input.down_key_down == false {
-            self.is_crouched = false;
-            self.set_character_state(CharacterState::Idle);
-        }
-
-        if self.character_state == CharacterState::Idle || self.character_state == CharacterState::BackwardRun || self.character_state == CharacterState::ForwardRun {
-            if character_action == CharacterAction::MoveForward {
-                self.set_character_state(CharacterState::ForwardRun);
-            }
-            else if character_action == CharacterAction::MoveBackward {
-                self.set_character_state(CharacterState::BackwardRun);
-            }
-            else if character_action == CharacterAction::Crouch {
-                if self.is_crouched == false {
-                    self.is_crouched = true;
-                    self.set_character_state(CharacterState::Crouching);
-                }
-            }
-        }
-
-        if self.character_state == CharacterState::ForwardRun || self.character_state == CharacterState::BackwardRun {
-            if frame_input.light_attack == false && frame_input.forward_down == false && frame_input.backward_down == false {
-                self.set_character_state(CharacterState::Idle);
-            }
-        }
-
-        //Then tick the animations to see if we have finished any and we need to be in a new state
-        let mut current_animation = self.animation_configs.get_mut(&self.animation_state).unwrap();
-        current_animation.sprite_timer.tick();
-        if current_animation.sprite_timer.finished() {
-            current_animation.sprite_timer.reset();
-            current_animation.current_frame += 1;
-            //If we have finished the animation move the character into the
-            //next state, be that loop(like idle or run)
-            //or a steady state like Attack -> Idle
-            if current_animation.is_done() {
-                current_animation.reset();
-                let new_state = {
-                    self.finished_animation_whats_next()
-                };
-                self.set_character_state(new_state);
-            }
-        }
-        
-        //Lasting state doing state based actions like, moving
-        if self.character_state == CharacterState::ForwardRun {
-            self.character_velocity.x = -(CHARACTER_X_SPEED * self.screen_side.direction());
-        }
-        else if self.character_state == CharacterState::ForwardDash {
-            self.character_velocity.x = -(CHARACTER_X_SPEED * self.screen_side.direction()) * 2.0;
-        }
-        else if self.character_state == CharacterState::BackwardRun {
-            self.character_velocity.x = CHARACTER_X_SPEED * self.screen_side.direction();
-        }
-        else if self.character_state == CharacterState::LightHitRecovery {
-            self.character_velocity.x = CHARACTER_X_SPEED * self.screen_side.direction();
-        }
-        else {
-            self.character_velocity.x = 0.0;
-        }
-    }
 
     //Returns if the character is in the subset of states that are "damageable" ei: Non recovery states
     //At some point we should remove this, and simply  have frames marked as "invulnerable"
@@ -361,21 +208,6 @@ impl Character {
     pub fn is_in_damageable_state(&self) -> bool {
         return self.character_state != CharacterState::LightHitRecovery;
     }
-    
-    //Do an amount of damage to the character
-    pub fn do_damage(&mut self, amount: u32) {
-        match self.character_state {
-            CharacterState::Blocking => {
-                self.health -= amount / 10;
-                self.set_character_state(CharacterState::Blocking);
-            }
-            _ => {
-                self.health -= amount;
-                self.set_character_state(CharacterState::LightHitRecovery);
-            }
-        }
-    }
-
     //A function used to get the information need to lookup a collision box
     pub fn get_collision_box_lookup_info(&self) -> (AnimationState, u32) {
         let current_animation = self.animation_configs.get(&self.animation_state).unwrap();
@@ -422,10 +254,12 @@ impl Character {
 
     #[inline(always)]
     pub fn can_attack(&self) -> bool {
-        return self.character_state == CharacterState::Idle 
-                || self.character_state == CharacterState::ForwardRun 
-                || self.character_state == CharacterState::BackwardRun
-                || self.character_state == CharacterState::ForwardDash;
+        let is_in_idle_state = self.character_state == CharacterState::Idle 
+            || self.character_state == CharacterState::ForwardRun 
+            || self.character_state == CharacterState::BackwardRun
+            || self.character_state == CharacterState::ForwardDash
+            || self.character_state == CharacterState::Crouching;
+        return is_in_idle_state;
     }
 }
 
@@ -450,6 +284,7 @@ impl Default for Character {
         character.load_animation_config(AnimationState::HeavyKick,            AnimationConfig::new(13, 4));
         character.load_animation_config(AnimationState::ForwardDash,          AnimationConfig::new(6, 4));
         character.load_animation_config(AnimationState::BackwardDash,         AnimationConfig::new(6, 4));
+        character.load_animation_config(AnimationState::Special1,             AnimationConfig::new(14, 4));
         return character;
     }
 }

@@ -6,8 +6,9 @@ use simplelog::*;
 
 use storm::color::RGBA8;
 use storm::cgmath::{Vector2, Vector3};
-use storm::*;
+use storm::graphics::*;
 use storm::event::*;
+use storm::*;
 use storm::graphics::Texture;
 use storm::math::Transform;
 use instant::{Instant};
@@ -23,7 +24,7 @@ use game::*;
 use shaders::*;
 
 static FONT: &[u8] = include_bytes!("resources/ka1.ttf");
-
+static FIREBALL: &[u8] = include_bytes!("resources/fireball_main.png");
 
 const X_SCALE : u16 = 4;
 const Y_SCALE : u16 = 4;
@@ -38,7 +39,7 @@ fn main() {
     //I am initing this logger to avoid an error on mac
     let _ = SimpleLogger::init(LevelFilter::Warn, Config::default());
     // Create the engine context and describe the window.
-    Context::start(
+    start(
         WindowSettings {
             title: String::from("Storm Fighting"),
             display_mode: DisplayMode::Windowed {
@@ -54,8 +55,8 @@ fn main() {
 
 
 //Reusable function that loads the character sprite, the shader to render it, and where on the screen it will be
-fn load_character_sprite(animation_library: &AnimationTextureLibrary, ctx: &Context, character: &mut Character) -> ([Sprite; 1], SpriteShaderPass) { 
-    let mut transform = Transform::new(ctx.window_logical_size());
+fn load_character_sprite(animation_library: &AnimationTextureLibrary, character: &mut Character) -> ([Sprite; 1], SpriteShaderPass) { 
+    let mut transform = Transform::new(window_logical_size());
     let mut sprite_1 = SpriteShaderPass::new(transform.matrix());
 
     sprite_1.atlas = animation_library.get_atlas_for_animation(character.animation_state);
@@ -78,8 +79,8 @@ fn load_character_sprite(animation_library: &AnimationTextureLibrary, ctx: &Cont
 }
 
 //Load the background, this is a bad function, redo it
-fn setup_background(ctx: &Context) -> ([Sprite; 1], SpriteShaderPass) {
-    let mut transform = Transform::new(ctx.window_logical_size());
+fn setup_background() -> ([Sprite; 1], SpriteShaderPass) {
+    let mut transform = Transform::new(window_logical_size());
     let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix());
     let loaded_texture = Texture::from_png(BACKGROUND_CASTLE);
     let first_frame = loaded_texture.subsection(0, 896, 0, 512);
@@ -98,8 +99,8 @@ fn setup_background(ctx: &Context) -> ([Sprite; 1], SpriteShaderPass) {
 }
 
 //Load the sprites for te health bars, and there shader pass
-fn setup_healthbars(ctx: &Context) -> ([Sprite; 2], SpriteShaderPass){
-    let mut transform = Transform::new(ctx.window_logical_size());
+fn setup_healthbars() -> ([Sprite; 2], SpriteShaderPass){
+    let mut transform = Transform::new(window_logical_size());
     let mut health_bar_render_pass = SpriteShaderPass::new(transform.matrix());
 
     let health_bars = [
@@ -120,9 +121,26 @@ fn setup_healthbars(ctx: &Context) -> ([Sprite; 2], SpriteShaderPass){
     return (health_bars, health_bar_render_pass);
 }
 
+//Load the sprites for te health bars, and there shader pass
+fn setup_fireball() -> ([Sprite; 1], SpriteShaderPass){
+    let mut transform = Transform::new(window_logical_size());
+    let mut fireball_render_pass = SpriteShaderPass::new(transform.matrix());
+    let character_y = -(FRAME_HEIGHT as f32) * 0.75;   
+    let fireball_sprites = [
+        Sprite {
+            pos: Vector3::new(100.0, character_y * Y_SCALE as f32, 0.0),
+            size: Vector2::new(FRAME_WIDTH as u16 * 2, FRAME_HEIGHT as u16 * 2),
+            color: RGBA8::WHITE,
+            ..Default::default()
+        }
+    ];
+    fireball_render_pass.buffer.set(&fireball_sprites);
+    return (fireball_sprites, fireball_render_pass);
+}
+
 //Load the sprites and the text shader pass used for the timer
-fn setup_round_timer_text(ctx: &Context) -> (TextShaderPass, TextShader) {
-    let mut transform = Transform::new(ctx.window_logical_size());
+fn setup_round_timer_text() -> (TextShaderPass, TextShader) {
+    let mut transform = Transform::new(window_logical_size());
 
     let text_shader = TextShader::new();
 
@@ -153,14 +171,15 @@ fn setup_round_timer_text(ctx: &Context) -> (TextShaderPass, TextShader) {
     return (text_layer, text_shader);
 }
 
-fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
+fn run() -> impl FnMut(Event) {
 
     let (mut p2p_session, local_handle) = launch_session();
 
+    let fireball_texture = Texture::from_png(FIREBALL);
 
     let mut app_state = AppState::Play;
 
-    ctx.wait_periodic(Some(Duration::from_secs_f32(1.0 / 60.0)));
+    wait_periodic(Some(Duration::from_secs_f32(1.0 / 60.0)));
 
     let mut game = Game::default();
     //Load a sprite with the atlas of whatever the idle animation is
@@ -170,13 +189,15 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
     //Load the characters sprites and shaders
     let sprite_shader = SpriteShader::new();
     let (mut sprites_1, 
-        mut sprite_1) = load_character_sprite(&animation_library, ctx, &mut game.current_round.character_1);
+        mut sprite_1) = load_character_sprite(&animation_library, &mut game.current_round.characters[0]);
     let (mut sprites_2, 
-        mut sprite_2) = load_character_sprite(&animation_library, ctx,&mut game.current_round.character_2);
+        mut sprite_2) = load_character_sprite(&animation_library, &mut game.current_round.characters[1]);
+    let (mut fireball_sprite, mut fireball_render_pass) = setup_fireball();
+    fireball_render_pass.atlas = fireball_texture;
 
-    let (mut background_sprite, mut background_sprite_pass) = setup_background(ctx);
-    let (mut health_bars, mut health_bar_render_pass)  = setup_healthbars(ctx);
-    let (mut text_layer, text_shader) = setup_round_timer_text(ctx);
+    let (mut background_sprite, mut background_sprite_pass) = setup_background();
+    let (mut health_bars, mut health_bar_render_pass)  = setup_healthbars();
+    let (mut text_layer, text_shader) = setup_round_timer_text();
 
     //load the font used for the timer
     let fonts = [Font::from_bytes(FONT, Default::default()).unwrap()];
@@ -190,13 +211,13 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
 
     let mut last_update = Instant::now();
     let mut accumulator = Duration::ZERO;
-    move |event, ctx| match event {
+    move |event| match event {
         //Process input
         //A subset of these keys go to the character with character_1.key_down or character_1.key_up
         //Others are used to control game flow, like Pause, or Debug
-        Event::CloseRequested => ctx.stop(),
+        Event::CloseRequested => request_stop(),
         Event::KeyPressed(key) => match key {
-            KeyboardButton::Escape => ctx.stop(),
+            KeyboardButton::Escape => request_stop(),
             _ => {
                 game.key_down(key);
             }
@@ -213,7 +234,7 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
             KeyboardButton::O => {
                 app_state = AppState::Debug;
             }
-            KeyboardButton::Escape => ctx.stop(),
+            KeyboardButton::Escape => request_stop(),
             _ => {
                 game.key_up(key);
             }
@@ -248,18 +269,25 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
                     }
 
                     //TODO: maybe use a is_dirty flag to update this only when we need to
-                    sprite_1.atlas = animation_library.get_atlas_for_animation(game.current_round.character_1.animation_state);
-                    let frame = game.current_round.character_1.get_current_animation_config();
-                    sprites_1[0].texture = animation_library.get_atlas_subsection(game.current_round.character_1.animation_state, frame.current_frame);
-                    sprites_1[0].pos.x = game.current_round.character_1.character_position.x * X_SCALE as f32;
+                    sprite_1.atlas = animation_library.get_atlas_for_animation(game.current_round.characters[0].animation_state);
+                    let frame = game.current_round.characters[0].get_current_animation_config();
+                    sprites_1[0].texture = animation_library.get_atlas_subsection(game.current_round.characters[0].animation_state, frame.current_frame);
+                    sprites_1[0].pos.x = game.current_round.characters[0].character_position.x * X_SCALE as f32;
 
-                    sprite_2.atlas = animation_library.get_atlas_for_animation(game.current_round.character_2.animation_state);
-                    let frame = game.current_round.character_2.get_current_animation_config();
-                    sprites_2[0].texture = animation_library.get_atlas_subsection(game.current_round.character_2.animation_state, frame.current_frame).mirror_y();
-                    sprites_2[0].pos.x = game.current_round.character_2.character_position.x * X_SCALE as f32;
+                    sprite_2.atlas = animation_library.get_atlas_for_animation(game.current_round.characters[1].animation_state);
+                    let frame = game.current_round.characters[1].get_current_animation_config();
+                    sprites_2[0].texture = animation_library.get_atlas_subsection(game.current_round.characters[1].animation_state, frame.current_frame).mirror_y();
+                    sprites_2[0].pos.x = game.current_round.characters[1].character_position.x * X_SCALE as f32;
+                    
+                    for projectile in game.current_round.projectiles.iter() {
+                        fireball_sprite[0].pos = Vector3::new(projectile.position.x * X_SCALE as f32, projectile.position.y * Y_SCALE as f32, 0.0);
+                        let left = projectile.timer.current_frame * FRAME_WIDTH;
+                        let test = fireball_render_pass.atlas.subsection(left, left + FRAME_WIDTH, 0, FRAME_HEIGHT);
+                        fireball_sprite[0].texture = test;
+                    }
 
                 }
-                
+
                 text_layer.clear_text();
                 text_layer.append(
                     &fonts,
@@ -279,13 +307,19 @@ fn run(ctx: &mut Context) -> impl FnMut(Event, &mut Context) {
                 background_sprite_pass.buffer.set(&mut background_sprite);
                 background_sprite_pass.draw(&sprite_shader);
 
+
+                for _ in game.current_round.projectiles.iter() {
+                    fireball_render_pass.buffer.set(&fireball_sprite);
+                    fireball_render_pass.draw(&sprite_shader);
+                }
+
                 sprite_1.buffer.set(&sprites_1);
                 sprite_1.draw(&sprite_shader);
 
                 sprite_2.buffer.set(&sprites_2);
                 sprite_2.draw(&sprite_shader);
-                health_bars[0].size.x = (750.0 * (game.current_round.character_1.health as f32 / 250.0)) as u16;
-                health_bars[1].size.x = (750.0 * (game.current_round.character_2.health as f32 / 250.0)) as u16;
+                health_bars[0].size.x = (750.0 * (game.current_round.characters[0].health as f32 / 250.0)) as u16;
+                health_bars[1].size.x = (750.0 * (game.current_round.characters[1].health as f32 / 250.0)) as u16;
 
                 health_bar_render_pass.buffer.set(&health_bars);
                 health_bar_render_pass.draw(&sprite_shader);

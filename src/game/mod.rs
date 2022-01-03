@@ -5,6 +5,7 @@ mod game;
 mod input;
 mod collision;
 mod net;
+mod projectile;
 
 pub use animation::*;
 pub use character::*;
@@ -13,3 +14,4 @@ pub use game::*;
 pub use collision::*;
 pub use input::*;
 pub use net::*;
+pub use projectile::*;

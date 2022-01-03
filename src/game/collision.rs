@@ -1,3 +1,5 @@
+use std::default;
+
 use asefile::AsepriteFile;
 use storm::math::AABB2D;
 
@@ -19,6 +21,8 @@ pub static MEDIUM_KICK_COLLISION: &[u8] = include_bytes!("../resources/medium_ki
 pub static HEAVY_KICK_COLLISION: &[u8] = include_bytes!("../resources/heavy_kick.ase");
 pub static FORWARD_DASH_COLLISION: &[u8] = include_bytes!("../resources/forward_dash.ase");
 pub static BACKWARD_DASH_COLLISION: &[u8] = include_bytes!("../resources/backward_dash.ase");
+pub static SPECIAL_1_COLLISION: &[u8] = include_bytes!("../resources/special_1.ase");
+pub static FIREBALL_COLLISION: &[u8] = include_bytes!("../resources/fireball_main.ase");
 
 pub trait Reflect {
     fn reflect(&self, x_axis: usize) -> AABB2D;
@@ -142,17 +146,11 @@ impl CollisionInfo {
 }
 
 pub struct CollisionLibrary {
-    pub collision_info: HashMap<AnimationState, CollisionInfo>
+    pub collision_info: HashMap<AnimationState, CollisionInfo>,
+    pub fireball_collision: CollisionInfo
 }
-
-impl CollisionLibrary {
-    fn new() -> CollisionLibrary {
-        CollisionLibrary {
-            collision_info: HashMap::new()
-        }
-    }
-    pub fn load_collision_data() -> CollisionLibrary {
-
+impl Default for CollisionLibrary {
+    fn default() -> CollisionLibrary {
         let idle = CollisionInfo::from_byte(IDLE_COLLISION);
         let forward_run = CollisionInfo::from_byte(FORWARD_RUN_COLLISION);
         let backward_run = CollisionInfo::from_byte(BACKWARD_RUN_COLLISION);
@@ -168,6 +166,7 @@ impl CollisionLibrary {
         let heavy_kick = CollisionInfo::from_byte(HEAVY_KICK_COLLISION);
         let forward_dash = CollisionInfo::from_byte(FORWARD_DASH_COLLISION);
         let backward_dash = CollisionInfo::from_byte(BACKWARD_DASH_COLLISION);
+        let special_1 = CollisionInfo::from_byte(SPECIAL_1_COLLISION);
 
         let mut collision_lib = CollisionLibrary::new();
         collision_lib.collision_info.insert(AnimationState::Idle, idle);
@@ -185,7 +184,18 @@ impl CollisionLibrary {
         collision_lib.collision_info.insert(AnimationState::HeavyKick, heavy_kick);
         collision_lib.collision_info.insert(AnimationState::ForwardDash, forward_dash);
         collision_lib.collision_info.insert(AnimationState::BackwardDash, backward_dash);
+        collision_lib.collision_info.insert(AnimationState::Special1, special_1);
 
         return collision_lib;
     }
+}
+
+impl CollisionLibrary {
+    fn new() -> CollisionLibrary {
+        CollisionLibrary {
+            collision_info: HashMap::new(),
+            fireball_collision: CollisionInfo::from_byte(FIREBALL_COLLISION)
+        }
+    }
+
 }

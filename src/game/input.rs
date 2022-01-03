@@ -185,3 +185,143 @@ impl ScreenSideAdjustedInput {
         }
     }
 }
+
+pub struct PatternElement {
+    character_action: CharacterAction,
+    start: bool,
+    confirm: bool,
+    final_element: bool
+}
+
+impl PatternElement {
+    
+    pub fn new(character_action: CharacterAction) -> PatternElement {
+        PatternElement {
+            character_action,
+            start: false,
+            confirm: false,
+            final_element: false
+        }
+    }
+
+    pub fn process_input(&mut self, input: &ScreenSideAdjustedInput) -> bool {
+        let button_down_in_this_frame;
+        match self.character_action {
+            CharacterAction::Crouch => {
+                button_down_in_this_frame = input.down_key_down;
+            },
+            CharacterAction::MoveForward => {
+                button_down_in_this_frame = input.forward_down;
+            },
+            CharacterAction::MoveBackward => {
+                button_down_in_this_frame = input.backward_down;
+            },
+            CharacterAction::LightAttack => {
+                button_down_in_this_frame = input.light_attack;
+            },
+            CharacterAction::MediumAttack => {
+                button_down_in_this_frame = input.medium_attack;
+            },
+            CharacterAction::HeavyAttack => {
+                button_down_in_this_frame = input.heavy_attack;
+            },
+            CharacterAction::LightKick => {
+                button_down_in_this_frame = input.light_kick;
+            },
+            CharacterAction::MediumKick => {
+                button_down_in_this_frame = input.medium_kick;
+            },
+            CharacterAction::HeavyKick => {
+                button_down_in_this_frame = input.heavy_kick;
+            },
+            _ => {
+                button_down_in_this_frame = false;
+            }
+        }
+
+        if self.start == false && button_down_in_this_frame == false {
+            self.start = true;
+            return false;
+        }
+        else if self.start == true && button_down_in_this_frame == true {
+            self.confirm = true;
+            if self.final_element == true {
+                return true;
+            }
+            return false;
+        }
+        if self.start && self.confirm && (self.final_element || button_down_in_this_frame == false) {
+            return true;
+        }
+        return false;
+
+    }
+
+    pub fn reset(&mut self) {
+        self.start = false;
+        self.confirm = false;
+    }
+}
+
+pub struct ComboPattern {
+    pattern: Vec<PatternElement>,
+    matched_pattern_number: usize,
+    result_action: CharacterAction
+}
+
+impl ComboPattern {
+
+    pub fn new(pattern: Vec<CharacterAction>, result_action: CharacterAction) -> ComboPattern {
+        let mut pattern: Vec<PatternElement> = pattern.iter().map(|x|PatternElement::new(*x)).collect();
+        let index = pattern.len() - 1;
+        pattern[index].final_element = true;
+        ComboPattern {
+            pattern,
+            matched_pattern_number: 0,
+            result_action
+        }
+    }
+
+    pub fn process_input(&mut self, input: &ScreenSideAdjustedInput) -> Option<CharacterAction> {
+        if self.matched_pattern_number != self.pattern.len() 
+            && self.pattern[self.matched_pattern_number].process_input(input) {
+            self.matched_pattern_number += 1;
+            if self.matched_pattern_number == self.pattern.len() {
+                return Some(self.result_action);
+            }
+        }
+        return None;
+    }
+
+    pub fn reset(&mut self) {
+        self.matched_pattern_number = 0;
+        for pattern in &mut self.pattern {
+            pattern.reset();
+        }
+    }   
+}
+
+pub struct ComboLibrary {
+    pub combos: Vec<ComboPattern>
+}
+
+impl ComboLibrary {
+    pub fn reset(&mut self) {
+        for combo in self.combos.iter_mut() {
+            combo.reset();
+        }
+    }
+}
+
+impl Default for ComboLibrary {
+    fn default() -> ComboLibrary {
+        
+        let forward_dash = ComboPattern::new(vec![CharacterAction::MoveForward, CharacterAction::MoveForward], CharacterAction::DashForward);
+        let backward_dash = ComboPattern::new(vec![CharacterAction::MoveBackward, CharacterAction::MoveBackward], CharacterAction::DashBackward);
+        let hadokon = ComboPattern::new(vec![CharacterAction::Crouch, CharacterAction::MoveForward, CharacterAction::LightAttack], CharacterAction::Special1);
+
+        ComboLibrary {
+            combos: vec![forward_dash, backward_dash, hadokon]
+        }
+    }
+}

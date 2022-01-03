@@ -1,4 +1,4 @@
-use storm::default_texture;
+use storm::graphics::default_texture;
 use storm::graphics::{AsStd140, Buffer, DrawMode, Shader, ShaderDescriptor, Texture, Uniform,
 };
 use crate::shaders::sprite::Sprite;

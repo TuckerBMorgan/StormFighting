@@ -21,6 +21,7 @@ pub static MEDIUM_KICK: &[u8] = include_bytes!("../resources/medium_kick.png");
 pub static HEAVY_KICK: &[u8] = include_bytes!("../resources/heavy_kick.png");
 pub static FORWARD_DASH: &[u8] = include_bytes!("../resources/forward_dash.png");
 pub static BACKWARD_DASH: &[u8] = include_bytes!("../resources/backward_dash.png");
+pub static SPECIAL_1: &[u8] = include_bytes!("../resources/special_1.png");
 
 pub static FRAME_HEIGHT: u32 =  178;
 pub static FRAME_WIDTH: u32 =  290;
@@ -43,7 +44,8 @@ pub enum AnimationState {
     MediumKick,
     HeavyKick,
     ForwardDash,
-    BackwardDash
+    BackwardDash,
+    Special1
 }
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
 //A frame number based timer for sprites IE: Does not use delta timer/real time it is an monotonic timer
@@ -152,23 +154,24 @@ impl AnimationTextureLibrary {
 impl Default for AnimationTextureLibrary {
     fn default() -> AnimationTextureLibrary {
         let mut animation_library = AnimationTextureLibrary::new();
-        animation_library.load_animation(IDLE_TEXTURE, AnimationState::Idle);
-        animation_library.load_animation(FORWARD_RUN_TEXTURE, AnimationState::ForwardRun);
+        animation_library.load_animation(IDLE_TEXTURE,           AnimationState::Idle);
+        animation_library.load_animation(FORWARD_RUN_TEXTURE,    AnimationState::ForwardRun);
         animation_library.load_animation(BACKGROUND_RUN_TEXTURE, AnimationState::BackwardRun);
-        animation_library.load_animation(LIGHT_ATTACK_TEXTURE, AnimationState::LightAttack);
-        animation_library.load_animation(MEDIUM_ATTACK_TEXTURE, AnimationState::MediumAttack);
-        animation_library.load_animation(HEAVY_ATTACK, AnimationState::HeavyAttack);
-        animation_library.load_animation(LIGHT_HIT_RECOVERY, AnimationState::LightHitRecovery);
-        animation_library.load_animation(BLOCKING, AnimationState::Blocking);
-        animation_library.load_animation(CROUCHING, AnimationState::Crouching);
-        animation_library.load_animation(CROUCHED, AnimationState::Crouched);
-        animation_library.load_animation(LIGHT_CROUCH_ATTACK, AnimationState::LightCrouchAttack);
-        animation_library.load_animation(HEAVY_CROUCH_ATTACK, AnimationState::HeavyCrouchingAttack);
-        animation_library.load_animation(LIGHT_KICK, AnimationState::LightKick);
-        animation_library.load_animation(MEDIUM_KICK, AnimationState::MediumKick);
-        animation_library.load_animation(HEAVY_KICK, AnimationState::HeavyKick);
-        animation_library.load_animation(FORWARD_DASH, AnimationState::ForwardDash);
-        animation_library.load_animation(BACKWARD_DASH, AnimationState::BackwardDash);
+        animation_library.load_animation(LIGHT_ATTACK_TEXTURE,   AnimationState::LightAttack);
+        animation_library.load_animation(MEDIUM_ATTACK_TEXTURE,  AnimationState::MediumAttack);
+        animation_library.load_animation(HEAVY_ATTACK,           AnimationState::HeavyAttack);
+        animation_library.load_animation(LIGHT_HIT_RECOVERY,     AnimationState::LightHitRecovery);
+        animation_library.load_animation(BLOCKING,               AnimationState::Blocking);
+        animation_library.load_animation(CROUCHING,              AnimationState::Crouching);
+        animation_library.load_animation(CROUCHED,               AnimationState::Crouched);
+        animation_library.load_animation(LIGHT_CROUCH_ATTACK,    AnimationState::LightCrouchAttack);
+        animation_library.load_animation(HEAVY_CROUCH_ATTACK,    AnimationState::HeavyCrouchingAttack);
+        animation_library.load_animation(LIGHT_KICK,             AnimationState::LightKick);
+        animation_library.load_animation(MEDIUM_KICK,            AnimationState::MediumKick);
+        animation_library.load_animation(HEAVY_KICK,             AnimationState::HeavyKick);
+        animation_library.load_animation(FORWARD_DASH,           AnimationState::ForwardDash);
+        animation_library.load_animation(BACKWARD_DASH,          AnimationState::BackwardDash);
+        animation_library.load_animation(SPECIAL_1,              AnimationState::Special1);
         return animation_library;
     }
 }

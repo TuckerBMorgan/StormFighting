@@ -7,8 +7,9 @@ pub const INPUT_SIZE: usize = std::mem::size_of::<[u8;2]>();
 
 pub fn launch_session() -> (P2PSession, usize) {
     //Connect to the Cupid server
-    let mut stream = TcpStream::connect("-----:7878").unwrap();
-
+   // let mut stream = TcpStream::connect("24.19.122.147:7878").unwrap();
+    let mut stream = TcpStream::connect("192.168.0.20:7878").unwrap();
+    //let listener = TcpListener::bind("192.168.0.20:7878").unwrap();
     let mut players = vec![String::from("localhost")];
     println!("Local address is {:?}", stream.local_addr().unwrap().to_string());
 
@@ -76,7 +77,6 @@ pub fn launch_session() -> (P2PSession, usize) {
 
     // set change default expected update frequency
     sess.set_fps(FPS as u32).unwrap();
-
     // start the GGRS session
     sess.start_session().unwrap();
     return (sess, local_handle);

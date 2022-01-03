@@ -1,8 +1,10 @@
 
+use hashbrown::HashMap;
 use storm::event::*;
 use ggrs::{Frame, GGRSRequest, GameInput, GameState, GameStateCell, PlayerHandle, NULL_FRAME};
 
 use super::*;
+use super::character::AnimationStateForCharacterState;
 
 pub const CHECKSUM_PERIOD: i32 = 100;
 
@@ -20,13 +22,28 @@ fn fletcher16(data: &[u8]) -> u16 {
     (sum2 << 8) | sum1
 }
 
+pub struct GameConfig {
+    pub collision_library: CollisionLibrary,
+    pub combo_library: ComboLibrary,
+    pub animation_for_character_state_library: HashMap<CharacterState, AnimationStateForCharacterState>
+}
+
+impl GameConfig {
+    pub fn new(collision_library: CollisionLibrary, combo_library: ComboLibrary, animation_for_character_state_library: HashMap<CharacterState, AnimationStateForCharacterState>) -> GameConfig {
+        GameConfig {
+            collision_library,
+            combo_library,
+            animation_for_character_state_library
+        }
+    }
+}
 
 pub struct Game {
     pub current_round: Round,
     pub local_input: Input,
     pub last_checksum: (Frame, u64),
     pub periodic_checksum: (Frame, u64),
-    pub collision_library: CollisionLibrary
+    pub game_config: GameConfig
 }
 
 impl Game {
@@ -58,7 +75,7 @@ impl Game {
     
     fn advance_frame(&mut self, inputs: Vec<GameInput>) {
         // advance the game state
-        self.current_round.advance(inputs, &self.collision_library);
+        self.current_round.advance(inputs, &mut self.game_config);
         if self.current_round.round_done {
             self.current_round = Round::default();
         }
@@ -120,19 +137,36 @@ impl Game {
                 input |= INPUT_HEAVY_KICK;
             }
         }
-//        let as_las_bytes 
         return input.to_le_bytes().to_vec();
     }
 }
 
 impl Default for Game {
     fn default() -> Game {
+
+        let mut animation_for_character_state_library = HashMap::new();
+        animation_for_character_state_library.insert(CharacterState::Idle, AnimationStateForCharacterState::new(AnimationState::Crouched, AnimationState::Idle));
+        animation_for_character_state_library.insert(CharacterState::ForwardRun, AnimationStateForCharacterState::new(AnimationState::ForwardRun, AnimationState::ForwardRun));
+        animation_for_character_state_library.insert(CharacterState::BackwardRun, AnimationStateForCharacterState::new(AnimationState::BackwardRun, AnimationState::BackwardRun));
+        animation_for_character_state_library.insert(CharacterState::LightHitRecovery, AnimationStateForCharacterState::new(AnimationState::LightHitRecovery, AnimationState::LightHitRecovery));
+        animation_for_character_state_library.insert(CharacterState::Blocking, AnimationStateForCharacterState::new(AnimationState::Blocking, AnimationState::Blocking));
+        animation_for_character_state_library.insert(CharacterState::Crouching, AnimationStateForCharacterState::new(AnimationState::Crouching, AnimationState::Crouching));
+        animation_for_character_state_library.insert(CharacterState::LightAttack, AnimationStateForCharacterState::new(AnimationState::LightCrouchAttack, AnimationState::LightAttack));
+        animation_for_character_state_library.insert(CharacterState::MediumAttack, AnimationStateForCharacterState::new(AnimationState::LightCrouchAttack, AnimationState::MediumAttack));
+        animation_for_character_state_library.insert(CharacterState::HeavyAttack, AnimationStateForCharacterState::new(AnimationState::HeavyCrouchingAttack, AnimationState::HeavyAttack));
+        animation_for_character_state_library.insert(CharacterState::LightKick, AnimationStateForCharacterState::new(AnimationState::LightKick, AnimationState::LightKick));
+        animation_for_character_state_library.insert(CharacterState::MediumKick, AnimationStateForCharacterState::new(AnimationState::MediumKick, AnimationState::MediumKick));
+        animation_for_character_state_library.insert(CharacterState::HeavyKick, AnimationStateForCharacterState::new(AnimationState::HeavyKick, AnimationState::HeavyKick));
+        animation_for_character_state_library.insert(CharacterState::ForwardDash, AnimationStateForCharacterState::new(AnimationState::ForwardDash, AnimationState::ForwardDash));
+        animation_for_character_state_library.insert(CharacterState::BackwardDash, AnimationStateForCharacterState::new(AnimationState::BackwardDash, AnimationState::BackwardDash));
+        animation_for_character_state_library.insert(CharacterState::Special1, AnimationStateForCharacterState::new(AnimationState::Special1, AnimationState::Special1));
+        let game_config = GameConfig::new(CollisionLibrary::default(), ComboLibrary::default(), animation_for_character_state_library);
         Game {
             current_round: Round::default(),
             local_input: Input::new(),
             last_checksum: (NULL_FRAME, 0),
             periodic_checksum: (NULL_FRAME, 0),
-            collision_library: CollisionLibrary::load_collision_data()
+            game_config
         }
     }
 }
