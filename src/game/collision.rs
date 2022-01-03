@@ -1,5 +1,3 @@
-use std::default;
-
 use asefile::AsepriteFile;
 use storm::math::AABB2D;
 
