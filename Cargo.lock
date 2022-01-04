@@ -1854,8 +1854,8 @@ checksum = "ef5430c8e36b713e13b48a9f709cc21e046723fe44ce34587b73a830203b533e"
 
 [[package]]
 name = "storm"
-version = "0.8.0"
-source = "git+https://github.com/mooman219/storm#832d37d04583a75567957b356aa56ffcdbcf27a6"
+version = "0.8.1"
+source = "git+https://github.com/mooman219/storm#153294a900c916d68c0407ed6ff7ea0d99057ae3"
 dependencies = [
  "cgmath",
  "claxon",

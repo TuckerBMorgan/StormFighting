@@ -155,7 +155,7 @@ fn setup_round_timer_text() -> (TextShaderPass, TextShader) {
         max_width: Some(500.0),
         ..Default::default()
     };
-    text_layer.set_ortho(transform.generate());
+    text_layer.set_ortho(transform.matrix());
     text_layer.append(
         &fonts,
         &layout_settings,
@@ -188,7 +188,7 @@ fn setup_round_reset_timer_text() -> (TextShaderPass, TextShader) {
         max_width: Some(500.0),
         ..Default::default()
     };
-    text_layer.set_ortho(transform.generate());
+    text_layer.set_ortho(transform.matrix());
     text_layer.append(
         &fonts,
         &layout_settings,

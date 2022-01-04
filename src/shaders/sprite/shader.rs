@@ -39,7 +39,7 @@ impl SpriteShader {
 
     /// Draws to the screen.
     pub fn draw(&self, uniform: &Uniform<SpriteUniform>, atlas: &Texture, buffer: &Buffer<Sprite>) {
-        self.shader.draw_instanced(DrawMode::TriangleStrip, uniform, [atlas], buffer, 4);
+        self.shader.draw_instanced(DrawMode::TriangleStrip, uniform, [atlas], &[buffer], 4);
     }
 }
 
