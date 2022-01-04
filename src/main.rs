@@ -23,7 +23,7 @@ mod shaders;
 use game::*;
 use shaders::*;
 
-static FONT: &[u8] = include_bytes!("resources/ka1.ttf");
+static FONT: &[u8] = include_bytes!("resources/gomarice_game_continue_02.ttf");
 static FIREBALL: &[u8] = include_bytes!("resources/fireball_main.png");
 
 const X_SCALE : u16 = 4;
@@ -162,7 +162,40 @@ fn setup_round_timer_text() -> (TextShaderPass, TextShader) {
         &[Text {
             text: &String::from("60"),
             font_index: 0,
-            px: 100.0,
+            px: 200.0,
+            color: RGBA8::BLACK,
+            depth: 0.0,
+        }],
+    );
+
+    return (text_layer, text_shader);
+}
+
+//Load the sprites and the text shader pass used for the timer
+fn setup_round_reset_timer_text() -> (TextShaderPass, TextShader) {
+    let mut transform = Transform::new(window_logical_size());
+
+    let text_shader = TextShader::new();
+
+    // Create a Layers to draw on.
+    let mut text_layer = TextShaderPass::new(transform.matrix());
+
+    // Setup the layout for our text.
+    let fonts = [Font::from_bytes(FONT, Default::default()).unwrap()];
+    let layout_settings = LayoutSettings {
+        x: -120.0,
+        y: 0.0,
+        max_width: Some(500.0),
+        ..Default::default()
+    };
+    text_layer.set_ortho(transform.generate());
+    text_layer.append(
+        &fonts,
+        &layout_settings,
+        &[Text {
+            text: &String::from("60"),
+            font_index: 0,
+            px: 200.0,
             color: RGBA8::BLACK,
             depth: 0.0,
         }],
@@ -198,10 +231,11 @@ fn run() -> impl FnMut(Event) {
     let (mut background_sprite, mut background_sprite_pass) = setup_background();
     let (mut health_bars, mut health_bar_render_pass)  = setup_healthbars();
     let (mut text_layer, text_shader) = setup_round_timer_text();
+    let (mut reset_text_layer, reset_text_shader) = setup_round_reset_timer_text();
 
     //load the font used for the timer
     let fonts = [Font::from_bytes(FONT, Default::default()).unwrap()];
-    let layout_settings = LayoutSettings {
+    let mut layout_settings = LayoutSettings {
         x: -120.0,
         y: 500.0,
         max_width: Some(500.0),
@@ -285,10 +319,21 @@ fn run() -> impl FnMut(Event) {
                         let test = fireball_render_pass.atlas.subsection(left, left + FRAME_WIDTH, 0, FRAME_HEIGHT);
                         fireball_sprite[0].texture = test;
                     }
+                }
 
+                let text_color;
+                let current_frame_count = 60 - (game.current_round.round_timer.current_frame / 60);
+                if  current_frame_count > 20 {
+                    text_color = RGBA8::BLACK;
+                } else if current_frame_count > 10 {
+                    text_color = RGBA8::YELLOW;
+                }
+                else {
+                    text_color = RGBA8::RED;
                 }
 
                 text_layer.clear_text();
+                layout_settings.y = 500.0;
                 text_layer.append(
                     &fonts,
                     &layout_settings,
@@ -296,13 +341,32 @@ fn run() -> impl FnMut(Event) {
                         text: &(60 - (game.current_round.round_timer.current_frame / 60)).to_string(),
                         font_index: 0,
                         px: 100.0,
-                        color: RGBA8::BLACK,
+                        color: text_color,
                         depth: 0.0,
                     }],
                 );
 
                 text_layer.draw(&text_shader);
                 
+                if game.current_round.round_done {
+                    layout_settings.y = 0.0;
+                    reset_text_layer.clear_text();
+                    reset_text_layer.append(
+                        &fonts,
+                        &layout_settings,
+                        &[Text {
+                            text: &(5 - (game.current_round.reset_round_timer.current_frame) / 60).to_string(),
+                            font_index: 0,
+                            px: 200.0,
+                            color: RGBA8::ORANGE,
+                            depth: 0.0,
+                        }],
+                    );
+                    reset_text_layer.draw(&reset_text_shader);
+                }
+
+
+
                 //Commit the current images to the screen
                 background_sprite_pass.buffer.set(&mut background_sprite);
                 background_sprite_pass.draw(&sprite_shader);

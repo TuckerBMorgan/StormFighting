@@ -1,4 +1,3 @@
-use hashbrown::HashMap;
 use super::*;
 use storm::math::*;
 use serde::{Deserialize, Serialize};
@@ -42,7 +41,9 @@ pub enum CharacterState {
     HeavyKick,
     ForwardDash,
     BackwardDash,
-    Special1
+    Special1,
+    Won,
+    Lost
 }
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone, Debug)]
@@ -80,44 +81,44 @@ impl AnimationStateForCharacterState {
 pub struct Character {
     pub animation_state: AnimationState, //The characters current animation it is playing
     pub character_state: CharacterState, //The current character states
-    pub animation_configs: HashMap<AnimationState, AnimationConfig>,//TODO: lift this up one level, it is getting rolled back when it does not need to
+    pub current_animation: AnimationConfig,//TODO: lift this up one level, it is getting rolled back when it does not need to
     pub character_position: Vector2<f32>, //Where in the world it is
     pub character_velocity: Vector2<f32>, //How far it wants to move this frame
     pub screen_side: ScreenSide, //Which side of the screen it is on
     pub health: u32, //How much health it has
     pub is_crouched: bool, //Is character crouched at the moment, used so we don't have a set of "crouched" states
     pub past_inputs: Vec<ScreenSideAdjustedInput>, //A buffer that contains the last FRAME_HISTORY_LENGTH input states
+    pub done: bool
 }
 
 impl Character {
     pub fn new(screen_side: ScreenSide) -> Character {
-
         Character {
             animation_state: AnimationState::Idle,
             character_state: CharacterState::Idle,
-            animation_configs: HashMap::new(),
+            current_animation: AnimationConfig::new(0, 0),
             character_position: Vector2::new(0.0, 0.0),
             character_velocity: Vector2::new(0.0, 0.0),
             screen_side,
             health: 250,
             is_crouched: false,
-            past_inputs: vec![]
+            past_inputs: vec![],
+            done: false
         }
     }
 
-    pub fn load_animation_config(&mut self, animation_state: AnimationState, animation_config: AnimationConfig) {
-        self.animation_configs.insert(animation_state, animation_config);
-    }
-
-    pub fn set_character_state(&mut self, new_state: CharacterState, animation_for_character_state_library: &HashMap<CharacterState, AnimationStateForCharacterState>) {
+    pub fn set_character_state(&mut self, new_state: CharacterState, game_config: &GameConfig) {
 
         self.character_state = new_state;
+        let animation_state;
         if self.is_crouched {
-            self.set_animation_state(animation_for_character_state_library.get(&self.character_state).unwrap().crouched);
+            animation_state = game_config.animation_for_character_state_library.get(&self.character_state).unwrap().crouched;
         }
         else {
-            self.set_animation_state(animation_for_character_state_library.get(&self.character_state).unwrap().standing);
+            animation_state = game_config.animation_for_character_state_library.get(&self.character_state).unwrap().standing;
         }
+        self.current_animation = game_config.animation_configs.get(&animation_state).unwrap().clone();
+        self.set_animation_state(animation_state);
     }
 
     pub fn finished_animation_whats_next(&mut self) -> CharacterState {
@@ -142,7 +143,7 @@ impl Character {
     }
 
     pub fn get_current_animation_config(&self) -> AnimationConfig {
-        return *self.animation_configs.get(&self.animation_state).unwrap();
+        return self.current_animation;
     }
     
     pub fn process_new_input(&mut self, frame_input: ScreenSideAdjustedInput, combo_library: &mut ComboLibrary) -> CharacterAction {
@@ -210,8 +211,7 @@ impl Character {
     }
     //A function used to get the information need to lookup a collision box
     pub fn get_collision_box_lookup_info(&self) -> (AnimationState, u32) {
-        let current_animation = self.animation_configs.get(&self.animation_state).unwrap();
-        let current_frame = current_animation.current_frame;
+        let current_frame = self.current_animation.current_frame;
         return (self.animation_state, current_frame);
     }
 
@@ -266,25 +266,6 @@ impl Character {
 //TODO: make this data driven, this is tedious and error prone
 impl Default for Character {
     fn default() -> Self {
-        let mut character = Character::new(ScreenSide::Left);
-        character.load_animation_config(AnimationState::Idle,                 AnimationConfig::new(10, 4));
-        character.load_animation_config(AnimationState::ForwardRun,           AnimationConfig::new(12, 4));
-        character.load_animation_config(AnimationState::BackwardRun,          AnimationConfig::new(10, 4));
-        character.load_animation_config(AnimationState::LightAttack,          AnimationConfig::new(5, 4));
-        character.load_animation_config(AnimationState::MediumAttack,         AnimationConfig::new(8, 4));
-        character.load_animation_config(AnimationState::HeavyAttack,          AnimationConfig::new(11, 4));
-        character.load_animation_config(AnimationState::LightHitRecovery,     AnimationConfig::new(4, 4));
-        character.load_animation_config(AnimationState::Blocking,             AnimationConfig::new(4, 4));
-        character.load_animation_config(AnimationState::Crouched,             AnimationConfig::new(4, 4));
-        character.load_animation_config(AnimationState::Crouching,            AnimationConfig::new(2, 4));
-        character.load_animation_config(AnimationState::LightCrouchAttack,    AnimationConfig::new(5, 4));
-        character.load_animation_config(AnimationState::HeavyCrouchingAttack, AnimationConfig::new(9, 4));
-        character.load_animation_config(AnimationState::LightKick,            AnimationConfig::new(6, 4));
-        character.load_animation_config(AnimationState::MediumKick,           AnimationConfig::new(8, 4));
-        character.load_animation_config(AnimationState::HeavyKick,            AnimationConfig::new(13, 4));
-        character.load_animation_config(AnimationState::ForwardDash,          AnimationConfig::new(6, 4));
-        character.load_animation_config(AnimationState::BackwardDash,         AnimationConfig::new(6, 4));
-        character.load_animation_config(AnimationState::Special1,             AnimationConfig::new(14, 4));
-        return character;
+        return Character::new(ScreenSide::Left);
     }
 }

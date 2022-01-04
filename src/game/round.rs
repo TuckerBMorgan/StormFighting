@@ -12,8 +12,8 @@ pub struct Round {
     pub round_timer: SpriteTimer,
     pub round_done: bool,
     pub hit_stun_counter: usize,
-    pub projectiles: Vec<Projectile>
-
+    pub projectiles: Vec<Projectile>,
+    pub reset_round_timer: SpriteTimer
 }
 
 impl Round {
@@ -26,6 +26,21 @@ impl Round {
         }
         self.character_tick(0, Input::from_game_input(inputs[0]), game_config);
         self.character_tick(1, Input::from_game_input(inputs[1]), game_config);
+
+        for projectile in self.projectiles.iter_mut() {
+            projectile.tick();
+        }
+
+        //Leave early if we are wating for a round to fully end for the reset
+        if self.round_done {
+            let (won, lost) = self.who_won_who_lost();
+            self.characters[won].set_character_state(CharacterState::Won, &game_config);
+            self.characters[won].done = true;
+            self.characters[lost].set_character_state(CharacterState::Lost, &game_config);
+            self.characters[lost].done = true;
+            self.reset_round_timer.tick();
+            return;
+        }
 
         self.round_timer.tick();
 
@@ -55,9 +70,6 @@ impl Round {
             self.characters[1].character_position = character_2_walk_box.min - Vector2::new(131.0, 57.0);
         }     
 
-        for projectile in self.projectiles.iter_mut() {
-            projectile.tick();
-        }
 
         if self.characters[0].is_in_damageable_state() == false || self.characters[1].is_in_damageable_state() == false {
             //TODO: handle invulnrability better, for now we are just gonna ignore certain states
@@ -177,7 +189,6 @@ impl Round {
         }
         */
 
-
         //If either player has died
         if self.characters[0].health == 0 || self.characters[1].health == 0 {
             self.round_done = true;
@@ -186,6 +197,11 @@ impl Round {
         else if self.round_timer.finished() {
             self.round_done = true;
         }
+
+    }
+
+    pub fn who_won_who_lost(&self) -> (usize, usize) {
+        return (0, 1);
     }
 
     pub fn character_tick(&mut self, character_index: usize, frame_input: Input, game_config: &mut GameConfig) {
@@ -196,22 +212,22 @@ impl Round {
         //A character should generally be Attacking Over Moving Over Doing Nothing
         if self.characters[character_index].can_attack() {
             if character_action == CharacterAction::LightAttack {
-                self.characters[character_index].set_character_state(CharacterState::LightAttack, &game_config.animation_for_character_state_library);
+                self.characters[character_index].set_character_state(CharacterState::LightAttack, &game_config);
             }
             else if character_action == CharacterAction::MediumAttack {
-                self.characters[character_index].set_character_state(CharacterState::MediumAttack, &game_config.animation_for_character_state_library);
+                self.characters[character_index].set_character_state(CharacterState::MediumAttack, &game_config);
             }
             else if character_action == CharacterAction::HeavyAttack {
-                self.characters[character_index].set_character_state(CharacterState::HeavyAttack, &game_config.animation_for_character_state_library);
+                self.characters[character_index].set_character_state(CharacterState::HeavyAttack, &game_config);
             }
             else if character_action == CharacterAction::LightKick {
-                self.characters[character_index].set_character_state(CharacterState::LightKick, &game_config.animation_for_character_state_library);
+                self.characters[character_index].set_character_state(CharacterState::LightKick, &game_config);
             }
             else if character_action == CharacterAction::MediumKick {
-                self.characters[character_index].set_character_state(CharacterState::MediumKick, &game_config.animation_for_character_state_library);
+                self.characters[character_index].set_character_state(CharacterState::MediumKick, &game_config);
             }
             else if character_action == CharacterAction::HeavyKick {
-                self.characters[character_index].set_character_state(CharacterState::HeavyKick, &game_config.animation_for_character_state_library);
+                self.characters[character_index].set_character_state(CharacterState::HeavyKick, &game_config);
             }
             else if character_action == CharacterAction::Special1 {
                 let mut velocity = Vector2::new(-10.0, 0.0);
@@ -221,7 +237,7 @@ impl Round {
                 
                 let fireball = Projectile::new(self.characters[character_index].character_position + Vector2::new(-10.0, -75.0), velocity, self.characters[character_index].screen_side);
                 self.projectiles.push(fireball);
-                self.characters[character_index].set_character_state(CharacterState::Special1, &game_config.animation_for_character_state_library);
+                self.characters[character_index].set_character_state(CharacterState::Special1, &game_config);
             }
         }
         //If we are in the normal crouched animation, Idle + IsCrouched, and we are no longer holding the down key
@@ -229,52 +245,58 @@ impl Round {
         //TODO: add in a "standing_up" animation state and animation
         if self.characters[character_index].character_state == CharacterState::Idle && self.characters[character_index].is_crouched && character_action != CharacterAction::Crouch {
             self.characters[character_index].is_crouched = false;
-            self.characters[character_index].set_character_state(CharacterState::Idle, &game_config.animation_for_character_state_library);
+            self.characters[character_index].set_character_state(CharacterState::Idle, &game_config);
         }
 
         if self.characters[character_index].character_state == CharacterState::Idle || self.characters[character_index].character_state == CharacterState::BackwardRun || self.characters[character_index].character_state == CharacterState::ForwardRun {
             if character_action == CharacterAction::DashForward{
-                self.characters[character_index].set_character_state(CharacterState::ForwardDash, &game_config.animation_for_character_state_library);
+                self.characters[character_index].set_character_state(CharacterState::ForwardDash, &game_config);
             }
             else if character_action == CharacterAction::DashBackward {
-                self.characters[character_index].set_character_state(CharacterState::BackwardDash, &game_config.animation_for_character_state_library);
+                self.characters[character_index].set_character_state(CharacterState::BackwardDash, &game_config);
             }
             else if character_action == CharacterAction::MoveForward {
-                self.characters[character_index].set_character_state(CharacterState::ForwardRun, &game_config.animation_for_character_state_library);
+                self.characters[character_index].set_character_state(CharacterState::ForwardRun, &game_config);
             }
             else if character_action == CharacterAction::MoveBackward {
-                self.characters[character_index].set_character_state(CharacterState::BackwardRun, &game_config.animation_for_character_state_library);
+                self.characters[character_index].set_character_state(CharacterState::BackwardRun, &game_config);
             }
             else if character_action == CharacterAction::Crouch {
                 if self.characters[character_index].is_crouched == false {
                     self.characters[character_index].is_crouched = true;
-                    self.characters[character_index].set_character_state(CharacterState::Crouching, &game_config.animation_for_character_state_library);
+                    self.characters[character_index].set_character_state(CharacterState::Crouching, &game_config);
                 }
             }
         }
 
         if self.characters[character_index].character_state == CharacterState::ForwardRun || self.characters[character_index].character_state == CharacterState::BackwardRun {
             if character_action == CharacterAction::None {
-                self.characters[character_index].set_character_state(CharacterState::Idle, &game_config.animation_for_character_state_library);
+                self.characters[character_index].set_character_state(CharacterState::Idle, &game_config);
             }
         }
 
         //Then tick the animations to see if we have finished any and we need to be in a new state
-        let foo = self.characters[character_index].animation_state.clone();
-        let mut current_animation = self.characters[character_index].animation_configs.get_mut(&foo).unwrap();
-        current_animation.sprite_timer.tick();
-        if current_animation.sprite_timer.finished() {
-            current_animation.sprite_timer.reset();
-            current_animation.current_frame += 1;
-            //If we have finished the animation move the character into the
-            //next state, be that loop(like idle or run)
-            //or a steady state like Attack -> Idle
-            if current_animation.is_done() {
-                current_animation.reset();
-                let new_state = {
-                    self.characters[character_index].finished_animation_whats_next()
-                };
-                self.characters[character_index].set_character_state(new_state, &game_config.animation_for_character_state_library);
+
+        let mut current_animation = self.characters[character_index].current_animation;
+        if current_animation.sprite_timer.finished() == false {
+            current_animation.sprite_timer.tick();
+            if current_animation.sprite_timer.finished() {
+
+                current_animation.sprite_timer.reset();
+                current_animation.current_frame += 1;
+
+                //If we have finished the animation move the character into the
+                //next state, be that loop(like idle or run)
+                //or a steady state like Attack -> Idle
+
+                if current_animation.is_done() {
+                    current_animation.reset();
+                    let new_state = {
+                        self.characters[character_index].finished_animation_whats_next()
+                    };
+                    self.characters[character_index].set_character_state(new_state, &game_config);
+                }
+                
             }
         }
         
@@ -308,7 +330,7 @@ impl Round {
                 else {
                     self.characters[character_index].health -= amount / 10;
                 }
-                self.characters[character_index].set_character_state(CharacterState::Blocking, &game_config.animation_for_character_state_library);
+                self.characters[character_index].set_character_state(CharacterState::Blocking, &game_config);
             }
             _ => {
                 if self.characters[character_index].health <= amount {
@@ -317,7 +339,7 @@ impl Round {
                 else {
                     self.characters[character_index].health -= amount;
                 }
-                self.characters[character_index].set_character_state(CharacterState::LightHitRecovery, &game_config.animation_for_character_state_library);
+                self.characters[character_index].set_character_state(CharacterState::LightHitRecovery, &game_config);
             }
         }
     }
@@ -340,7 +362,8 @@ impl Default for Round{
             round_timer: SpriteTimer::new(60 * 60),
             round_done: false,
             hit_stun_counter: 0,
-            projectiles: vec![]
+            projectiles: vec![],
+            reset_round_timer: SpriteTimer::new(5 * 60)
         }
     }
 }

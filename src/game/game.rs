@@ -25,15 +25,20 @@ fn fletcher16(data: &[u8]) -> u16 {
 pub struct GameConfig {
     pub collision_library: CollisionLibrary,
     pub combo_library: ComboLibrary,
-    pub animation_for_character_state_library: HashMap<CharacterState, AnimationStateForCharacterState>
+    pub animation_for_character_state_library: HashMap<CharacterState, AnimationStateForCharacterState>,
+    pub animation_configs: HashMap<AnimationState, AnimationConfig>
 }
 
 impl GameConfig {
-    pub fn new(collision_library: CollisionLibrary, combo_library: ComboLibrary, animation_for_character_state_library: HashMap<CharacterState, AnimationStateForCharacterState>) -> GameConfig {
+    pub fn new(collision_library: CollisionLibrary, 
+               combo_library: ComboLibrary, 
+               animation_for_character_state_library: HashMap<CharacterState, AnimationStateForCharacterState>,
+               animation_configs: HashMap<AnimationState, AnimationConfig>) -> GameConfig {
         GameConfig {
             collision_library,
             combo_library,
-            animation_for_character_state_library
+            animation_for_character_state_library,
+            animation_configs
         }
     }
 }
@@ -76,7 +81,7 @@ impl Game {
     fn advance_frame(&mut self, inputs: Vec<GameInput>) {
         // advance the game state
         self.current_round.advance(inputs, &mut self.game_config);
-        if self.current_round.round_done {
+        if self.current_round.round_done && self.current_round.reset_round_timer.finished() {
             self.current_round = Round::default();
         }
 
@@ -160,7 +165,34 @@ impl Default for Game {
         animation_for_character_state_library.insert(CharacterState::ForwardDash, AnimationStateForCharacterState::new(AnimationState::ForwardDash, AnimationState::ForwardDash));
         animation_for_character_state_library.insert(CharacterState::BackwardDash, AnimationStateForCharacterState::new(AnimationState::BackwardDash, AnimationState::BackwardDash));
         animation_for_character_state_library.insert(CharacterState::Special1, AnimationStateForCharacterState::new(AnimationState::Special1, AnimationState::Special1));
-        let game_config = GameConfig::new(CollisionLibrary::default(), ComboLibrary::default(), animation_for_character_state_library);
+        animation_for_character_state_library.insert(CharacterState::Won, AnimationStateForCharacterState::new(AnimationState::Won, AnimationState::Won));
+        animation_for_character_state_library.insert(CharacterState::Lost, AnimationStateForCharacterState::new(AnimationState::Lost, AnimationState::Lost));
+
+
+        let mut animation_configs = HashMap::new();
+        animation_configs.insert(AnimationState::Idle,                 AnimationConfig::new(10, 4));
+        animation_configs.insert(AnimationState::ForwardRun,           AnimationConfig::new(12, 4));
+        animation_configs.insert(AnimationState::BackwardRun,          AnimationConfig::new(10, 4));
+        animation_configs.insert(AnimationState::LightAttack,          AnimationConfig::new(5, 4));
+        animation_configs.insert(AnimationState::MediumAttack,         AnimationConfig::new(8, 4));
+        animation_configs.insert(AnimationState::HeavyAttack,          AnimationConfig::new(11, 4));
+        animation_configs.insert(AnimationState::LightHitRecovery,     AnimationConfig::new(4, 4));
+        animation_configs.insert(AnimationState::Blocking,             AnimationConfig::new(4, 4));
+        animation_configs.insert(AnimationState::Crouched,             AnimationConfig::new(4, 4));
+        animation_configs.insert(AnimationState::Crouching,            AnimationConfig::new(2, 4));
+        animation_configs.insert(AnimationState::LightCrouchAttack,    AnimationConfig::new(5, 4));
+        animation_configs.insert(AnimationState::HeavyCrouchingAttack, AnimationConfig::new(9, 4));
+        animation_configs.insert(AnimationState::LightKick,            AnimationConfig::new(6, 4));
+        animation_configs.insert(AnimationState::MediumKick,           AnimationConfig::new(8, 4));
+        animation_configs.insert(AnimationState::HeavyKick,            AnimationConfig::new(13, 4));
+        animation_configs.insert(AnimationState::ForwardDash,          AnimationConfig::new(6, 4));
+        animation_configs.insert(AnimationState::BackwardDash,         AnimationConfig::new(6, 4));
+        animation_configs.insert(AnimationState::Special1,             AnimationConfig::new(14, 4));
+        animation_configs.insert(AnimationState::Won,                  AnimationConfig::new(6, 5));
+        animation_configs.insert(AnimationState::Lost,                 AnimationConfig::new(5, 5));
+
+
+        let game_config = GameConfig::new(CollisionLibrary::default(), ComboLibrary::default(), animation_for_character_state_library, animation_configs);
         Game {
             current_round: Round::default(),
             local_input: Input::new(),
