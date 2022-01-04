@@ -118,6 +118,7 @@ impl Character {
             animation_state = game_config.animation_for_character_state_library.get(&self.character_state).unwrap().standing;
         }
         self.current_animation = game_config.animation_configs.get(&animation_state).unwrap().clone();
+        self.current_animation.reset();
         self.set_animation_state(animation_state);
     }
 

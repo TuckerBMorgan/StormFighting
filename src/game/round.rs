@@ -33,6 +33,7 @@ impl Round {
 
         //Leave early if we are wating for a round to fully end for the reset
         if self.round_done {
+            println!("WHAT HOW");
             let (won, lost) = self.who_won_who_lost();
             self.characters[won].set_character_state(CharacterState::Won, &game_config);
             self.characters[won].done = true;
@@ -277,27 +278,22 @@ impl Round {
 
         //Then tick the animations to see if we have finished any and we need to be in a new state
 
-        let mut current_animation = self.characters[character_index].current_animation;
-        if current_animation.sprite_timer.finished() == false {
-            current_animation.sprite_timer.tick();
-            if current_animation.sprite_timer.finished() {
+        self.characters[character_index].current_animation.sprite_timer.tick();
+        if self.characters[character_index].current_animation.sprite_timer.finished() {
+            self.characters[character_index].current_animation.sprite_timer.reset();
+            self.characters[character_index].current_animation.current_frame += 1;
 
-                current_animation.sprite_timer.reset();
-                current_animation.current_frame += 1;
+            //If we have finished the animation move the character into the
+            //next state, be that loop(like idle or run)
+            //or a steady state like Attack -> Idle
 
-                //If we have finished the animation move the character into the
-                //next state, be that loop(like idle or run)
-                //or a steady state like Attack -> Idle
-
-                if current_animation.is_done() {
-                    current_animation.reset();
-                    let new_state = {
-                        self.characters[character_index].finished_animation_whats_next()
-                    };
-                    self.characters[character_index].set_character_state(new_state, &game_config);
-                }
-                
-            }
+            if self.characters[character_index].current_animation.is_done() {
+                self.characters[character_index].current_animation.reset();
+                let new_state = {
+                    self.characters[character_index].finished_animation_whats_next()
+                };
+                self.characters[character_index].set_character_state(new_state, &game_config);
+            }            
         }
         
         //Lasting state doing state based actions like, moving
@@ -351,11 +347,11 @@ impl Default for Round{
         let mut character_1 = Character::default();
         character_1.screen_side = ScreenSide::Right;
         character_1.character_position.x = (FRAME_WIDTH as f32) / 3.5;
-
+        character_1.current_animation = AnimationConfig::new(10, 4);
         let mut character_2 = Character::default();
         character_2.screen_side = ScreenSide::Left;
         character_2.character_position.x = -(FRAME_WIDTH as f32) * 1.2;
-        
+        character_2.current_animation = AnimationConfig::new(10, 4);
         Round {
             characters: vec![character_1, character_2],
             frame: 0,
