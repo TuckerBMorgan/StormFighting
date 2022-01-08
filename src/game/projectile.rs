@@ -9,20 +9,23 @@ pub struct Projectile {
     pub position: Vector2<f32>,
     pub velocity: Vector2<f32>,
     pub screen_side: ScreenSide,
-    pub timer: AnimationConfig
+    pub timer: AnimationConfig,
+    pub team: usize
 }
 
 impl Projectile {
     pub fn new(    
         position: Vector2<f32>,
         velocity: Vector2<f32>,
-        screen_side: ScreenSide
+        screen_side: ScreenSide,
+        team: usize
     ) -> Projectile {
         Projectile {
             position,
             velocity,
             screen_side,
-            timer: AnimationConfig::new(20, 4)
+            timer: AnimationConfig::new(20, 4),
+            team
         }
     }
 

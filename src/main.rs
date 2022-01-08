@@ -1,3 +1,4 @@
+#![feature(int_abs_diff)]
 use core::convert::{From};
 use core::time::Duration;
 
@@ -63,10 +64,10 @@ fn load_character_sprite(animation_library: &AnimationTextureLibrary, character:
     //And set the texture of the sprite as the subsection of the atlas for the first frame of animation
     let frame_1 = character.get_current_animation_config();
     let frame_1 = animation_library.get_atlas_subsection(character.animation_state, frame_1.current_frame);
-    let character_y = -(FRAME_HEIGHT as f32) * 0.75;    
+
     let sprites_1 = [
         Sprite {
-            pos: Vector3::new(character.character_position.x * X_SCALE as f32, character_y * Y_SCALE as f32, 0.0),
+            pos: Vector3::new(0.0, -(FRAME_HEIGHT as f32) * 2.0, 0.0),
             size: Vector2::new(FRAME_WIDTH as u16 * X_SCALE, FRAME_HEIGHT as u16 * Y_SCALE),
             color: RGBA8::WHITE,
             texture: frame_1,
@@ -128,7 +129,7 @@ fn setup_fireball() -> ([Sprite; 1], SpriteShaderPass){
     let character_y = -(FRAME_HEIGHT as f32) * 0.75;   
     let fireball_sprites = [
         Sprite {
-            pos: Vector3::new(100.0, character_y * Y_SCALE as f32, 0.0),
+            pos: Vector3::new(0.0, character_y * Y_SCALE as f32, 0.0),
             size: Vector2::new(FRAME_WIDTH as u16 * 2, FRAME_HEIGHT as u16 * 2),
             color: RGBA8::WHITE,
             ..Default::default()
@@ -208,7 +209,7 @@ fn run() -> impl FnMut(Event) {
 
     let (mut p2p_session, local_handle) = launch_session();
 
-    let fireball_texture = Texture::from_png(FIREBALL);
+
 
     let mut app_state = AppState::Play;
 
@@ -218,21 +219,19 @@ fn run() -> impl FnMut(Event) {
     //Load a sprite with the atlas of whatever the idle animation is
 
     let animation_library = AnimationTextureLibrary::default();
-
     //Load the characters sprites and shaders
     let sprite_shader = SpriteShader::new();
     let (mut sprites_1, 
         mut sprite_1) = load_character_sprite(&animation_library, &mut game.current_round.characters[0]);
     let (mut sprites_2, 
         mut sprite_2) = load_character_sprite(&animation_library, &mut game.current_round.characters[1]);
-    let (mut fireball_sprite, mut fireball_render_pass) = setup_fireball();
-    fireball_render_pass.atlas = fireball_texture;
 
+    let fireball_texture = Texture::from_png(FIREBALL);
+    let mut projectile_sprites: Vec<([Sprite;1], SpriteShaderPass)> = vec![];
     let (mut background_sprite, mut background_sprite_pass) = setup_background();
     let (mut health_bars, mut health_bar_render_pass)  = setup_healthbars();
     let (mut text_layer, text_shader) = setup_round_timer_text();
     let (mut reset_text_layer, reset_text_shader) = setup_round_reset_timer_text();
-
     //load the font used for the timer
     let fonts = [Font::from_bytes(FONT, Default::default()).unwrap()];
     let mut layout_settings = LayoutSettings {
@@ -245,6 +244,8 @@ fn run() -> impl FnMut(Event) {
 
     let mut last_update = Instant::now();
     let mut accumulator = Duration::ZERO;
+
+
     move |event| match event {
         //Process input
         //A subset of these keys go to the character with character_1.key_down or character_1.key_up
@@ -312,12 +313,38 @@ fn run() -> impl FnMut(Event) {
                     let frame = game.current_round.characters[1].get_current_animation_config();
                     sprites_2[0].texture = animation_library.get_atlas_subsection(game.current_round.characters[1].animation_state, frame.current_frame).mirror_y();
                     sprites_2[0].pos.x = game.current_round.characters[1].character_position.x * X_SCALE as f32;
-                    
-                    for projectile in game.current_round.projectiles.iter() {
-                        fireball_sprite[0].pos = Vector3::new(projectile.position.x * X_SCALE as f32, projectile.position.y * Y_SCALE as f32, 0.0);
-                        let left = projectile.timer.current_frame * FRAME_WIDTH;
-                        let test = fireball_render_pass.atlas.subsection(left, left + FRAME_WIDTH, 0, FRAME_HEIGHT);
-                        fireball_sprite[0].texture = test;
+
+                    if game.current_round.projectiles.len() != projectile_sprites.len() {
+                        let diff = game.current_round.projectiles.len().abs_diff(projectile_sprites.len());
+                        if game.current_round.projectiles.len() > projectile_sprites.len() {
+                            //we need to add the number of new sprites
+                            for _ in 0..diff {
+                                let (fireball_sprite, mut fireball_render_pass) = setup_fireball();
+                                fireball_render_pass.atlas = fireball_texture.clone();
+                                projectile_sprites.push((fireball_sprite, fireball_render_pass))
+                            }
+                        }
+                        else {
+                            //remove the 
+                            projectile_sprites.truncate(projectile_sprites.len() - diff);
+                        }
+                    }
+
+                    for (index, projectile) in game.current_round.projectiles.iter().enumerate() {
+                        match projectile.screen_side {
+                            ScreenSide::Left => {
+                                let left = projectile.timer.current_frame * FRAME_WIDTH;
+                                let test = projectile_sprites[index].1.atlas.subsection(left, 0 + FRAME_WIDTH, 0, FRAME_HEIGHT).mirror_y();
+                                projectile_sprites[index].0[0].texture = test;
+                                projectile_sprites[index].0[0].pos = Vector3::new(projectile.position.x * X_SCALE as f32 - FRAME_WIDTH as f32 * X_SCALE as f32, projectile.position.y * Y_SCALE as f32, 0.0);
+                            },
+                            ScreenSide::Right => {
+                                let left = projectile.timer.current_frame * FRAME_WIDTH;
+                                let test = projectile_sprites[index].1.atlas.subsection(left, 0 + FRAME_WIDTH, 0, FRAME_HEIGHT);
+                                projectile_sprites[index].0[0].texture = test;
+                                projectile_sprites[index].0[0].pos = Vector3::new(projectile.position.x * X_SCALE as f32 , projectile.position.y * Y_SCALE as f32, 0.0);
+                            }
+                        }
                     }
                 }
 
@@ -372,9 +399,9 @@ fn run() -> impl FnMut(Event) {
                 background_sprite_pass.draw(&sprite_shader);
 
 
-                for _ in game.current_round.projectiles.iter() {
-                    fireball_render_pass.buffer.set(&fireball_sprite);
-                    fireball_render_pass.draw(&sprite_shader);
+                for projectile_sprites in projectile_sprites.iter_mut() {
+                    projectile_sprites.1.buffer.set(&projectile_sprites.0);
+                    projectile_sprites.1.draw(&sprite_shader);
                 }
 
                 sprite_1.buffer.set(&sprites_1);

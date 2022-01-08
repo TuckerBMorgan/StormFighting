@@ -42,9 +42,10 @@ pub fn launch_session() -> (P2PSession, usize) {
             message.push(value as char);
         }
     }
+    println!("Pre shutdown");
     //Now that we have the info kill our connection
     let _ = stream.shutdown(std::net::Shutdown::Both);
-
+    println!("Post shutdown");
     // read cmd line arguments
     let mut local_handle = 0;
     let num_players = 2;//This is a peer to peer fighting game, there will only ever be 2 players
@@ -79,5 +80,6 @@ pub fn launch_session() -> (P2PSession, usize) {
     sess.set_fps(FPS as u32).unwrap();
     // start the GGRS session
     sess.start_session().unwrap();
+    println!("Is it this fooking thing at all");
     return (sess, local_handle);
 }

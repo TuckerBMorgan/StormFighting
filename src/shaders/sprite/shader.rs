@@ -1,5 +1,5 @@
 use storm::graphics::default_texture;
-use storm::graphics::{AsStd140, Buffer, DrawMode, Shader, ShaderDescriptor, Texture, Uniform,
+use storm::graphics::{Buffer, std140,DrawMode, Shader, ShaderDescriptor, Texture, Uniform,
 };
 use crate::shaders::sprite::Sprite;
 use cgmath::Matrix4;
@@ -13,15 +13,16 @@ impl ShaderDescriptor<1> for SpriteShader {
     type VertexDescriptor = Sprite;
 }
 
-#[derive(AsStd140)]
+#[std140::uniform]
+#[derive(Copy, Clone)]
 pub struct SpriteUniform {
-    pub ortho: Matrix4<f32>,
+    pub ortho: std140::mat4,
 }
 
 impl SpriteUniform {
     pub fn new(ortho: Matrix4<f32>) -> SpriteUniform {
         SpriteUniform {
-            ortho,
+            ortho: ortho.into(),
         }
     }
 }

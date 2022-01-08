@@ -33,7 +33,6 @@ impl Round {
 
         //Leave early if we are wating for a round to fully end for the reset
         if self.round_done {
-            println!("WHAT HOW");
             let (won, lost) = self.who_won_who_lost();
             self.characters[won].set_character_state(CharacterState::Won, &game_config);
             self.characters[won].done = true;
@@ -174,21 +173,59 @@ impl Round {
                 }
             }
         }
-        /*
-        let fireball_collision = &collision_library.fireball_collision;
+        
+        let fireball_collision = &game_config.collision_library.fireball_collision;
+        let mut projectile_position_corrected_aabbs = vec![];
         for projectile in self.projectiles.iter() {
             let mut use_aabb = fireball_collision.frame_collision.get(&0).unwrap()[0].aabb;
             if projectile.screen_side == ScreenSide::Left {
                 use_aabb = use_aabb.reflect((FRAME_WIDTH / 2) as usize);
              }
             //Do the shift
-            let new_min = use_aabb.min + self.character_1.character_position;
-            let new_max = use_aabb.max + self.character_1.character_position;
+            let new_min = use_aabb.min + projectile.position;
+            let new_max = use_aabb.max + projectile.position;
             //Init the new AABB
             let aabb = AABB2D::new(new_min.x, new_min.y, new_max.x, new_max.y);
-            character_1_position_corrected_aabbs.push((aabb, CollisionBoxType::Hurt));
+            projectile_position_corrected_aabbs.push((aabb, CollisionBoxType::Hurt, projectile.team));
         }
-        */
+        
+        collision_reports.clear();
+        for (projectile_aab, box_type, team) in projectile_position_corrected_aabbs {
+            if team == 0 {
+                for aabb in character_2_position_corrected_aabbs.iter() {
+                    if projectile_aab.intersects(&aabb.0) {
+                        let collision_report = CollisionReport::new(box_type, aabb.1, CharacterNumber::Number1);
+                        collision_reports.push(collision_report);
+                    }
+                }
+            }
+            else {
+                for aabb in character_1_position_corrected_aabbs.iter() {
+                    if projectile_aab.intersects(&aabb.0) {
+                        let collision_report = CollisionReport::new(box_type, aabb.1, CharacterNumber::Number2);
+                        collision_reports.push(collision_report);
+                    }
+                }
+            }
+        }
+
+        if collision_reports.len() > 0 {
+            self.projectiles.clear();
+            for strike in collision_reports {
+                match strike.collider_character {
+                    CharacterNumber::Number1 =>  {
+                        self.do_damage_to_character(1, 5, game_config);
+                        self.hit_stun_counter += 3;
+                    },
+                    CharacterNumber::Number2 => {
+                        self.do_damage_to_character(0, 5, game_config);
+                        self.hit_stun_counter += 3;
+                    }
+                }
+            }
+        }
+
+//        self.projectiles.retain(|x|x.position.x > -2000.0);
 
         //If either player has died
         if self.characters[0].health == 0 || self.characters[1].health == 0 {
@@ -231,14 +268,27 @@ impl Round {
                 self.characters[character_index].set_character_state(CharacterState::HeavyKick, &game_config);
             }
             else if character_action == CharacterAction::Special1 {
+                self.characters[character_index].set_character_state(CharacterState::Special1, &game_config);
+            }
+        }
+
+        if self.characters[character_index].character_state == CharacterState::Special1 {
+            //TODO: make this, idk, something better, the fact that I just need to memorize what this
+            //index is is BAD
+            if self.characters[character_index].current_animation.current_frame == 6 
+                && self.characters[character_index].current_animation.sprite_timer.current_frame == 0 {
                 let mut velocity = Vector2::new(-10.0, 0.0);
+                let start_offset;
                 if self.characters[character_index].screen_side == ScreenSide::Left {
                     velocity.x = 10.0;
+                    start_offset = Vector2::new(0.0, 45.0);
+                }
+                else {
+                    start_offset = Vector2::new(-0.0, 45.0);
                 }
                 
-                let fireball = Projectile::new(self.characters[character_index].character_position + Vector2::new(-10.0, -75.0), velocity, self.characters[character_index].screen_side);
+                let fireball = Projectile::new(self.characters[character_index].character_position + start_offset, velocity, self.characters[character_index].screen_side, character_index);
                 self.projectiles.push(fireball);
-                self.characters[character_index].set_character_state(CharacterState::Special1, &game_config);
             }
         }
         //If we are in the normal crouched animation, Idle + IsCrouched, and we are no longer holding the down key
@@ -256,10 +306,10 @@ impl Round {
             else if character_action == CharacterAction::DashBackward {
                 self.characters[character_index].set_character_state(CharacterState::BackwardDash, &game_config);
             }
-            else if character_action == CharacterAction::MoveForward {
+            else if character_action == CharacterAction::MoveForward && self.characters[character_index].character_state != CharacterState::ForwardRun {
                 self.characters[character_index].set_character_state(CharacterState::ForwardRun, &game_config);
             }
-            else if character_action == CharacterAction::MoveBackward {
+            else if character_action == CharacterAction::MoveBackward && self.characters[character_index].character_state != CharacterState::BackwardRun {
                 self.characters[character_index].set_character_state(CharacterState::BackwardRun, &game_config);
             }
             else if character_action == CharacterAction::Crouch {
@@ -346,11 +396,11 @@ impl Default for Round{
         //Build up the character by loading animations for each of the animation states
         let mut character_1 = Character::default();
         character_1.screen_side = ScreenSide::Right;
-        character_1.character_position.x = (FRAME_WIDTH as f32) / 3.5;
+        character_1.character_position.x = FRAME_WIDTH as f32 * 0.25;
         character_1.current_animation = AnimationConfig::new(10, 4);
         let mut character_2 = Character::default();
         character_2.screen_side = ScreenSide::Left;
-        character_2.character_position.x = -(FRAME_WIDTH as f32) * 1.2;
+        character_2.character_position.x = -(FRAME_WIDTH as f32);
         character_2.current_animation = AnimationConfig::new(10, 4);
         Round {
             characters: vec![character_1, character_2],
