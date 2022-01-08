@@ -74,7 +74,7 @@ pub fn launch_session() -> (P2PSession, usize) {
     }
 
     // set input delay for the local player
-    sess.set_frame_delay(4, local_handle).unwrap();
+    sess.set_frame_delay(2, local_handle).unwrap();
 
     // set change default expected update frequency
     sess.set_fps(FPS as u32).unwrap();

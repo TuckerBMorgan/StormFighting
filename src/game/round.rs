@@ -24,8 +24,8 @@ impl Round {
             self.hit_stun_counter -= 1;
             return;
         }
-        self.character_tick(0, Input::from_game_input(inputs[0]), game_config);
-        self.character_tick(1, Input::from_game_input(inputs[1]), game_config);
+        self.character_tick(0, Input::from_game_input(inputs[0].clone()), game_config);
+        self.character_tick(1, Input::from_game_input(inputs[1].clone()), game_config);
 
         for projectile in self.projectiles.iter_mut() {
             projectile.tick();

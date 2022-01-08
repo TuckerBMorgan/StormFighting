@@ -725,9 +725,9 @@ dependencies = [
 
 [[package]]
 name = "ggrs"
-version = "0.5.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6a10efd1877979b1a8ca35f067f80b4432c34b7a8cc3fc1dad8ebc34bd3a353"
+checksum = "5afbbd022b75bb6203f3ef1b1a947d9a32c56a7621eddd5cb97232f3971b450f"
 dependencies = [
  "bincode",
  "bitfield-rle",
