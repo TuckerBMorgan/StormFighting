@@ -8,7 +8,7 @@ edition = "2018"
 [dependencies]
 storm = {git = "https://github.com/mooman219/storm"}
 hashbrown = { version = "0.11.2", features = ["serde"]}
-ggrs = "0.6"
+ggrs = "0.7"
 structopt = "0.3"
 instant = "0.1"
 bincode = "1.3"

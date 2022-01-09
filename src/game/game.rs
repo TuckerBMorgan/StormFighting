@@ -99,7 +99,7 @@ impl Game {
     pub fn handle_requests(&mut self, requests: Vec<GGRSRequest>) {
         for request in requests {
             match request {
-                GGRSRequest::LoadGameState { cell } => self.load_game_state(cell),
+                GGRSRequest::LoadGameState { cell, frame: _ } => self.load_game_state(cell),
                 GGRSRequest::SaveGameState { cell, frame } => self.save_game_state(cell, frame),
                 GGRSRequest::AdvanceFrame { inputs } => self.advance_frame(inputs),
             }
