@@ -7,11 +7,10 @@ pub const INPUT_SIZE: usize = std::mem::size_of::<[u8;2]>();
 
 pub fn launch_session() -> (P2PSession, usize) {
     //Connect to the Cupid server
-    let mut stream = TcpStream::connect("24.19.122.147:7878").unwrap();
-   // let mut stream = TcpStream::connect("192.168.0.20:7878").unwrap();
+    //let mut stream = TcpStream::connect("24.19.122.147:7878").unwrap();
+    let mut stream = TcpStream::connect("192.168.0.20:7878").unwrap();
     //let listener = TcpListener::bind("192.168.0.20:7878").unwrap();
     let mut players = vec![String::from("localhost")];
-    println!("Local address is {:?}", stream.local_addr().unwrap().to_string());
 
     let mut buffer = [0;512];
     let mut message = vec![];
@@ -25,8 +24,7 @@ pub fn launch_session() -> (P2PSession, usize) {
             else {
                 let test : String = message.iter().collect();
                 let parts : Vec<String> = test.split('#').map(|x|x.to_string()).collect();
-                println!("{:?}", parts);
-                println!("{:?}", parts[1].chars().nth(0).unwrap());
+
                 let player_pos:char = parts[1].chars().nth(0).unwrap();
                 if player_pos == '\u{1}' {    
                     players.insert(0, parts[0].clone())
@@ -34,7 +32,6 @@ pub fn launch_session() -> (P2PSession, usize) {
                 else {
                     players.push(parts[0].clone());
                 }
-                println!("The remote address is {:?}", parts[0]);
                 break;
             }
         }
@@ -80,6 +77,6 @@ pub fn launch_session() -> (P2PSession, usize) {
     sess.set_fps(FPS as u32).unwrap();
     // start the GGRS session
     sess.start_session().unwrap();
-    println!("Is it this fooking thing at all");
+
     return (sess, local_handle);
 }

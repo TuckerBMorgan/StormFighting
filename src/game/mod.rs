@@ -6,6 +6,8 @@ mod input;
 mod collision;
 mod net;
 mod projectile;
+mod menu;
+mod setup_functions;
 
 pub use animation::*;
 pub use character::*;
@@ -15,3 +17,5 @@ pub use collision::*;
 pub use input::*;
 pub use net::*;
 pub use projectile::*;
+pub use menu::*;
+pub use setup_functions::*;

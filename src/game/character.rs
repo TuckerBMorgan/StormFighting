@@ -161,7 +161,6 @@ impl Character {
                 match combo.process_input(element) {
                     Some(character_action) => {
                         self.past_inputs.clear();
-                        println!("{:?}", character_action);
                         return character_action;
                     }
                     None => {
@@ -180,6 +179,7 @@ impl Character {
         else if frame_input.heavy_attack {
             return CharacterAction::HeavyAttack;
         }
+        /*
         else if frame_input.light_kick {
             return CharacterAction::LightKick;
         }
@@ -189,6 +189,7 @@ impl Character {
         else if frame_input.heavy_kick {
             return CharacterAction::HeavyKick;
         }
+         */
         else if frame_input.forward_down {
             return CharacterAction::MoveForward;
         }
@@ -258,8 +259,7 @@ impl Character {
         let is_in_idle_state = self.character_state == CharacterState::Idle 
             || self.character_state == CharacterState::ForwardRun 
             || self.character_state == CharacterState::BackwardRun
-            || self.character_state == CharacterState::ForwardDash
-            || self.character_state == CharacterState::Crouching;
+            || self.character_state == CharacterState::ForwardDash;
         return is_in_idle_state;
     }
 }
