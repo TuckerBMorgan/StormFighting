@@ -82,7 +82,9 @@ pub struct Game {
     pub fonts: [Font;1],
     pub fireball_texture: Texture,
     pub last_update: Instant,
-    pub accumulator: Duration
+    pub accumulator: Duration,
+    pub background_sprite: [Sprite;1],
+    pub background_sprite_pass: SpriteShaderPass
 }
 
 impl Game {
@@ -235,11 +237,7 @@ impl Game {
                 }],
             );
 
-            self.ui.timer_text.0.draw(&self.ui.timer_text.1);        
-
-            //Commit the current images to the screen
-            //background_sprite_pass.buffer.set(&mut background_sprite);
-            //background_sprite_pass.draw(&sprite_shader);
+            self.ui.timer_text.0.draw(&self.ui.timer_text.1);
 
             self.ui.backplate.1.buffer.set(&mut self.ui.backplate.0);
             self.ui.backplate.1.draw(&self.sprite_shader);
@@ -251,6 +249,9 @@ impl Game {
 
             self.sprite_pass_1.buffer.set(&self.character_1_sprites);
             self.sprite_pass_1.draw(&self.sprite_shader);
+            
+            self.background_sprite_pass.buffer.set(&self.background_sprite);
+            self.background_sprite_pass.draw(&self.sprite_shader);
             
             self.sprite_pass_2.buffer.set(&self.character_2_sprites);
             self.sprite_pass_2.draw(&self.sprite_shader);
@@ -316,7 +317,6 @@ impl Game {
 
 impl Default for Game {
     fn default() -> Game {
-
         let mut animation_for_character_state_library = HashMap::new();
         animation_for_character_state_library.insert(CharacterState::Idle, AnimationStateForCharacterState::new(AnimationState::Crouched, AnimationState::Idle));
         animation_for_character_state_library.insert(CharacterState::ForwardRun, AnimationStateForCharacterState::new(AnimationState::ForwardRun, AnimationState::ForwardRun));
@@ -359,37 +359,20 @@ impl Default for Game {
         animation_configs.insert(AnimationState::Won,                  AnimationConfig::new(6, 5));
         animation_configs.insert(AnimationState::Lost,                 AnimationConfig::new(5, 5));
 
-
-
-
         let mut current_round = Round::default();
         let (p2p_session, local_handle) = launch_session();
-        let (mut background_sprite, mut background_sprite_pass) = setup_background();
+        let (background_sprite, background_sprite_pass) = setup_background();
         clear(ClearMode::color_depth(RGBA8::BLACK));
         let sprite_shader = SpriteShader::new();
-
-
-    
-    
-        //Load a sprite with the atlas of whatever the idle animation is
-    
         let animation_library = AnimationTextureLibrary::default();
-        //Load the characters sprites and shaders
-    
         let (sprites_1, 
             sprite_pass_1) = load_character_sprite(&animation_library, &mut current_round.characters[0]);
         let (sprites_2, 
             sprite_pass_2) = load_character_sprite(&animation_library, &mut current_round.characters[1]);
-    
         let fireball_texture = Texture::from_png(FIREBALL);
-
-    
-        let ui = setup_ui();
-    
+        let ui = setup_ui();    
         //load the font used for the timer
         let fonts = [Font::from_bytes(FONT, Default::default()).unwrap()];
-
-
 
         let game_config = GameConfig::new(CollisionLibrary::default(), ComboLibrary::default(), animation_library, animation_for_character_state_library, animation_configs);
         let last_update = Instant::now();
@@ -412,7 +395,9 @@ impl Default for Game {
             fonts,
             fireball_texture,
             last_update,
-            accumulator
+            accumulator,
+            background_sprite,
+            background_sprite_pass
         }
     }
 }
