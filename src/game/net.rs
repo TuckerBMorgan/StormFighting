@@ -1,14 +1,29 @@
-use ggrs::{P2PSession, PlayerType};
+use ggrs::{P2PSession, PlayerType, NonBlockingSocket};
+
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::net::SocketAddr;
+
 pub const FPS: f64 = 60.0;
 pub const INPUT_SIZE: usize = std::mem::size_of::<[u8;2]>();
+pub struct Net {
+    pub session: P2PSession,
+    pub local_handle: usize
+}
 
-pub fn launch_session() -> (P2PSession, usize) {
+impl Net {
+    pub fn new(session: P2PSession, local_handle: usize) -> Net {
+        Net {
+            session,
+            local_handle
+        }
+    }
+}
+
+pub fn launch_session() -> Net {
     //Connect to the Cupid server
     let mut stream = TcpStream::connect("24.19.122.147:7878").unwrap();
-    //let mut stream = TcpStream::connect("192.168.0.20:7878").unwrap();
+   // let mut stream = TcpStream::connect("192.168.0.20:7878").unwrap();
     //let listener = TcpListener::bind("192.168.0.20:7878").unwrap();
     let mut players = vec![String::from("localhost")];
 
@@ -77,6 +92,5 @@ pub fn launch_session() -> (P2PSession, usize) {
     sess.set_fps(FPS as u32).unwrap();
     // start the GGRS session
     sess.start_session().unwrap();
-
-    return (sess, local_handle);
+    return Net::new(sess, local_handle);
 }

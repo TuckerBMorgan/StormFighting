@@ -58,6 +58,10 @@ fn main() {
 
 
 fn run() -> impl FnMut(Event) {
+
+
+
+
     wait_periodic(Some(Duration::from_secs_f32(1.0 / 60.0)));
 
     let mut game_state = GameState::Menu;

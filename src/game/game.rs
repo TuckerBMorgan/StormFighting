@@ -14,7 +14,7 @@ use instant::{Instant};
 use storm::fontdue::layout::LayoutSettings;
 use storm::fontdue::Font;
 use storm::graphics::shaders::text::{Text};
-use ggrs::{GGRSError, SessionState, P2PSession};
+use ggrs::{GGRSError, SessionState};
 
 use hashbrown::HashMap;
 
@@ -70,8 +70,7 @@ pub struct Game {
     pub last_checksum: (Frame, u64),
     pub periodic_checksum: (Frame, u64),
     pub game_config: GameConfig,
-    pub p2p_session: P2PSession,
-    pub local_handle: usize,
+    pub net: Net,
     pub ui: UI,
     pub character_1_sprites: [Sprite;1],
     pub sprite_pass_1: SpriteShaderPass,
@@ -84,7 +83,8 @@ pub struct Game {
     pub last_update: Instant,
     pub accumulator: Duration,
     pub background_sprite: [Sprite;1],
-    pub background_sprite_pass: SpriteShaderPass
+    pub background_sprite_pass: SpriteShaderPass,
+    
 }
 
 impl Game {
@@ -134,12 +134,12 @@ impl Game {
         
 
         clear(ClearMode::color_depth(RGBA8::BLACK));
-        self.p2p_session.poll_remote_clients();
-        if self.p2p_session.current_state() == SessionState::Running {
+        self.net.session.poll_remote_clients();
+        if self.net.session.current_state() == SessionState::Running {
             // this is to keep ticks between clients synchronized.
             // if a client is ahead, it will run frames slightly slower to allow catching up
             let mut fps_delta = 1. / FPS;
-            if self.p2p_session.frames_ahead() > 0 {
+            if self.net.session.frames_ahead() > 0 {
                 fps_delta *= 1.1;
             }
 
@@ -154,7 +154,7 @@ impl Game {
                 self.accumulator = self.accumulator.saturating_sub(Duration::from_secs_f64(fps_delta));
 
             
-                match self.p2p_session.advance_frame(self.local_handle, &self.local_input(0)) {
+                match self.net.session.advance_frame(self.net.local_handle, &self.local_input(0)) {
                     Ok(requests) => self.handle_requests(requests),
                     Err(GGRSError::PredictionThreshold) => println!("Frame skipped"),
                     Err(e) => panic!("{:?}", e),
@@ -360,7 +360,8 @@ impl Default for Game {
         animation_configs.insert(AnimationState::Lost,                 AnimationConfig::new(5, 5));
 
         let mut current_round = Round::default();
-        let (p2p_session, local_handle) = launch_session();
+        let net = launch_session();
+
         let (background_sprite, background_sprite_pass) = setup_background();
         clear(ClearMode::color_depth(RGBA8::BLACK));
         let sprite_shader = SpriteShader::new();
@@ -383,8 +384,7 @@ impl Default for Game {
             last_checksum: (NULL_FRAME, 0),
             periodic_checksum: (NULL_FRAME, 0),
             game_config,
-            p2p_session,
-            local_handle,
+            net,
             ui,
             character_1_sprites: sprites_1,
             sprite_pass_1,            
