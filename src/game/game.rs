@@ -64,13 +64,13 @@ impl GameConfig {
     }
 }
 
-pub struct Game {
+pub struct Game<'a> {
     pub current_round: Round,
     pub local_input: Input,
     pub last_checksum: (Frame, u64),
     pub periodic_checksum: (Frame, u64),
     pub game_config: GameConfig,
-    pub net: Net,
+    pub net: Net<'a>,
     pub ui: UI,
     pub character_1_sprites: [Sprite;1],
     pub sprite_pass_1: SpriteShaderPass,
@@ -87,7 +87,7 @@ pub struct Game {
     
 }
 
-impl Game {
+impl<'a> Game<'a> {
     
     pub fn key_down(&mut self, keyboard_button: KeyboardButton) {
         self.local_input.key_down(keyboard_button);
@@ -134,7 +134,8 @@ impl Game {
         
 
         clear(ClearMode::color_depth(RGBA8::BLACK));
-        self.net.session.poll_remote_clients();
+        
+        self.net.tick();
         if self.net.session.current_state() == SessionState::Running {
             // this is to keep ticks between clients synchronized.
             // if a client is ahead, it will run frames slightly slower to allow catching up
@@ -315,8 +316,8 @@ impl Game {
     }
 }
 
-impl Default for Game {
-    fn default() -> Game {
+impl<'a> Default for Game<'a> {
+    fn default() -> Game<'a> {
         let mut animation_for_character_state_library = HashMap::new();
         animation_for_character_state_library.insert(CharacterState::Idle, AnimationStateForCharacterState::new(AnimationState::Crouched, AnimationState::Idle));
         animation_for_character_state_library.insert(CharacterState::ForwardRun, AnimationStateForCharacterState::new(AnimationState::ForwardRun, AnimationState::ForwardRun));
@@ -360,7 +361,7 @@ impl Default for Game {
         animation_configs.insert(AnimationState::Lost,                 AnimationConfig::new(5, 5));
 
         let mut current_round = Round::default();
-        let net = launch_session();
+        let net = Net::launch_session();
 
         let (background_sprite, background_sprite_pass) = setup_background();
         clear(ClearMode::color_depth(RGBA8::BLACK));
