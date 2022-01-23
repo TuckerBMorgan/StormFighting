@@ -5,7 +5,7 @@ use storm::cgmath::*;
 use super::*;
 
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize,  Clone)]
 pub struct Round {
     pub characters: Vec<Character>,
     pub frame: i32,

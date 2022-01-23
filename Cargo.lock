@@ -937,9 +937,9 @@ dependencies = [
 
 [[package]]
 name = "ggrs"
-version = "0.7.2"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d6d50af1af9239c41a53c0546cb11db3461b2db5c23304ff835e712e1474a0c"
+checksum = "336c4728ab8dca8317120a377948d2e77131a9421e5c4139fc0844937274568f"
 dependencies = [
  "bincode",
  "bitfield-rle",
@@ -1270,7 +1270,7 @@ dependencies = [
 
 [[package]]
 name = "matchbox_socket"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "bincode",
  "futures",
@@ -2389,9 +2389,9 @@ checksum = "09cc8ee72d2a9becf2f2febe0205bbed8fc6615b7cb429ad062dc7b7ddd036a9"
 
 [[package]]
 name = "uuid"
-version = "1.0.0-alpha.1"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb3ab47baa004111b323696c6eaa2752e7356f7f77cf6b6dc7a2087368ce1ca4"
+checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 dependencies = [
  "getrandom",
 ]

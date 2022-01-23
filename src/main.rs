@@ -69,9 +69,6 @@ fn run() -> impl FnMut(Event) {
     let mut game: Option<Game> = None;
     let mut menu = Some(Menu::new());
 
-    let boop = Sound::from_flac(SOUND).unwrap();
-    let s = boop.play(0.1, 0.0);
-
     move |event| match event {
         //Process input
         //A subset of these keys go to the character with character_1.key_down or character_1.key_up

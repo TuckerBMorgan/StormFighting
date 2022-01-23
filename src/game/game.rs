@@ -84,7 +84,6 @@ pub struct Game<'a> {
     pub accumulator: Duration,
     pub background_sprite: [Sprite;1],
     pub background_sprite_pass: SpriteShaderPass,
-    
 }
 
 impl<'a> Game<'a> {
@@ -98,19 +97,18 @@ impl<'a> Game<'a> {
     }
 
     // deserialize gamestate to load and overwrite current gamestate
-    pub fn load_game_state(&mut self, cell: GameStateCell) {
-        let state_to_load = cell.load();
-        self.current_round = bincode::deserialize(&state_to_load.buffer.unwrap()).unwrap();
+    pub fn load_game_state(&mut self, cell: GameStateCell<Round>) {
+        self.current_round = cell.load().data.expect("No data found.");
     }
 
     // serialize current gamestate, create a checksum
     // creating a checksum here is only relevant for SyncTestSessions
-    fn save_game_state(&mut self, cell: GameStateCell, frame: Frame) {
+    fn save_game_state(&mut self, cell: GameStateCell<Round>, frame: Frame) {
         // assert_eq!(self.game_state.frame, frame);
         let buffer = bincode::serialize(&self.current_round).unwrap();
         let checksum = fletcher16(&buffer) as u64;
 
-        cell.save(GameState::new(frame, Some(buffer), Some(checksum)));
+        cell.save(GameState::new_with_checksum(frame, Some(self.current_round.clone()), checksum));
     }
     
     fn advance_frame(&mut self, inputs: Vec<GameInput>) {
@@ -136,11 +134,19 @@ impl<'a> Game<'a> {
         clear(ClearMode::color_depth(RGBA8::BLACK));
         
         self.net.tick();
-        if self.net.session.current_state() == SessionState::Running {
+        match self.net.state {
+            NetState::Connecting => {
+                return;
+            },
+            _ => {
+
+            }
+        }
+        if self.net.session.as_mut().unwrap().current_state() == SessionState::Running {
             // this is to keep ticks between clients synchronized.
             // if a client is ahead, it will run frames slightly slower to allow catching up
             let mut fps_delta = 1. / FPS;
-            if self.net.session.frames_ahead() > 0 {
+            if self.net.session.as_mut().unwrap().frames_ahead() > 0 {
                 fps_delta *= 1.1;
             }
 
@@ -154,8 +160,8 @@ impl<'a> Game<'a> {
                 // decrease accumulator
                 self.accumulator = self.accumulator.saturating_sub(Duration::from_secs_f64(fps_delta));
 
-            
-                match self.net.session.advance_frame(self.net.local_handle, &self.local_input(0)) {
+                let input = self.local_input(0);
+                match self.net.session.as_mut().unwrap().advance_frame(self.net.local_handle, &input) {
                     Ok(requests) => self.handle_requests(requests),
                     Err(GGRSError::PredictionThreshold) => println!("Frame skipped"),
                     Err(e) => panic!("{:?}", e),
@@ -266,7 +272,7 @@ impl<'a> Game<'a> {
     }
 
     // for each request, call the appropriate function
-    pub fn handle_requests(&mut self, requests: Vec<GGRSRequest>) {
+    pub fn handle_requests(&mut self, requests: Vec<GGRSRequest<Round>>) {
         for request in requests {
             match request {
                 GGRSRequest::LoadGameState { cell, frame: _ } => self.load_game_state(cell),
@@ -339,26 +345,26 @@ impl<'a> Default for Game<'a> {
 
 
         let mut animation_configs = HashMap::new();
-        animation_configs.insert(AnimationState::Idle,                 AnimationConfig::new(10, 4));
-        animation_configs.insert(AnimationState::ForwardRun,           AnimationConfig::new(12, 4));
-        animation_configs.insert(AnimationState::BackwardRun,          AnimationConfig::new(10, 4));
-        animation_configs.insert(AnimationState::LightAttack,          AnimationConfig::new(5, 4));
-        animation_configs.insert(AnimationState::MediumAttack,         AnimationConfig::new(8, 4));
-        animation_configs.insert(AnimationState::HeavyAttack,          AnimationConfig::new(11, 4));
-        animation_configs.insert(AnimationState::LightHitRecovery,     AnimationConfig::new(4, 4));
-        animation_configs.insert(AnimationState::Blocking,             AnimationConfig::new(4, 4));
-        animation_configs.insert(AnimationState::Crouched,             AnimationConfig::new(4, 4));
-        animation_configs.insert(AnimationState::Crouching,            AnimationConfig::new(2, 4));
-        animation_configs.insert(AnimationState::LightCrouchAttack,    AnimationConfig::new(5, 4));
-        animation_configs.insert(AnimationState::HeavyCrouchingAttack, AnimationConfig::new(9, 4));
-        animation_configs.insert(AnimationState::LightKick,            AnimationConfig::new(6, 4));
-        animation_configs.insert(AnimationState::MediumKick,           AnimationConfig::new(8, 4));
-        animation_configs.insert(AnimationState::HeavyKick,            AnimationConfig::new(13, 4));
-        animation_configs.insert(AnimationState::ForwardDash,          AnimationConfig::new(6, 4));
-        animation_configs.insert(AnimationState::BackwardDash,         AnimationConfig::new(6, 4));
-        animation_configs.insert(AnimationState::Special1,             AnimationConfig::new(14, 4));
-        animation_configs.insert(AnimationState::Won,                  AnimationConfig::new(6, 5));
-        animation_configs.insert(AnimationState::Lost,                 AnimationConfig::new(5, 5));
+        animation_configs.insert(AnimationState::Idle,                 AnimationConfig::new(10, 3));
+        animation_configs.insert(AnimationState::ForwardRun,           AnimationConfig::new(12, 3));
+        animation_configs.insert(AnimationState::BackwardRun,          AnimationConfig::new(10, 3));
+        animation_configs.insert(AnimationState::LightAttack,          AnimationConfig::new(5, 3));
+        animation_configs.insert(AnimationState::MediumAttack,         AnimationConfig::new(8, 3));
+        animation_configs.insert(AnimationState::HeavyAttack,          AnimationConfig::new(11, 3));
+        animation_configs.insert(AnimationState::LightHitRecovery,     AnimationConfig::new(4, 3));
+        animation_configs.insert(AnimationState::Blocking,             AnimationConfig::new(4, 3));
+        animation_configs.insert(AnimationState::Crouched,             AnimationConfig::new(4, 3));
+        animation_configs.insert(AnimationState::Crouching,            AnimationConfig::new(2, 3));
+        animation_configs.insert(AnimationState::LightCrouchAttack,    AnimationConfig::new(5, 3));
+        animation_configs.insert(AnimationState::HeavyCrouchingAttack, AnimationConfig::new(9, 3));
+        animation_configs.insert(AnimationState::LightKick,            AnimationConfig::new(6, 3));
+        animation_configs.insert(AnimationState::MediumKick,           AnimationConfig::new(8, 3));
+        animation_configs.insert(AnimationState::HeavyKick,            AnimationConfig::new(13, 3));
+        animation_configs.insert(AnimationState::ForwardDash,          AnimationConfig::new(6, 3));
+        animation_configs.insert(AnimationState::BackwardDash,         AnimationConfig::new(6, 3));
+        animation_configs.insert(AnimationState::Special1,             AnimationConfig::new(14, 3));
+        animation_configs.insert(AnimationState::Won,                  AnimationConfig::new(6, 4));
+        animation_configs.insert(AnimationState::Lost,                 AnimationConfig::new(5, 4));
 
         let mut current_round = Round::default();
         let net = Net::launch_session();

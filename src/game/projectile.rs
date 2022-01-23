@@ -4,7 +4,7 @@ use storm::cgmath::Vector2;
 
 use super::{ScreenSide, AnimationConfig};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Copy, Clone)]
 pub struct Projectile {
     pub position: Vector2<f32>,
     pub velocity: Vector2<f32>,

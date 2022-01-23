@@ -34,6 +34,7 @@ pub enum CharacterState {
     MediumAttack,
     HeavyAttack,
     LightHitRecovery,
+    MediumHitRecovery,
     Blocking,
     Crouching,
     LightKick,
@@ -77,7 +78,7 @@ impl AnimationStateForCharacterState {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize,Clone)]
 pub struct Character {
     pub animation_state: AnimationState, //The characters current animation it is playing
     pub character_state: CharacterState, //The current character states
@@ -179,7 +180,6 @@ impl Character {
         else if frame_input.heavy_attack {
             return CharacterAction::HeavyAttack;
         }
-        /*
         else if frame_input.light_kick {
             return CharacterAction::LightKick;
         }
@@ -189,7 +189,6 @@ impl Character {
         else if frame_input.heavy_kick {
             return CharacterAction::HeavyKick;
         }
-         */
         else if frame_input.forward_down {
             return CharacterAction::MoveForward;
         }

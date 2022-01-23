@@ -1,30 +1,31 @@
-use ggrs::{P2PSession, PlayerType, NonBlockingSocket};
+use ggrs::{P2PSession, PlayerType};
 
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::net::SocketAddr;
+use crate::*;
 
 pub const FPS: f64 = 60.0;
 pub const INPUT_SIZE: usize = std::mem::size_of::<[u8;2]>();
-pub struct Net<'a> {
-    pub session: P2PSession,
+pub struct Net {
+    pub session: P2PSession<Round>,
     pub local_handle: usize
 }
 
-impl<'a> Net<'a> {
-    pub fn new(session: P2PSession, local_handle: usize) -> Net<'a> {
+impl Net {
+    pub fn new(session: P2PSession<Round>, local_handle: usize) -> Net {
         Net {
             session,
             local_handle
         }
     }
 
-    pub fn launch_session() -> Net<'a> {
+    pub fn launch_session() -> Net {
         //Connect to the Cupid server
        // let mut stream = TcpStream::connect("24.19.122.147:7878").unwrap();
         let mut stream = TcpStream::connect("192.168.0.20:7878").unwrap();
         //let listener = TcpListener::bind("192.168.0.20:7878").unwrap();
-        let mut players = vec![String::from("localhost"), String::from("localhost")];
+        let mut players = vec![String::from("localhost")];
     
         let mut buffer = [0;512];
         let mut message = vec![];
@@ -63,7 +64,7 @@ impl<'a> Net<'a> {
         assert!(num_players > 0);
     
         // create a GGRS session
-        let mut sess = P2PSession::new(num_players as u32, INPUT_SIZE,8, stream.local_addr().unwrap().port()).unwrap();
+        let mut sess = P2PSession::<Round>::new(num_players as u32, INPUT_SIZE,8, stream.local_addr().unwrap().port()).unwrap();
     
         // turn on sparse saving
         sess.set_sparse_saving(false).unwrap();

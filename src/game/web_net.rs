@@ -4,48 +4,58 @@ use std::io::prelude::*;
 use std::net::TcpStream;
 use std::net::SocketAddr;
 use async_executor::LocalExecutor;
-use future::blocks_on;
+use futures::*;
 use matchbox_socket::*;
-
+use crate::game::web_net::executor::block_on;
+use super::*;
 pub const FPS: f64 = 60.0;
 pub const INPUT_SIZE: usize = std::mem::size_of::<[u8;2]>();
+
+pub enum NetState {
+    Connecting,
+    Live
+}
+
+
 pub struct Net<'a> {
-    pub session: P2PSession,
+    pub state: NetState,
+    pub session: Option<P2PSession<Round>>,
     pub local_handle: usize,
-    pub local_executor: LocalExecutor<'a>
+    pub local_executor: LocalExecutor<'a>,
+    pub socket: Option<WebRtcNonBlockingSocket>
 }
 
 
 impl<'a> Net<'a> {
-    pub fn new(session: P2PSession, local_handle: usize, local_executor: LocalExecutor<'a>) -> Net<'a> {
+
+    pub fn launch_session() -> Net<'a> {
+        let (mut socket, message_loop) = WebRtcNonBlockingSocket::new("ws://24.19.122.147:7878/ggssee");
+        let local_executor = LocalExecutor::new();
+        let task = local_executor.spawn(message_loop);
+        task.detach();
         Net {
-            session,
-            local_handle,
-            local_executor
+            local_handle: 0,
+            state: NetState::Connecting,
+            session: None,
+            local_executor,
+            socket: Some(socket)
         }
     }
 
-    pub fn launch_session() -> Net<'a> {
+    
+    pub fn connecting_tick(&mut self) {
         let mut local_handle = 0;
-        let (mut socket, message_loop) = WebRtcNonBlockingSocket::new("ws://127.0.0.1:3536/ggssee");
-        let local_ex = LocalExecutor::new();
-        block_on(message_loop);
-        //let task = local_ex.spawn(message_loop);
-        //task.detach();
-
-        loop {
-            local_ex.try_tick();
-            socket.accept_new_connections();
-            let connected_peers = socket.connected_peers().len();
-            let remaining = 2 - (connected_peers + 1);
-            if remaining == 0 {
-                break;
-            }
+        self.local_executor.try_tick();
+        self.socket.as_mut().unwrap().accept_new_connections();
+        let connected_peers = self.socket.as_mut().unwrap().connected_peers().len();
+        let remaining = 2 - (connected_peers + 1);
+        if remaining != 0 {
+            return;
         }
-        println!("---");
-        let players = socket.players();
+        
+        let players = self.socket.as_mut().unwrap().players();
         //    let (mut socket, _) = connect(Url::parse("ws://192.168.0.20:9001").unwrap())?;
-        let mut sess = P2PSession::new_with_socket(2, INPUT_SIZE, 16, socket);
+        let mut sess = P2PSession::<Round>::new_with_socket(2, INPUT_SIZE, 16, self.socket.take().unwrap());
         // turn on sparse saving
         sess.set_sparse_saving(false).unwrap();
     
@@ -61,23 +71,36 @@ impl<'a> Net<'a> {
             if player == PlayerType::Local {
                 // set input delay for the local player
                 sess.set_frame_delay(2, i).unwrap();
+                self.local_handle = i;
             }
         }
     
         // set input delay for the local player
-        sess.set_frame_delay(2, local_handle).unwrap();
+   //     sess.set_frame_delay(2, local_handle).unwrap();
     
         // set change default expected update frequency
         sess.set_fps(FPS as u32).unwrap();
         // start the GGRS session
         sess.start_session().unwrap();
 
-        return Net::new(sess, 1, local_ex);
+        self.session = Some(sess);
+        self.state = NetState::Live;
     }
     
-    pub fn tick(&mut self) {
+    pub fn live_tick(&mut self) {
         self.local_executor.try_tick();
-        self.session.poll_remote_clients();
+        self.session.as_mut().unwrap().poll_remote_clients();
+    }
+
+    pub fn tick(&mut self) {
+        match self.state {
+            NetState::Connecting => {
+                self.connecting_tick();
+            },
+            NetState::Live => {
+                self.live_tick();
+            }
+        }
     }
 }
 
