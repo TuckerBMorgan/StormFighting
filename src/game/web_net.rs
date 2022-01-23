@@ -29,7 +29,7 @@ pub struct Net<'a> {
 impl<'a> Net<'a> {
 
     pub fn launch_session() -> Net<'a> {
-        let (mut socket, message_loop) = WebRtcNonBlockingSocket::new("wss://test-match.helsing.studio/next_2");
+        let (mut socket, message_loop) = WebRtcNonBlockingSocket::new("wss://extreme-bevy.match.helsing.studio/next_2");
         let local_executor = LocalExecutor::new();
         let task = local_executor.spawn(message_loop);
         task.detach();
