@@ -22,8 +22,11 @@ static FONT: &[u8] = include_bytes!("resources/gomarice_game_continue_02.ttf");
 static FIREBALL: &[u8] = include_bytes!("resources/fireball_main.png");
 static SOUND: &[u8] = include_bytes!("resources/makoto.flac");
 
-const X_SCALE : u16 = 4;
-const Y_SCALE : u16 = 4;
+const WIDTH : usize =  1440;
+const HEIGHT : usize =  1080;
+
+const X_SCALE : u16 = 1;
+const Y_SCALE : u16 = 1;
 #[derive(Eq, PartialEq)]
 pub enum AppState {
     Play,
@@ -45,9 +48,9 @@ fn main() {
         WindowSettings {
             title: String::from("Storm Fighting"),
             display_mode: DisplayMode::Windowed {
-                width: 1280 * 2,
-                height: 1024,
-                resizable: true,
+                width: WIDTH as i32,
+                height: HEIGHT as i32,
+                resizable: false,
             },
             vsync: Vsync::Disabled,
         },

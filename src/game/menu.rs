@@ -92,7 +92,7 @@ impl Menu {
 
         self.text_shader_pass.clear_text();
         let layout_settings = LayoutSettings {
-            x: -509.0,
+            x: 0.0,
             y: 420.0,
             max_width: Some(2000.0),
             ..Default::default()

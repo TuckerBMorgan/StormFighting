@@ -13,6 +13,7 @@ pub static LIGHT_HIT_RECOVERY: &[u8] = include_bytes!("../resources/light_hit.pn
 pub static BACKGROUND_CASTLE: &[u8] = include_bytes!("../resources/background_castle.png");
 pub static UI_BACKPLATE: &[u8] = include_bytes!("../resources/health_and_time_ui.png");
 pub static HEALTH_BAR_GRADIANT: &[u8] = include_bytes!("../resources/health_bar_gradiant.png");
+pub static GREYSCALE_HEALTH_BAR_GRADIANT: &[u8] = include_bytes!("../resources/greyscale_health_bar.png");
 pub static BUTTON: &[u8] = include_bytes!("../resources/button.png");
 //pub static STUDIO_IMAGE: &[u8] = include_bytes!("../resources/health_bar_gradiant.png");
 pub static BLOCKING: &[u8] = include_bytes!("../resources/blocking.png");
@@ -29,8 +30,8 @@ pub static SPECIAL_1: &[u8] = include_bytes!("../resources/special_1.png");
 pub static WON: &[u8] = include_bytes!("../resources/won.png");
 pub static LOST: &[u8] = include_bytes!("../resources/lost.png");
 
-pub static FRAME_HEIGHT: u32 =  178;
-pub static FRAME_WIDTH: u32 =  290;
+pub const FRAME_HEIGHT: u32 =  178;
+pub const FRAME_WIDTH: u32 =  290;
 
 #[derive(Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum AnimationState {

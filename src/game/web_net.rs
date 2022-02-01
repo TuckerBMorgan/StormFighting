@@ -1,3 +1,4 @@
+use ggrs::SessionState;
 use ggrs::{P2PSession, PlayerType, NonBlockingSocket};
 
 use std::io::prelude::*;
@@ -42,6 +43,9 @@ impl<'a> Net<'a> {
         }
     }
 
+    pub fn is_running(&self) -> bool {
+        return self.session.as_ref().unwrap().current_state() == SessionState::Running;
+    }
     
     pub fn connecting_tick(&mut self) {
         let mut local_handle = 0;

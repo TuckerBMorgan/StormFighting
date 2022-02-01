@@ -14,6 +14,7 @@ use crate::*;
 //Reusable function that loads the character sprite, the shader to render it, and where on the screen it will be
 pub fn load_character_sprite(animation_library: &AnimationTextureLibrary, character: &mut Character) -> ([Sprite; 1], SpriteShaderPass) { 
     let mut transform = Transform::new(window_logical_size());
+    transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0));
     let mut sprite_1 = SpriteShaderPass::new(transform.matrix());
 
     sprite_1.atlas = animation_library.get_atlas_for_animation(character.animation_state);
@@ -23,8 +24,8 @@ pub fn load_character_sprite(animation_library: &AnimationTextureLibrary, charac
 
     let sprites_1 = [
         Sprite {
-            pos: Vector3::new(0.0, -(FRAME_HEIGHT as f32) * 3.0, 0.0),
-            size: Vector2::new(FRAME_WIDTH as u16 * X_SCALE, FRAME_HEIGHT as u16 * Y_SCALE),
+            pos: Vector3::new(0.0, 0.0, 0.0),
+            size: Vector2::new(FRAME_WIDTH as u16, FRAME_HEIGHT as u16),
             color: RGBA8::WHITE,
             texture: frame_1,
             ..Default::default()
@@ -38,14 +39,15 @@ pub fn load_character_sprite(animation_library: &AnimationTextureLibrary, charac
 //Load the background, this is a bad function, redo it
 pub fn setup_background() -> ([Sprite; 1], SpriteShaderPass) {
     let mut transform = Transform::new(window_logical_size());
+    transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0));
     let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix());
     let loaded_texture = Texture::from_png(BACKGROUND_CASTLE);
-    let first_frame = loaded_texture.subsection(112, 787, 256, 512);
+    let first_frame = loaded_texture.subsection(0, 896, 0, 512);
     background_sprite_pass.atlas = loaded_texture;
     let background_sprite = [
         Sprite {
-            pos: Vector3::new(-1280.0, -500.0, -0.1),
-            size: Vector2::new(896 * 3, 512 * 3),
+            pos: Vector3::new(0.0, 0.0, -0.1),
+            size: Vector2::new(896, 512),
             color: RGBA8::WHITE,
             texture: first_frame,
             ..Default::default()
@@ -57,15 +59,16 @@ pub fn setup_background() -> ([Sprite; 1], SpriteShaderPass) {
 
 pub fn setup_ui_backplate() -> ([Sprite; 1], SpriteShaderPass) {
     let mut transform = Transform::new(window_logical_size());
+    transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0));
     let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix());
     let loaded_texture = Texture::from_png(UI_BACKPLATE);
     let first_frame = loaded_texture.subsection(0, loaded_texture.width(), 0, loaded_texture.height());
 
-
+    let scale_factor = 1.5;
     let background_sprite = [
         Sprite {
-            pos: Vector3::new(-1500.0, 200.0, -0.09),
-            size: Vector2::new(loaded_texture.width() as u16 * 3, (loaded_texture.height() as u16 * 3) / 2),
+            pos: Vector3::new(WIDTH as f32 / 2.0 - loaded_texture.width() as f32 * scale_factor / 2.0, HEIGHT as f32 - loaded_texture.height() as f32 * scale_factor, -0.09),
+            size: Vector2::new((loaded_texture.width() as f32 * scale_factor ) as u16, (loaded_texture.height() as f32 * scale_factor) as u16),
             color: RGBA8::WHITE,
             texture: first_frame,
             ..Default::default()
@@ -77,6 +80,7 @@ pub fn setup_ui_backplate() -> ([Sprite; 1], SpriteShaderPass) {
 
 pub fn setup_join_game_button() -> ([Sprite; 1], SpriteShaderPass) {
     let mut transform = Transform::new(window_logical_size());
+    transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0));
     let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix());
     let loaded_texture = Texture::from_png(BUTTON);
     let first_frame = loaded_texture.subsection(0, loaded_texture.width(), 0, loaded_texture.height());
@@ -105,21 +109,22 @@ pub struct UI {
 
 pub fn setup_health_bars() -> ([Sprite; 2], SpriteShaderPass){
     let mut transform = Transform::new(window_logical_size());
+    transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0));
     let mut health_bar_render_pass = SpriteShaderPass::new(transform.matrix());
-    let loaded_texture = Texture::from_png(HEALTH_BAR_GRADIANT);
+    let loaded_texture = Texture::from_png(GREYSCALE_HEALTH_BAR_GRADIANT);
     let first_frame = loaded_texture.subsection(0, loaded_texture.width(), 0, loaded_texture.height());
     let health_bars = [
         Sprite {
-            pos: Vector3::new(193.0, 364.0, 0.0),
-            size: Vector2::new(319 * 5, 23 * 3 / 2),
-            color: RGBA8::WHITE,
+            pos: Vector3::new(WIDTH as f32 / 2.0 + 95.0, HEIGHT as f32 - 140.0, 0.0),
+            size: Vector2::new(480, 43),
+            color: RGBA8::GREEN,
             texture: first_frame,
             ..Default::default()
         },
         Sprite {
-            pos: Vector3::new(-193.0 - 934.0, 364.0, 0.0),
-            size: Vector2::new(319 * 3, 23 * 3 / 2),
-            color: RGBA8::WHITE,
+            pos: Vector3::new(160.0, HEIGHT as f32 - 140.0, 0.0),
+            size: Vector2::new(480, 43),
+            color: RGBA8::GREEN,
             texture: first_frame,
             ..Default::default()
         },
@@ -141,12 +146,12 @@ pub fn setup_ui() -> UI {
 //Load the sprites for te health bars, and there shader pass
 pub fn setup_fireball() -> ([Sprite; 1], SpriteShaderPass){
     let mut transform = Transform::new(window_logical_size());
+    transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0));
     let mut fireball_render_pass = SpriteShaderPass::new(transform.matrix());
-    let character_y = -(FRAME_HEIGHT as f32) * 0.75;   
     let fireball_sprites = [
         Sprite {
-            pos: Vector3::new(0.0, character_y * Y_SCALE as f32, 0.0),
-            size: Vector2::new(FRAME_WIDTH as u16 * 2, FRAME_HEIGHT as u16 * 2),
+            pos: Vector3::new(0.0, 0.0, 0.0),
+            size: Vector2::new(FRAME_WIDTH as u16, FRAME_HEIGHT as u16),
             color: RGBA8::WHITE,
             ..Default::default()
         }
@@ -158,7 +163,7 @@ pub fn setup_fireball() -> ([Sprite; 1], SpriteShaderPass){
 //Load the sprites and the text shader pass used for the timer
 pub fn setup_round_timer_text() -> (TextShaderPass, TextShader) {
     let mut transform = Transform::new(window_logical_size());
-
+    transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0));
     let text_shader = TextShader::new();
 
     // Create a Layers to draw on.

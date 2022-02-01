@@ -3,7 +3,7 @@ use storm::math::*;
 use serde::{Deserialize, Serialize};
 use storm::cgmath::Vector2;
 
-pub const CHARACTER_X_SPEED : f32 = 3.0;
+pub const CHARACTER_X_SPEED : f32 = 5.0;
 pub const FRAME_HISTORY_LENGTH: usize = 30;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]

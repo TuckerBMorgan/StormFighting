@@ -1,26 +1,44 @@
+use ggrs::SessionState;
 use ggrs::{P2PSession, PlayerType};
 
 use std::io::prelude::*;
+use std::marker::PhantomData;
 use std::net::TcpStream;
 use std::net::SocketAddr;
 use crate::*;
 
 pub const FPS: f64 = 60.0;
 pub const INPUT_SIZE: usize = std::mem::size_of::<[u8;2]>();
-pub struct Net {
-    pub session: P2PSession<Round>,
-    pub local_handle: usize
+
+
+pub enum NetState {
+    Connecting,
+    Live
 }
 
-impl Net {
-    pub fn new(session: P2PSession<Round>, local_handle: usize) -> Net {
+
+pub struct Net<'a> {
+    pub session: Option<P2PSession<Round>>,
+    pub local_handle: usize,
+    marker: PhantomData<&'a ()>,
+    pub state: NetState
+}
+
+impl<'a> Net<'a> {
+    pub fn new(session: P2PSession<Round>, local_handle: usize) -> Net<'a>  {
         Net {
-            session,
-            local_handle
+            session: Some(session),
+            local_handle,
+            marker: PhantomData,
+            state: NetState::Live
         }
     }
 
-    pub fn launch_session() -> Net {
+    pub fn is_running(&self) -> bool {
+        return self.session.as_ref().unwrap().current_state() == SessionState::Running;
+    }
+
+    pub fn launch_session() -> Net<'a> {
         //Connect to the Cupid server
        // let mut stream = TcpStream::connect("24.19.122.147:7878").unwrap();
         let mut stream = TcpStream::connect("192.168.0.20:7878").unwrap();
@@ -54,7 +72,7 @@ impl Net {
                 message.push(value as char);
             }
         }
-    
+
         //Now that we have the info kill our connection
         let _ = stream.shutdown(std::net::Shutdown::Both);
     
@@ -92,10 +110,11 @@ impl Net {
         sess.set_fps(FPS as u32).unwrap();
         // start the GGRS session
         sess.start_session().unwrap();
+
         return Net::new(sess, local_handle);
     }
     pub fn tick(&mut self) {
-        self.session.poll_remote_clients();
+        self.session.as_mut().unwrap().poll_remote_clients();
     }
 }
 

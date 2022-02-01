@@ -2,8 +2,11 @@ use serde::{Deserialize, Serialize};
 use ggrs::GameInput;
 use storm::math::AABB2D;
 use storm::cgmath::*;
+use crate::WIDTH;
+
 use super::*;
 
+const MAX_PLAYER_DISTANCE : f32 = FRAME_WIDTH as f32;
 
 #[derive(Serialize, Deserialize,  Clone)]
 pub struct Round {
@@ -57,6 +60,17 @@ impl Round {
             //We need to remove the offset that we build in from the initial unshifted AABBS
             //This will give us the characters new position
             self.characters[0].character_position = character_1_walk_box.min - Vector2::new(131.0, 57.0);
+            if self.characters[0].character_position.x  < 0.0  {
+                self.characters[0].character_position.x = 0.0;
+            }
+            else if self.characters[0].character_position.x + FRAME_WIDTH as f32 >= 896.0 { 
+                self.characters[0].character_position.x = 896.0 - FRAME_WIDTH as f32;
+            }
+            else if f32::abs(self.characters[0].character_position.x - self.characters[1].character_position.x) > MAX_PLAYER_DISTANCE {
+                //TODO: Handle screen sides when we add in jumping
+                //Maybe add in jumping tonight???__??
+                self.characters[0].character_position.x = self.characters[1].character_position.x + MAX_PLAYER_DISTANCE;
+            }
         }
 
         
@@ -68,6 +82,19 @@ impl Round {
             //We need to remove the offset that we build in from the initial unshifted AABBS
             //This will give us the characters new position
             self.characters[1].character_position = character_2_walk_box.min - Vector2::new(131.0, 57.0);
+
+            if self.characters[1].character_position.x  < 0.0  {
+                self.characters[1].character_position.x = 0.0;
+            }
+            else if self.characters[1].character_position.x + FRAME_WIDTH as f32 >= 896.0 { 
+                self.characters[1].character_position.x = 896.0 - FRAME_WIDTH as f32;
+            }
+            else if f32::abs(self.characters[0].character_position.x - self.characters[1].character_position.x) > MAX_PLAYER_DISTANCE {
+                //TODO: Handle screen sides when we add in jumping
+                //Maybe add in jumping tonight???__??
+                self.characters[1].character_position.x = self.characters[0].character_position.x - MAX_PLAYER_DISTANCE;
+            }
+
         }     
 
 
@@ -281,10 +308,10 @@ impl Round {
                 let start_offset;
                 if self.characters[character_index].screen_side == ScreenSide::Left {
                     velocity.x = 10.0;
-                    start_offset = Vector2::new(0.0, 45.0);
+                    start_offset = Vector2::new(0.0, 0.0);
                 }
                 else {
-                    start_offset = Vector2::new(-0.0, 45.0);
+                    start_offset = Vector2::new(0.0, 0.0);
                 }
                 
                 let fireball = Projectile::new(self.characters[character_index].character_position + start_offset, velocity, self.characters[character_index].screen_side, character_index);
@@ -396,11 +423,12 @@ impl Default for Round{
         //Build up the character by loading animations for each of the animation states
         let mut character_1 = Character::default();
         character_1.screen_side = ScreenSide::Right;
-        character_1.character_position.x = FRAME_WIDTH as f32 * 0.25;
+        character_1.character_position.x = 896.0 / 2.0 - (FRAME_WIDTH as f32 / 2.0) + (FRAME_WIDTH as f32 / 4.0); 
+
         character_1.current_animation = AnimationConfig::new(10, 4);
         let mut character_2 = Character::default();
         character_2.screen_side = ScreenSide::Left;
-        character_2.character_position.x = -(FRAME_WIDTH as f32);
+        character_2.character_position.x = 896.0 / 2.0 - (FRAME_WIDTH as f32 / 2.0) - (FRAME_WIDTH as f32 / 4.0); // - (FRAME_WIDTH as f32) / 4.0;
         character_2.current_animation = AnimationConfig::new(10, 4);
         Round {
             characters: vec![character_1, character_2],

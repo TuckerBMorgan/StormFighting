@@ -3,9 +3,9 @@ use core::time::Duration;
 
 extern crate simplelog;
 
-
+use storm::cgmath::{Vector2, Vector3};
 use storm::color::RGBA8;
-use storm::cgmath::{Vector3};
+
 use storm::graphics::*;
 use storm::event::*;
 use storm::graphics::Texture;
@@ -84,6 +84,7 @@ pub struct Game<'a> {
     pub accumulator: Duration,
     pub background_sprite: [Sprite;1],
     pub background_sprite_pass: SpriteShaderPass,
+    pub camera_transform: Transform
 }
 
 impl<'a> Game<'a> {
@@ -142,7 +143,7 @@ impl<'a> Game<'a> {
 
             }
         }
-        if self.net.session.as_mut().unwrap().current_state() == SessionState::Running {
+        if self.net.is_running() {
             // this is to keep ticks between clients synchronized.
             // if a client is ahead, it will run frames slightly slower to allow catching up
             let mut fps_delta = 1. / FPS;
@@ -167,16 +168,17 @@ impl<'a> Game<'a> {
                     Err(e) => panic!("{:?}", e),
                 }
 
+                //Update all of the sprites positions
                 //TODO: maybe use a is_dirty flag to update this only when we need to
                 self.sprite_pass_1.atlas = self.game_config.animation_library.get_atlas_for_animation(self.current_round.characters[0].animation_state);
                 let frame = self.current_round.characters[0].get_current_animation_config();
                 self.character_1_sprites[0].texture = self.game_config.animation_library.get_atlas_subsection(self.current_round.characters[0].animation_state, frame.current_frame);
-                self.character_1_sprites[0].pos.x = self.current_round.characters[0].character_position.x * X_SCALE as f32;
+                self.character_1_sprites[0].pos.x = self.current_round.characters[0].character_position.x;
 
                 self.sprite_pass_2.atlas = self.game_config.animation_library.get_atlas_for_animation(self.current_round.characters[1].animation_state);
                 let frame = self.current_round.characters[1].get_current_animation_config();
                 self.character_2_sprites[0].texture = self.game_config.animation_library.get_atlas_subsection(self.current_round.characters[1].animation_state, frame.current_frame).mirror_y();
-                self.character_2_sprites[0].pos.x = self.current_round.characters[1].character_position.x * X_SCALE as f32;
+                self.character_2_sprites[0].pos.x = self.current_round.characters[1].character_position.x;
 
                 if self.current_round.projectiles.len() != self.projectile_sprites.len() {
                     let diff = self.current_round.projectiles.len().abs_diff(self.projectile_sprites.len());
@@ -195,23 +197,37 @@ impl<'a> Game<'a> {
                 }
 
                 for (index, projectile) in self.current_round.projectiles.iter().enumerate() {
+                    let left = projectile.timer.current_frame * FRAME_WIDTH;
+
+                    let test;
                     match projectile.screen_side {
                         ScreenSide::Left => {
-                            let left = projectile.timer.current_frame * FRAME_WIDTH;
-                            let test = self.projectile_sprites[index].1.atlas.subsection(left, 0 + FRAME_WIDTH, 0, FRAME_HEIGHT).mirror_y();
-                            self.projectile_sprites[index].0[0].texture = test;
-                            self.projectile_sprites[index].0[0].pos = Vector3::new(projectile.position.x * X_SCALE as f32 - FRAME_WIDTH as f32 * X_SCALE as f32, projectile.position.y * Y_SCALE as f32, 0.0);
+                            test = self.projectile_sprites[index].1.atlas.subsection(left, 0 + FRAME_WIDTH, 0, FRAME_HEIGHT).mirror_y();
+                            self.projectile_sprites[index].0[0].pos.x = projectile.position.x * X_SCALE as f32 ;//+ (FRAME_WIDTH as f32 / 2.0) * X_SCALE as f32;
                         },
                         ScreenSide::Right => {
-                            let left = projectile.timer.current_frame * FRAME_WIDTH;
-                            let test = self.projectile_sprites[index].1.atlas.subsection(left, 0 + FRAME_WIDTH, 0, FRAME_HEIGHT);
-                            self.projectile_sprites[index].0[0].texture = test;
-                            self.projectile_sprites[index].0[0].pos = Vector3::new(projectile.position.x * X_SCALE as f32 , projectile.position.y * Y_SCALE as f32, 0.0);
+                            test = self.projectile_sprites[index].1.atlas.subsection(left, 0 + FRAME_WIDTH, 0, FRAME_HEIGHT);
+                            self.projectile_sprites[index].0[0].pos.x = projectile.position.x * X_SCALE as f32 ;//+ (FRAME_WIDTH as f32 / 2.0) * X_SCALE as f32;
                         }
                     }
+                    self.projectile_sprites[index].0[0].texture = test;
                 }
             }
 
+            //MAGIC NUMBER: 145
+            let length_of_distance = f32::abs(self.character_2_sprites[0].pos.x - self.character_1_sprites[0].pos.x);
+            if length_of_distance > 145.0 {
+                self.camera_transform.set().scale = 145.0 / length_of_distance * 5.0;
+            }
+            else {
+                self.camera_transform.set().scale = 5.0;
+            }
+
+            self.camera_transform.set().translation.y =  -108.0 + ((5.0 - self.camera_transform.set().scale) * -43.0);
+
+            self.camera_transform.set().translation.x = -(((self.character_2_sprites[0].pos.x + self.character_1_sprites[0].pos.x) + FRAME_WIDTH as f32) / 2.0);
+
+            //Rendering
             let text_color;
             let current_frame_count = 60 - (self.current_round.round_timer.current_frame / 60);
             if  current_frame_count > 20 {
@@ -226,9 +242,9 @@ impl<'a> Game<'a> {
             self.ui.timer_text.0.clear_text();
 
             let layout_settings = LayoutSettings {
-                x: -30.0,
-                y: 420.0,
-                max_width: Some(200.0),
+                x:  WIDTH as f32 / 2.0 - 10.0,
+                y: HEIGHT as f32 - 90.0,
+                max_width: Some(50.0),
                 ..Default::default()
             };
 
@@ -238,7 +254,7 @@ impl<'a> Game<'a> {
                 &[Text {
                     text: &(60 - (self.current_round.round_timer.current_frame / 60)).to_string(),
                     font_index: 0,
-                    px: 75.0,
+                    px: 50.0,
                     color: text_color,
                     depth: 0.0,
                 }],
@@ -250,21 +266,47 @@ impl<'a> Game<'a> {
             self.ui.backplate.1.draw(&self.sprite_shader);
 
             for projectile_sprites in self.projectile_sprites.iter_mut() {
+                projectile_sprites.1.set_transform(self.camera_transform.matrix());
                 projectile_sprites.1.buffer.set(&projectile_sprites.0);
                 projectile_sprites.1.draw(&self.sprite_shader);
             }
 
+            self.sprite_pass_2.set_transform(self.camera_transform.matrix());
+            self.sprite_pass_1.set_transform(self.camera_transform.matrix());
+
             self.sprite_pass_1.buffer.set(&self.character_1_sprites);
             self.sprite_pass_1.draw(&self.sprite_shader);
             
-            self.background_sprite_pass.buffer.set(&self.background_sprite);
-            self.background_sprite_pass.draw(&self.sprite_shader);
-            
             self.sprite_pass_2.buffer.set(&self.character_2_sprites);
             self.sprite_pass_2.draw(&self.sprite_shader);
-            self.ui.healthbars.0[0].size.x = ((319.0 * 3.0) * (self.current_round.characters[0].health as f32 / 250.0)) as u16;
-            self.ui.healthbars.0[1].size.x = ((319.0 * 3.0) * (self.current_round.characters[1].health as f32 / 250.0)) as u16;
-            self.ui.healthbars.0[1].pos.x = -193.0 - 934.0 + (((319.0 * 3.0) * ( 1.0 - (self.current_round.characters[1].health as f32 / 250.0))) as u16) as f32;
+
+            self.background_sprite_pass.set_transform(self.camera_transform.matrix());
+            self.background_sprite_pass.buffer.set(&self.background_sprite);
+            self.background_sprite_pass.draw(&self.sprite_shader);            
+
+            //Render Health Bars
+            let health_ratio_player_one = self.current_round.characters[0].health as f32 / 250.0;
+            let health_ratio_player_two = self.current_round.characters[1].health as f32 / 250.0;
+
+            if health_ratio_player_one < 0.95 && health_ratio_player_one > 0.25  {
+                self.ui.healthbars.0[0].color = RGBA8::YELLOW;
+            }
+            else if health_ratio_player_one < 0.25 {
+                self.ui.healthbars.0[0].color = RGBA8::RED;
+            }
+
+            if health_ratio_player_two < 0.95 && health_ratio_player_two > 0.25 {
+                self.ui.healthbars.0[1].color = RGBA8::YELLOW;
+            }
+            else if health_ratio_player_two < 0.25 {
+                self.ui.healthbars.0[1].color = RGBA8::RED;
+            }
+
+            self.ui.healthbars.0[0].size.x = (480.0 * health_ratio_player_one) as u16;
+            self.ui.healthbars.0[1].size.x = (480.0 * health_ratio_player_two) as u16;
+
+            let removed_amount_player_2 = 1.0 - health_ratio_player_two;
+            self.ui.healthbars.0[1].pos.x = 160.0 + (480.0 * removed_amount_player_2);
 
             self.ui.healthbars.1.buffer.set(&self.ui.healthbars.0);
             self.ui.healthbars.1.draw(&self.sprite_shader);
@@ -385,6 +427,11 @@ impl<'a> Default for Game<'a> {
         let game_config = GameConfig::new(CollisionLibrary::default(), ComboLibrary::default(), animation_library, animation_for_character_state_library, animation_configs);
         let last_update = Instant::now();
         let accumulator = Duration::ZERO;
+        let mut transform = Transform::new(window_logical_size());
+        
+        //-108 is HEIGHT / 2 / SCALING FACTOR
+        transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), HEIGHT as f32 / 2.0 / 5.0);
+        transform.set().scale = 5.0;
         Game {
             current_round,
             local_input: Input::new(),
@@ -404,7 +451,8 @@ impl<'a> Default for Game<'a> {
             last_update,
             accumulator,
             background_sprite,
-            background_sprite_pass
+            background_sprite_pass,
+            camera_transform: transform
         }
     }
 }

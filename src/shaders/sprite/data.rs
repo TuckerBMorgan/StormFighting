@@ -18,6 +18,8 @@ pub struct Sprite {
     pub color: RGBA8,
     /// Rotation of the sprite. Units are 1/65536th of a turn.
     pub rotation: u16,
+    //Mapping for the scanline effects
+    pub scanline_texture: TextureSection
 }
 
 impl VertexDescriptor for Sprite {
@@ -28,6 +30,7 @@ impl VertexDescriptor for Sprite {
         VertexAttribute::new(4, VertexInputType::U16, VertexOutputType::NormalizedF32),
         VertexAttribute::new(4, VertexInputType::U8, VertexOutputType::NormalizedF32),
         VertexAttribute::new(1, VertexInputType::U16, VertexOutputType::NormalizedF32),
+        VertexAttribute::new(4, VertexInputType::U16, VertexOutputType::NormalizedF32),
     ];
 }
 
@@ -39,6 +42,7 @@ impl Default for Sprite {
             texture: TextureSection::default(),
             color: RGBA8::WHITE,
             rotation: 0,
+            scanline_texture: TextureSection::default()
         }
     }
 }
@@ -54,6 +58,7 @@ impl Sprite {
         texture: TextureSection,
         color: RGBA8,
         rotation: f32,
+        scanline_texture: TextureSection
     ) -> Sprite {
         Sprite {
             pos,
@@ -65,6 +70,7 @@ impl Sprite {
             texture,
             color,
             rotation: (rotation.fract() * 65536.0) as u16,
+            scanline_texture
         }
     }
 
@@ -76,6 +82,7 @@ impl Sprite {
         texture: TextureSection,
         color: RGBA8,
         rotation: u16,
+        scanline_texture: TextureSection
     ) -> Sprite {
         Sprite {
             pos,
@@ -83,6 +90,7 @@ impl Sprite {
             texture,
             color,
             rotation,
+            scanline_texture        
         }
     }
 }
