@@ -9,7 +9,7 @@ uniform sampler2D texT;
  
 void main() {
 
-    float count = 1080 * 2.5;// * 2.5;
+    float count = 1080.0 * 2.5;// * 2.5;
     vec2 sl = vec2(sin(gl_FragCoord.y * count), cos(gl_FragCoord.y * count));
 	vec4 scanlines = vec4(sl.x, sl.x, sl.x, 1.0);
     scanlines += vec4(0.01, 0.01, 0.01, 0.0);
