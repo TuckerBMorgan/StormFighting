@@ -287,7 +287,9 @@ impl<'a> Game<'a> {
             //Render Health Bars
             let health_ratio_player_one = self.current_round.characters[0].health as f32 / 250.0;
             let health_ratio_player_two = self.current_round.characters[1].health as f32 / 250.0;
-
+            if health_ratio_player_one > 0.95 {
+                self.ui.healthbars.0[0].color = RGBA8::GREEN;                
+            }
             if health_ratio_player_one < 0.95 && health_ratio_player_one > 0.25  {
                 self.ui.healthbars.0[0].color = RGBA8::YELLOW;
             }
@@ -295,7 +297,10 @@ impl<'a> Game<'a> {
                 self.ui.healthbars.0[0].color = RGBA8::RED;
             }
 
-            if health_ratio_player_two < 0.95 && health_ratio_player_two > 0.25 {
+            if health_ratio_player_two > 0.95 {
+                self.ui.healthbars.0[1].color = RGBA8::GREEN;                
+            }
+            else if health_ratio_player_two < 0.95 && health_ratio_player_two > 0.25 {
                 self.ui.healthbars.0[1].color = RGBA8::YELLOW;
             }
             else if health_ratio_player_two < 0.25 {
