@@ -1,0 +1,983 @@
+{
+    "name": "ryu",
+    "movespeed": 5.0,
+    "animations": {
+        "HeavyAttack": {
+            "image_file_location": "./src/resources/sheets/ryu\\HeavyAttack\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\HeavyAttack\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "ForwardDash": {
+            "image_file_location": "./src/resources/sheets/ryu\\ForwardDash\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\ForwardDash\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "Blocking": {
+            "image_file_location": "./src/resources/sheets/ryu\\Blocking\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\Blocking\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "LightHitRecovery": {
+            "image_file_location": "./src/resources/sheets/ryu\\LightHitRecovery\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\LightHitRecovery\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "BackwardDash": {
+            "image_file_location": "./src/resources/sheets/ryu\\BackwardDash\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\BackwardDash\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "BackwardRun": {
+            "image_file_location": "./src/resources/sheets/ryu\\BackwardRun\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\BackwardRun\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "HeavyCrouchingAttack": {
+            "image_file_location": "./src/resources/sheets/ryu\\HeavyCrouchingAttack\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\HeavyCrouchingAttack\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "Crouched": {
+            "image_file_location": "./src/resources/sheets/ryu\\Crouched\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\Crouched\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "LightKick": {
+            "image_file_location": "./src/resources/sheets/ryu\\LightKick\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\LightKick\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "Lost": {
+            "image_file_location": "./src/resources/sheets/ryu\\Lost\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\Lost\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "MediumAttack": {
+            "image_file_location": "./src/resources/sheets/ryu\\MediumAttack\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\MediumAttack\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "LightCrouchAttack": {
+            "image_file_location": "./src/resources/sheets/ryu\\LightCrouchAttack\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\LightCrouchAttack\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "MediumKick": {
+            "image_file_location": "./src/resources/sheets/ryu\\MediumKick\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\MediumKick\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "Idle": {
+            "image_file_location": "./src/resources/sheets/ryu\\Idle\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\Idle\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "LightAttack": {
+            "image_file_location": "./src/resources/sheets/ryu\\LightAttack\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\LightAttack\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "HeavyKick": {
+            "image_file_location": "./src/resources/sheets/ryu\\HeavyKick\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\HeavyKick\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "Jump": {
+            "image_file_location": "./src/resources/sheets/ryu\\Jump\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\Jump\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 8.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 8.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 7.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 7.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 6.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 4.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": -4.0
+                },
+                {
+                    "x": 0.0,
+                    "y": -6.0
+                },
+                {
+                    "x": 0.0,
+                    "y": -7.0
+                },
+                {
+                    "x": 0.0,
+                    "y": -7.0
+                },
+                {
+                    "x": 0.0,
+                    "y": -8.0
+                },
+                {
+                    "x": 0.0,
+                    "y": -8.0
+                }
+            ]
+        },
+        "Won": {
+            "image_file_location": "./src/resources/sheets/ryu\\Won\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\Won\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "ForwardRun": {
+            "image_file_location": "./src/resources/sheets/ryu\\ForwardRun\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\ForwardRun\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "Special1": {
+            "image_file_location": "./src/resources/sheets/ryu\\Special1\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\Special1\\collision.json",
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "Crouching": {
+            "image_file_location": "./src/resources/sheets/ryu\\Crouching\\full.png",
+            "collision_file_location": "./src/resources/sheets/ryu\\Crouching\\collision.json",
+            "frame_lengths": [
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        }
+    }
+}

@@ -3,7 +3,7 @@ use core::time::Duration;
 
 extern crate simplelog;
 
-use storm::cgmath::{Vector2, Vector3};
+use storm::cgmath::Vector3;
 use storm::color::RGBA8;
 
 use storm::graphics::*;
@@ -14,11 +14,12 @@ use instant::{Instant};
 use storm::fontdue::layout::LayoutSettings;
 use storm::fontdue::Font;
 use storm::graphics::shaders::text::{Text};
-use ggrs::{GGRSError, SessionState};
+use ggrs::{GGRSError};
 
 use hashbrown::HashMap;
 
 use ggrs::{Frame, GGRSRequest, GameInput, GameState, GameStateCell, PlayerHandle, NULL_FRAME};
+use storm::math::OrthographicCamera;
 
 use super::*;
 use super::character::AnimationStateForCharacterState;
@@ -45,7 +46,8 @@ pub struct GameConfig {
     pub combo_library: ComboLibrary,
     pub animation_library: AnimationTextureLibrary,
     pub animation_for_character_state_library: HashMap<CharacterState, AnimationStateForCharacterState>,
-    pub animation_configs: HashMap<AnimationState, AnimationConfig>
+    pub animation_configs: HashMap<AnimationState, AnimationConfig>,
+    pub character_sheet: CharacterSheet
 }
 
 impl GameConfig {
@@ -53,13 +55,15 @@ impl GameConfig {
                combo_library: ComboLibrary,
                animation_library: AnimationTextureLibrary,
                animation_for_character_state_library: HashMap<CharacterState, AnimationStateForCharacterState>,
-               animation_configs: HashMap<AnimationState, AnimationConfig>) -> GameConfig {
+               animation_configs: HashMap<AnimationState, AnimationConfig>,
+               character_sheet: CharacterSheet) -> GameConfig {
         GameConfig {
             collision_library,
             combo_library,
             animation_library,
             animation_for_character_state_library,
-            animation_configs
+            animation_configs,
+            character_sheet
         }
     }
 }
@@ -84,11 +88,61 @@ pub struct Game<'a> {
     pub accumulator: Duration,
     pub background_sprite: [Sprite;1],
     pub background_sprite_pass: SpriteShaderPass,
-    pub camera_transform: Transform
+    pub camera_transform: OrthographicCamera
 }
 
 impl<'a> Game<'a> {
     
+    pub fn load_game_with_config(ctx: &mut Context<FighthingApp>, mut game_config: GameConfig) -> Game<'a> {
+
+        
+        let mut current_round = Round::new_with_animation_lib(&mut game_config.animation_configs);
+        let net = Net::launch_session();
+
+        let (background_sprite, background_sprite_pass) = setup_background(ctx);
+        ctx.clear(ClearMode::color_depth(RGBA8::BLACK));
+        let sprite_shader = SpriteShader::new(ctx);
+        let (sprites_1, 
+            sprite_pass_1) = load_character_sprite(&game_config.animation_library, &mut current_round.characters[0], ctx);
+        let (sprites_2, 
+            sprite_pass_2) = load_character_sprite(&game_config.animation_library, &mut current_round.characters[1], ctx);
+        let fireball_texture = Texture::from_png(ctx, FIREBALL, TextureFiltering::NONE);
+        let ui = setup_ui(ctx);    
+        //load the font used for the timer
+        let fonts = [Font::from_bytes(FONT, Default::default()).unwrap()];
+
+        let last_update = Instant::now();
+        let accumulator = Duration::ZERO;
+        let mut transform = OrthographicCamera::new(ctx.window_logical_size());
+        
+        //-108 is HEIGHT / 2 / SCALING FACTOR
+        transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), HEIGHT as f32 / 2.0 / 5.0, 0.0);
+        transform.set().scale = 5.0;
+        Game {
+            current_round,
+            local_input: Input::new(),
+            last_checksum: (NULL_FRAME, 0),
+            periodic_checksum: (NULL_FRAME, 0),
+            game_config,
+            net,
+            ui,
+            character_1_sprites: sprites_1,
+            sprite_pass_1,            
+            character_2_sprites: sprites_2,
+            sprite_pass_2,
+            sprite_shader,
+            projectile_sprites: vec![],
+            fonts,
+            fireball_texture,
+            last_update,
+            accumulator,
+            background_sprite,
+            background_sprite_pass,
+            camera_transform: transform
+        }
+    }
+
+
     pub fn key_down(&mut self, keyboard_button: KeyboardButton) {
         self.local_input.key_down(keyboard_button);
     }
@@ -129,10 +183,10 @@ impl<'a> Game<'a> {
         }
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, ctx: &mut Context<FighthingApp>) {
         
 
-        clear(ClearMode::color_depth(RGBA8::BLACK));
+        ctx.clear(ClearMode::color_depth(RGBA8::BLACK));
         
         self.net.tick();
         match self.net.state {
@@ -171,21 +225,36 @@ impl<'a> Game<'a> {
                 //Update all of the sprites positions
                 //TODO: maybe use a is_dirty flag to update this only when we need to
                 self.sprite_pass_1.atlas = self.game_config.animation_library.get_atlas_for_animation(self.current_round.characters[0].animation_state);
+                
                 let frame = self.current_round.characters[0].get_current_animation_config();
-                self.character_1_sprites[0].texture = self.game_config.animation_library.get_atlas_subsection(self.current_round.characters[0].animation_state, frame.current_frame);
+                if self.current_round.characters[0].screen_side == ScreenSide::Right {
+                    self.character_1_sprites[0].texture = self.game_config.animation_library.get_atlas_subsection(self.current_round.characters[0].animation_state, frame.current_frame);
+                }
+                else {
+                    self.character_1_sprites[0].texture = self.game_config.animation_library.get_atlas_subsection(self.current_round.characters[0].animation_state, frame.current_frame).mirror_y();
+                }
+                
                 self.character_1_sprites[0].pos.x = self.current_round.characters[0].character_position.x;
+                self.character_1_sprites[0].pos.y = self.current_round.characters[0].character_position.y;
 
                 self.sprite_pass_2.atlas = self.game_config.animation_library.get_atlas_for_animation(self.current_round.characters[1].animation_state);
                 let frame = self.current_round.characters[1].get_current_animation_config();
-                self.character_2_sprites[0].texture = self.game_config.animation_library.get_atlas_subsection(self.current_round.characters[1].animation_state, frame.current_frame).mirror_y();
+                if self.current_round.characters[0].screen_side == ScreenSide::Left {
+                    self.character_2_sprites[0].texture = self.game_config.animation_library.get_atlas_subsection(self.current_round.characters[1].animation_state, frame.current_frame);
+                }
+                else {
+                    self.character_2_sprites[0].texture = self.game_config.animation_library.get_atlas_subsection(self.current_round.characters[1].animation_state, frame.current_frame).mirror_y();
+                }
+
                 self.character_2_sprites[0].pos.x = self.current_round.characters[1].character_position.x;
+                self.character_2_sprites[0].pos.y = self.current_round.characters[1].character_position.y;
 
                 if self.current_round.projectiles.len() != self.projectile_sprites.len() {
                     let diff = self.current_round.projectiles.len().abs_diff(self.projectile_sprites.len());
                     if self.current_round.projectiles.len() > self.projectile_sprites.len() {
                         //we need to add the number of new sprites
                         for _ in 0..diff {
-                            let (fireball_sprite, mut fireball_render_pass) = setup_fireball();
+                            let (fireball_sprite, mut fireball_render_pass) = setup_fireball(ctx);
                             fireball_render_pass.atlas = self.fireball_texture.clone();
                             self.projectile_sprites.push((fireball_sprite, fireball_render_pass))
                         }
@@ -364,100 +433,10 @@ impl<'a> Game<'a> {
             if self.local_input.heavy_kick {
                 input |= INPUT_HEAVY_KICK;
             }
+            if self.local_input.jump_down {
+                input |= INPUT_JUMP;
+            }
         }
         return input.to_le_bytes().to_vec();
-    }
-}
-
-impl<'a> Default for Game<'a> {
-    fn default() -> Game<'a> {
-        let mut animation_for_character_state_library = HashMap::new();
-        animation_for_character_state_library.insert(CharacterState::Idle, AnimationStateForCharacterState::new(AnimationState::Crouched, AnimationState::Idle));
-        animation_for_character_state_library.insert(CharacterState::ForwardRun, AnimationStateForCharacterState::new(AnimationState::ForwardRun, AnimationState::ForwardRun));
-        animation_for_character_state_library.insert(CharacterState::BackwardRun, AnimationStateForCharacterState::new(AnimationState::BackwardRun, AnimationState::BackwardRun));
-        animation_for_character_state_library.insert(CharacterState::LightHitRecovery, AnimationStateForCharacterState::new(AnimationState::LightHitRecovery, AnimationState::LightHitRecovery));
-        animation_for_character_state_library.insert(CharacterState::Blocking, AnimationStateForCharacterState::new(AnimationState::Blocking, AnimationState::Blocking));
-        animation_for_character_state_library.insert(CharacterState::Crouching, AnimationStateForCharacterState::new(AnimationState::Crouching, AnimationState::Crouching));
-        animation_for_character_state_library.insert(CharacterState::LightAttack, AnimationStateForCharacterState::new(AnimationState::LightCrouchAttack, AnimationState::LightAttack));
-        animation_for_character_state_library.insert(CharacterState::MediumAttack, AnimationStateForCharacterState::new(AnimationState::LightCrouchAttack, AnimationState::MediumAttack));
-        animation_for_character_state_library.insert(CharacterState::HeavyAttack, AnimationStateForCharacterState::new(AnimationState::HeavyCrouchingAttack, AnimationState::HeavyAttack));
-        animation_for_character_state_library.insert(CharacterState::LightKick, AnimationStateForCharacterState::new(AnimationState::LightKick, AnimationState::LightKick));
-        animation_for_character_state_library.insert(CharacterState::MediumKick, AnimationStateForCharacterState::new(AnimationState::MediumKick, AnimationState::MediumKick));
-        animation_for_character_state_library.insert(CharacterState::HeavyKick, AnimationStateForCharacterState::new(AnimationState::HeavyKick, AnimationState::HeavyKick));
-        animation_for_character_state_library.insert(CharacterState::ForwardDash, AnimationStateForCharacterState::new(AnimationState::ForwardDash, AnimationState::ForwardDash));
-        animation_for_character_state_library.insert(CharacterState::BackwardDash, AnimationStateForCharacterState::new(AnimationState::BackwardDash, AnimationState::BackwardDash));
-        animation_for_character_state_library.insert(CharacterState::Special1, AnimationStateForCharacterState::new(AnimationState::Special1, AnimationState::Special1));
-        animation_for_character_state_library.insert(CharacterState::Won, AnimationStateForCharacterState::new(AnimationState::Won, AnimationState::Won));
-        animation_for_character_state_library.insert(CharacterState::Lost, AnimationStateForCharacterState::new(AnimationState::Lost, AnimationState::Lost));
-
-
-        let mut animation_configs = HashMap::new();
-        animation_configs.insert(AnimationState::Idle,                 AnimationConfig::new(10, 3));
-        animation_configs.insert(AnimationState::ForwardRun,           AnimationConfig::new(12, 3));
-        animation_configs.insert(AnimationState::BackwardRun,          AnimationConfig::new(10, 3));
-        animation_configs.insert(AnimationState::LightAttack,          AnimationConfig::new(5, 3));
-        animation_configs.insert(AnimationState::MediumAttack,         AnimationConfig::new(8, 3));
-        animation_configs.insert(AnimationState::HeavyAttack,          AnimationConfig::new(11, 3));
-        animation_configs.insert(AnimationState::LightHitRecovery,     AnimationConfig::new(4, 3));
-        animation_configs.insert(AnimationState::Blocking,             AnimationConfig::new(4, 3));
-        animation_configs.insert(AnimationState::Crouched,             AnimationConfig::new(4, 3));
-        animation_configs.insert(AnimationState::Crouching,            AnimationConfig::new(2, 3));
-        animation_configs.insert(AnimationState::LightCrouchAttack,    AnimationConfig::new(5, 3));
-        animation_configs.insert(AnimationState::HeavyCrouchingAttack, AnimationConfig::new(9, 3));
-        animation_configs.insert(AnimationState::LightKick,            AnimationConfig::new(6, 3));
-        animation_configs.insert(AnimationState::MediumKick,           AnimationConfig::new(8, 3));
-        animation_configs.insert(AnimationState::HeavyKick,            AnimationConfig::new(13, 3));
-        animation_configs.insert(AnimationState::ForwardDash,          AnimationConfig::new(6, 3));
-        animation_configs.insert(AnimationState::BackwardDash,         AnimationConfig::new(6, 3));
-        animation_configs.insert(AnimationState::Special1,             AnimationConfig::new(14, 3));
-        animation_configs.insert(AnimationState::Won,                  AnimationConfig::new(6, 4));
-        animation_configs.insert(AnimationState::Lost,                 AnimationConfig::new(5, 4));
-
-        let mut current_round = Round::default();
-        let net = Net::launch_session();
-
-        let (background_sprite, background_sprite_pass) = setup_background();
-        clear(ClearMode::color_depth(RGBA8::BLACK));
-        let sprite_shader = SpriteShader::new();
-        let animation_library = AnimationTextureLibrary::default();
-        let (sprites_1, 
-            sprite_pass_1) = load_character_sprite(&animation_library, &mut current_round.characters[0]);
-        let (sprites_2, 
-            sprite_pass_2) = load_character_sprite(&animation_library, &mut current_round.characters[1]);
-        let fireball_texture = Texture::from_png(FIREBALL);
-        let ui = setup_ui();    
-        //load the font used for the timer
-        let fonts = [Font::from_bytes(FONT, Default::default()).unwrap()];
-
-        let game_config = GameConfig::new(CollisionLibrary::default(), ComboLibrary::default(), animation_library, animation_for_character_state_library, animation_configs);
-        let last_update = Instant::now();
-        let accumulator = Duration::ZERO;
-        let mut transform = Transform::new(window_logical_size());
-        
-        //-108 is HEIGHT / 2 / SCALING FACTOR
-        transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), HEIGHT as f32 / 2.0 / 5.0);
-        transform.set().scale = 5.0;
-        Game {
-            current_round,
-            local_input: Input::new(),
-            last_checksum: (NULL_FRAME, 0),
-            periodic_checksum: (NULL_FRAME, 0),
-            game_config,
-            net,
-            ui,
-            character_1_sprites: sprites_1,
-            sprite_pass_1,            
-            character_2_sprites: sprites_2,
-            sprite_pass_2,
-            sprite_shader,
-            projectile_sprites: vec![],
-            fonts,
-            fireball_texture,
-            last_update,
-            accumulator,
-            background_sprite,
-            background_sprite_pass,
-            camera_transform: transform
-        }
     }
 }

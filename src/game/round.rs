@@ -1,8 +1,9 @@
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use ggrs::GameInput;
 use storm::math::AABB2D;
 use storm::cgmath::*;
-use crate::WIDTH;
+
 
 use super::*;
 
@@ -27,6 +28,17 @@ impl Round {
             self.hit_stun_counter -= 1;
             return;
         }
+
+        if self.characters[0].character_position.x > self.characters[1].character_position.x {
+            self.characters[0].screen_side = ScreenSide::Right;
+            self.characters[1].screen_side = ScreenSide::Left;
+        }
+        else {
+            self.characters[0].screen_side = ScreenSide::Left;
+            self.characters[1].screen_side = ScreenSide::Right;
+        }
+
+        
         self.character_tick(0, Input::from_game_input(inputs[0].clone()), game_config);
         self.character_tick(1, Input::from_game_input(inputs[1].clone()), game_config);
 
@@ -49,17 +61,29 @@ impl Round {
 
         let mut character_1_walk_box = self.characters[0].get_walk_box();
         let mut character_2_walk_box = self.characters[1].get_walk_box();
-        //Then, if the character is moving we apply the desired change as a slide function
-        //First character 1, then character 2
-        //TODO: find out if order of these has gameplay implications
-        // MAYBE have it be random?
-        if self.characters[0].character_velocity.x != 0.0 {
-            if character_1_walk_box.slide(&self.characters[0].character_velocity, &[character_2_walk_box]) {
-                //Overlap. hmmmm
+
+        //TODO: these two functions are very fragile, would like to refactor them
+        //into a single funciton on character
+        if self.characters[0].character_velocity.x != 0.0 || self.characters[0].character_velocity.y != 0.0 {
+            let mut reshift = Vector2::new(0.0, 0.0);
+            if self.characters[1].character_state == CharacterState::Jump {
+                if character_1_walk_box.slide(&self.characters[0].character_velocity, &[]) {
+                    //Overlap. hmmmm
+                    reshift.x = CHARACTER_X_SPEED * 1.1 * self.characters[0].screen_side.direction() * -1.0;
+                }
             }
+            else { 
+                if character_1_walk_box.slide(&self.characters[0].character_velocity, &[character_2_walk_box]) {
+                    //Overlap. hmmmm
+
+                }
+            }
+
             //We need to remove the offset that we build in from the initial unshifted AABBS
             //This will give us the characters new position
-            self.characters[0].character_position = character_1_walk_box.min - Vector2::new(131.0, 57.0);
+            self.characters[0].character_position = character_1_walk_box.min - Vector2::new(131.0, 57.0) + reshift;
+
+            //Keep the character in the arena, and close enough to the other playear
             if self.characters[0].character_position.x  < 0.0  {
                 self.characters[0].character_position.x = 0.0;
             }
@@ -68,20 +92,28 @@ impl Round {
             }
             else if f32::abs(self.characters[0].character_position.x - self.characters[1].character_position.x) > MAX_PLAYER_DISTANCE {
                 //TODO: Handle screen sides when we add in jumping
-                //Maybe add in jumping tonight???__??
                 self.characters[0].character_position.x = self.characters[1].character_position.x + MAX_PLAYER_DISTANCE;
             }
         }
 
-        
-        if self.characters[1].character_velocity.x != 0.0 {
-            if character_2_walk_box.slide(&self.characters[1].character_velocity, &[character_1_walk_box]) {
-                //Overlap. hmmmm
 
+        if self.characters[1].character_velocity.x != 0.0 || self.characters[1].character_velocity.y != 0.0 {
+            let mut reshift = Vector2::new(0.0, 0.0);
+            if self.characters[0].character_state == CharacterState::Jump {
+                if character_2_walk_box.slide(&self.characters[1].character_velocity, &[]) {
+                    //Overlap. hmmmm
+                    reshift.x = CHARACTER_X_SPEED * 1.1 * self.characters[1].screen_side.direction() * -1.0;
+                }
+            }
+            else { 
+                if character_2_walk_box.slide(&self.characters[1].character_velocity, &[character_1_walk_box]) {
+                    //Overlap. hmmmm
+
+                }
             }
             //We need to remove the offset that we build in from the initial unshifted AABBS
             //This will give us the characters new position
-            self.characters[1].character_position = character_2_walk_box.min - Vector2::new(131.0, 57.0);
+            self.characters[1].character_position = character_2_walk_box.min - Vector2::new(131.0, 57.0) + reshift;
 
             if self.characters[1].character_position.x  < 0.0  {
                 self.characters[1].character_position.x = 0.0;
@@ -270,11 +302,35 @@ impl Round {
     }
 
     pub fn character_tick(&mut self, character_index: usize, frame_input: Input, game_config: &mut GameConfig) {
+
+        //Then tick the animations to see if we have finished any and we need to be in a new state
+
+        self.characters[character_index].current_animation.sprite_timer.tick();
+        if self.characters[character_index].current_animation.sprite_timer.finished() {
+            self.characters[character_index].current_animation.current_frame += 1;
+            self.characters[character_index].current_animation.sprite_timer.reset();
+
+
+            //If we have finished the animation move the character into the
+            //next state, be that loop(like idle or run)
+            //or a steady state like Attack -> Idle
+
+            if self.characters[character_index].current_animation.is_done() {
+                self.characters[character_index].current_animation.reset();
+                let new_state = {
+                    self.characters[character_index].finished_animation_whats_next()
+                };
+                self.characters[character_index].set_character_state(new_state, &game_config);
+            }
+        }
+
         let frame_input = ScreenSideAdjustedInput::new(&frame_input, self.characters[character_index].screen_side);
 
         let character_action = self.characters[character_index].process_new_input(frame_input.clone(), &mut game_config.combo_library);
         //We want an hierarcy of input to handle people button mashing
         //A character should generally be Attacking Over Moving Over Doing Nothing
+
+        //TODO: build some form of map for thios
         if self.characters[character_index].can_attack() {
             if character_action == CharacterAction::LightAttack {
                 self.characters[character_index].set_character_state(CharacterState::LightAttack, &game_config);
@@ -296,6 +352,9 @@ impl Round {
             }
             else if character_action == CharacterAction::Special1 {
                 self.characters[character_index].set_character_state(CharacterState::Special1, &game_config);
+            }
+            else if character_action == CharacterAction::Parry {
+                self.characters[character_index].set_character_state(CharacterState::Parry, &game_config);
             }
         }
 
@@ -345,6 +404,9 @@ impl Round {
                     self.characters[character_index].set_character_state(CharacterState::Crouching, &game_config);
                 }
             }
+            else if character_action == CharacterAction::Jump {
+                self.characters[character_index].set_character_state(CharacterState::Jump, &game_config);
+            }
         }
 
         if self.characters[character_index].character_state == CharacterState::ForwardRun || self.characters[character_index].character_state == CharacterState::BackwardRun {
@@ -353,45 +415,37 @@ impl Round {
             }
         }
 
-        //Then tick the animations to see if we have finished any and we need to be in a new state
 
-        self.characters[character_index].current_animation.sprite_timer.tick();
-        if self.characters[character_index].current_animation.sprite_timer.finished() {
-            self.characters[character_index].current_animation.sprite_timer.reset();
-            self.characters[character_index].current_animation.current_frame += 1;
-
-            //If we have finished the animation move the character into the
-            //next state, be that loop(like idle or run)
-            //or a steady state like Attack -> Idle
-
-            if self.characters[character_index].current_animation.is_done() {
-                self.characters[character_index].current_animation.reset();
-                let new_state = {
-                    self.characters[character_index].finished_animation_whats_next()
-                };
-                self.characters[character_index].set_character_state(new_state, &game_config);
-            }            
-        }
         
         //Lasting state doing state based actions like, moving
         if self.characters[character_index].character_state == CharacterState::ForwardRun {
+            self.characters[character_index].character_velocity.y = 0.0;
             self.characters[character_index].character_velocity.x = -(CHARACTER_X_SPEED * self.characters[character_index].screen_side.direction());
         }
         else if self.characters[character_index].character_state == CharacterState::BackwardRun {
+            self.characters[character_index].character_velocity.y = 0.0;
             self.characters[character_index].character_velocity.x = CHARACTER_X_SPEED * self.characters[character_index].screen_side.direction();
         }
         else if self.characters[character_index].character_state == CharacterState::ForwardDash {
+            self.characters[character_index].character_velocity.y = 0.0;
             self.characters[character_index].character_velocity.x = -(CHARACTER_X_SPEED * self.characters[character_index].screen_side.direction() * 2.0);
         }
         else if self.characters[character_index].character_state == CharacterState::BackwardDash {
+            self.characters[character_index].character_velocity.y = 0.0;
             self.characters[character_index].character_velocity.x = CHARACTER_X_SPEED * self.characters[character_index].screen_side.direction() * 2.0;
         }
         else if self.characters[character_index].character_state == CharacterState::LightHitRecovery {
+            self.characters[character_index].character_velocity.y = 0.0;
             self.characters[character_index].character_velocity.x = CHARACTER_X_SPEED * self.characters[character_index].screen_side.direction();
+        }
+        else if self.characters[character_index].character_state == CharacterState::Jump {            
+            self.characters[character_index].character_velocity.y = game_config.character_sheet.animations[&String::from("Jump")].displacements[self.characters[character_index].current_animation.current_frame as usize].y;
         }
         else {
             self.characters[character_index].character_velocity.x = 0.0;
+            self.characters[character_index].character_velocity.y = 0.0;
         }
+
     }
 
     pub fn do_damage_to_character(&mut self, character_index: usize, amount: u32, game_config: &mut GameConfig) {
@@ -416,20 +470,18 @@ impl Round {
             }
         }
     }
-}
 
-impl Default for Round{
-    fn default() -> Round {
+    pub fn new_with_animation_lib(animation_lib: &mut HashMap<AnimationState, AnimationConfig>) -> Round {
         //Build up the character by loading animations for each of the animation states
         let mut character_1 = Character::default();
         character_1.screen_side = ScreenSide::Right;
         character_1.character_position.x = 896.0 / 2.0 - (FRAME_WIDTH as f32 / 2.0) + (FRAME_WIDTH as f32 / 4.0); 
 
-        character_1.current_animation = AnimationConfig::new(10, 4);
+        character_1.current_animation = animation_lib[&AnimationState::Idle].clone();
         let mut character_2 = Character::default();
         character_2.screen_side = ScreenSide::Left;
         character_2.character_position.x = 896.0 / 2.0 - (FRAME_WIDTH as f32 / 2.0) - (FRAME_WIDTH as f32 / 4.0); // - (FRAME_WIDTH as f32) / 4.0;
-        character_2.current_animation = AnimationConfig::new(10, 4);
+        character_2.current_animation = animation_lib[&AnimationState::Idle].clone();
         Round {
             characters: vec![character_1, character_2],
             frame: 0,
@@ -438,6 +490,32 @@ impl Default for Round{
             hit_stun_counter: 0,
             projectiles: vec![],
             reset_round_timer: SpriteTimer::new(5 * 60)
+        }
+    }
+}
+
+
+
+impl Default for Round{
+    fn default() -> Round {
+        //Build up the character by loading animations for each of the animation states
+        let mut character_1 = Character::default();
+        character_1.screen_side = ScreenSide::Right;
+        character_1.character_position.x = 896.0 / 2.0 - (FRAME_WIDTH as f32 / 2.0) + (FRAME_WIDTH as f32 / 4.0); 
+
+        character_1.current_animation = AnimationConfig::new(vec![3;10]);
+        let mut character_2 = Character::default();
+        character_2.screen_side = ScreenSide::Left;
+        character_2.character_position.x = 896.0 / 2.0 - (FRAME_WIDTH as f32 / 2.0) - (FRAME_WIDTH as f32 / 4.0); // - (FRAME_WIDTH as f32) / 4.0;
+        character_2.current_animation = AnimationConfig::new(vec![3;10]);
+        Round {
+            characters: vec![character_1, character_2],
+            frame: 0,
+            round_timer: SpriteTimer::new(60 * 60),
+            round_done: false,
+            hit_stun_counter: 0,
+            projectiles: vec![],
+            reset_round_timer: SpriteTimer::new(3 * 60)
         }
     }
 }

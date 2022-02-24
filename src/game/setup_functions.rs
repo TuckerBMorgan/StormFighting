@@ -1,5 +1,5 @@
 use core::convert::{From};
-
+use storm::math::OrthographicCamera;
 use storm::color::RGBA8;
 use storm::cgmath::{Vector2, Vector3};
 use storm::graphics::*;
@@ -12,10 +12,10 @@ use crate::*;
 
 
 //Reusable function that loads the character sprite, the shader to render it, and where on the screen it will be
-pub fn load_character_sprite(animation_library: &AnimationTextureLibrary, character: &mut Character) -> ([Sprite; 1], SpriteShaderPass) { 
-    let mut transform = Transform::new(window_logical_size());
-    transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0));
-    let mut sprite_1 = SpriteShaderPass::new(transform.matrix());
+pub fn load_character_sprite(animation_library: &AnimationTextureLibrary, character: &mut Character, ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], SpriteShaderPass) { 
+    let mut transform = OrthographicCamera::new(ctx.window_logical_size());
+    transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
+    let mut sprite_1 = SpriteShaderPass::new(transform.matrix(), ctx);
 
     sprite_1.atlas = animation_library.get_atlas_for_animation(character.animation_state);
     //And set the texture of the sprite as the subsection of the atlas for the first frame of animation
@@ -37,11 +37,11 @@ pub fn load_character_sprite(animation_library: &AnimationTextureLibrary, charac
 }
 
 //Load the background, this is a bad function, redo it
-pub fn setup_background() -> ([Sprite; 1], SpriteShaderPass) {
-    let mut transform = Transform::new(window_logical_size());
-    transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0));
-    let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix());
-    let loaded_texture = Texture::from_png(BACKGROUND_CASTLE);
+pub fn setup_background(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], SpriteShaderPass) {
+    let mut transform = OrthographicCamera::new(ctx.window_logical_size());
+    transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
+    let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix(), ctx);
+    let loaded_texture = Texture::from_png(ctx, BACKGROUND_CASTLE, TextureFiltering::NONE);
     let first_frame = loaded_texture.subsection(0, 896, 0, 512);
     background_sprite_pass.atlas = loaded_texture;
     let background_sprite = [
@@ -57,11 +57,11 @@ pub fn setup_background() -> ([Sprite; 1], SpriteShaderPass) {
     return (background_sprite, background_sprite_pass);
 }
 
-pub fn setup_ui_backplate() -> ([Sprite; 1], SpriteShaderPass) {
-    let mut transform = Transform::new(window_logical_size());
-    transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0));
-    let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix());
-    let loaded_texture = Texture::from_png(UI_BACKPLATE);
+pub fn setup_ui_backplate(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], SpriteShaderPass) {
+    let mut transform = OrthographicCamera::new(ctx.window_logical_size());
+    transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
+    let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix(), ctx);
+    let loaded_texture = Texture::from_png(ctx, UI_BACKPLATE, TextureFiltering::NONE);
     let first_frame = loaded_texture.subsection(0, loaded_texture.width(), 0, loaded_texture.height());
 
     let scale_factor = 1.5;
@@ -78,11 +78,11 @@ pub fn setup_ui_backplate() -> ([Sprite; 1], SpriteShaderPass) {
     return (background_sprite, background_sprite_pass);
 }
 
-pub fn setup_join_game_button() -> ([Sprite; 1], SpriteShaderPass) {
-    let mut transform = Transform::new(window_logical_size());
-    transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0));
-    let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix());
-    let loaded_texture = Texture::from_png(BUTTON);
+pub fn setup_join_game_button(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], SpriteShaderPass) {
+    let mut transform = OrthographicCamera::new(ctx.window_logical_size());
+    transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
+    let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix(), ctx);
+    let loaded_texture = Texture::from_png(ctx,BUTTON, TextureFiltering::NONE);
     let first_frame = loaded_texture.subsection(0, loaded_texture.width(), 0, loaded_texture.height());
 
 
@@ -107,11 +107,11 @@ pub struct UI {
 }
 
 
-pub fn setup_health_bars() -> ([Sprite; 2], SpriteShaderPass){
-    let mut transform = Transform::new(window_logical_size());
-    transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0));
-    let mut health_bar_render_pass = SpriteShaderPass::new(transform.matrix());
-    let loaded_texture = Texture::from_png(GREYSCALE_HEALTH_BAR_GRADIANT);
+pub fn setup_health_bars(ctx: &mut Context<FighthingApp>) -> ([Sprite; 2], SpriteShaderPass){
+    let mut transform = OrthographicCamera::new(ctx.window_logical_size());
+    transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
+    let mut health_bar_render_pass = SpriteShaderPass::new(transform.matrix(), ctx);
+    let loaded_texture = Texture::from_png(ctx, GREYSCALE_HEALTH_BAR_GRADIANT, TextureFiltering::NONE);
     let first_frame = loaded_texture.subsection(0, loaded_texture.width(), 0, loaded_texture.height());
     let health_bars = [
         Sprite {
@@ -135,19 +135,19 @@ pub fn setup_health_bars() -> ([Sprite; 2], SpriteShaderPass){
 }
 
 //Load the sprites for te health bars, and there shader pass
-pub fn setup_ui() -> UI {
+pub fn setup_ui(ctx: &mut Context<FighthingApp>) -> UI {
     UI {
-        backplate: setup_ui_backplate(),
-        healthbars: setup_health_bars(),
-        timer_text: setup_round_timer_text()
+        backplate: setup_ui_backplate(ctx),
+        healthbars: setup_health_bars(ctx),
+        timer_text: setup_round_timer_text(ctx)
     }
 }
 
 //Load the sprites for te health bars, and there shader pass
-pub fn setup_fireball() -> ([Sprite; 1], SpriteShaderPass){
-    let mut transform = Transform::new(window_logical_size());
-    transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0));
-    let mut fireball_render_pass = SpriteShaderPass::new(transform.matrix());
+pub fn setup_fireball(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], SpriteShaderPass){
+    let mut transform = OrthographicCamera::new(ctx.window_logical_size());
+    transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
+    let mut fireball_render_pass = SpriteShaderPass::new(transform.matrix(), ctx);
     let fireball_sprites = [
         Sprite {
             pos: Vector3::new(0.0, 0.0, 0.0),
@@ -161,13 +161,13 @@ pub fn setup_fireball() -> ([Sprite; 1], SpriteShaderPass){
 }
 
 //Load the sprites and the text shader pass used for the timer
-pub fn setup_round_timer_text() -> (TextShaderPass, TextShader) {
-    let mut transform = Transform::new(window_logical_size());
-    transform.set().translation = Vector2::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0));
-    let text_shader = TextShader::new();
+pub fn setup_round_timer_text(ctx: &mut Context<FighthingApp>) -> (TextShaderPass, TextShader) {
+    let mut transform = OrthographicCamera::new(ctx.window_logical_size());
+    transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
+    let text_shader = TextShader::new(ctx);
 
     // Create a Layers to draw on.
-    let mut text_layer = TextShaderPass::new(transform.matrix());
+    let mut text_layer = TextShaderPass::new(ctx, transform.matrix());
 
     // Setup the layout for our text.
     let fonts = [Font::from_bytes(FONT, Default::default()).unwrap()];
@@ -197,7 +197,7 @@ pub fn setup_round_timer_text() -> (TextShaderPass, TextShader) {
 
 //Load the sprites and the text shader pass used for the timer
 pub fn setup_round_reset_timer_text() -> (TextShaderPass, TextShader) {
-    let mut transform = Transform::new(window_logical_size());
+    let mut transform = OrthographicCamera::new(window_logical_size());
 
     let text_shader = TextShader::new();
 
