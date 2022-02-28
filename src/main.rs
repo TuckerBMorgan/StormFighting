@@ -22,7 +22,7 @@ static FIREBALL: &[u8] = include_bytes!("resources/fireball_main.png");
 static RESOURCE_PATH : &'static str = "../resources/";
 
 #[cfg(not(target_arch = "wasm32"))]
-static RESOURCE_PATH : &'static str = "./resources/";
+static RESOURCE_PATH : &'static str = "../resources/";
 
 const WIDTH : usize =  1440;
 const HEIGHT : usize =  1080;
