@@ -2,24 +2,9 @@ use asefile::AsepriteFile;
 use storm::math::AABB2D;
 
 use hashbrown::HashMap;
+use crate::*;
 
 use super::{FRAME_WIDTH, AnimationState};
-pub static IDLE_COLLISION: &[u8] = include_bytes!("../resources/idle.ase");
-pub static FORWARD_RUN_COLLISION: &[u8] = include_bytes!("../resources/forward_run.ase");
-pub static BACKWARD_RUN_COLLISION: &[u8] = include_bytes!("../resources/backward_run.ase");
-pub static LIGHT_ATTACK_COLLISION: &[u8] = include_bytes!("../resources/light_attack.ase");
-pub static MEDIUM_ATTACK_COLLISION: &[u8] = include_bytes!("../resources/medium_attack.ase");
-pub static HEAVY_ATTACK_COLLISION: &[u8] = include_bytes!("../resources/heavy_attack.ase");
-pub static CROUCHED_COLLISION: &[u8] = include_bytes!("../resources/crouched.ase");
-pub static CROUCHING_COLLISION: &[u8] = include_bytes!("../resources/crouching.ase");
-pub static LIGHT_CROUCH_ATTACK_COLLISION: &[u8] = include_bytes!("../resources/light_crouch_attack.ase");
-pub static HEAVY_CROUCH_ATTACK_COLLISION: &[u8] = include_bytes!("../resources/heavy_crouching_attack.ase");
-pub static LIGHT_KICK_COLLISION: &[u8] = include_bytes!("../resources/light_kick.ase");
-pub static MEDIUM_KICK_COLLISION: &[u8] = include_bytes!("../resources/medium_kick.ase");
-pub static HEAVY_KICK_COLLISION: &[u8] = include_bytes!("../resources/heavy_kick.ase");
-pub static FORWARD_DASH_COLLISION: &[u8] = include_bytes!("../resources/forward_dash.ase");
-pub static BACKWARD_DASH_COLLISION: &[u8] = include_bytes!("../resources/backward_dash.ase");
-pub static SPECIAL_1_COLLISION: &[u8] = include_bytes!("../resources/special_1.ase");
 pub static FIREBALL_COLLISION: &[u8] = include_bytes!("../resources/fireball_main.ase");
 
 pub trait Reflect {
@@ -148,53 +133,24 @@ pub struct CollisionLibrary {
     pub collision_info: HashMap<AnimationState, CollisionInfo>,
     pub fireball_collision: CollisionInfo
 }
-impl Default for CollisionLibrary {
-    fn default() -> CollisionLibrary {
-        let idle = CollisionInfo::from_byte(IDLE_COLLISION);
-        let forward_run = CollisionInfo::from_byte(FORWARD_RUN_COLLISION);
-        let backward_run = CollisionInfo::from_byte(BACKWARD_RUN_COLLISION);
-        let light_attack = CollisionInfo::from_byte(LIGHT_ATTACK_COLLISION);
-        let medium_attack = CollisionInfo::from_byte(MEDIUM_ATTACK_COLLISION);
-        let heavy_attack = CollisionInfo::from_byte(HEAVY_ATTACK_COLLISION);
-        let crouched = CollisionInfo::from_byte(CROUCHED_COLLISION);
-        let crouching = CollisionInfo::from_byte(CROUCHING_COLLISION);
-        let light_crouch_attack = CollisionInfo::from_byte(LIGHT_CROUCH_ATTACK_COLLISION);
-        let heavy_crouch_attack = CollisionInfo::from_byte(HEAVY_CROUCH_ATTACK_COLLISION);
-        let light_kick = CollisionInfo::from_byte(LIGHT_KICK_COLLISION);
-        let medium_kick = CollisionInfo::from_byte(MEDIUM_KICK_COLLISION);
-        let heavy_kick = CollisionInfo::from_byte(HEAVY_KICK_COLLISION);
-        let forward_dash = CollisionInfo::from_byte(FORWARD_DASH_COLLISION);
-        let backward_dash = CollisionInfo::from_byte(BACKWARD_DASH_COLLISION);
-        let special_1 = CollisionInfo::from_byte(SPECIAL_1_COLLISION);
-
-        let mut collision_lib = CollisionLibrary::new();
-        collision_lib.collision_info.insert(AnimationState::Idle, idle);
-        collision_lib.collision_info.insert(AnimationState::ForwardRun, forward_run);
-        collision_lib.collision_info.insert(AnimationState::BackwardRun, backward_run);
-        collision_lib.collision_info.insert(AnimationState::LightAttack, light_attack);
-        collision_lib.collision_info.insert(AnimationState::MediumAttack, medium_attack);
-        collision_lib.collision_info.insert(AnimationState::HeavyAttack, heavy_attack);
-        collision_lib.collision_info.insert(AnimationState::Crouched, crouched);
-        collision_lib.collision_info.insert(AnimationState::Crouching, crouching);
-        collision_lib.collision_info.insert(AnimationState::LightCrouchAttack, light_crouch_attack);
-        collision_lib.collision_info.insert(AnimationState::HeavyCrouchingAttack, heavy_crouch_attack);
-        collision_lib.collision_info.insert(AnimationState::LightKick, light_kick);
-        collision_lib.collision_info.insert(AnimationState::MediumKick, medium_kick);
-        collision_lib.collision_info.insert(AnimationState::HeavyKick, heavy_kick);
-        collision_lib.collision_info.insert(AnimationState::ForwardDash, forward_dash);
-        collision_lib.collision_info.insert(AnimationState::BackwardDash, backward_dash);
-        collision_lib.collision_info.insert(AnimationState::Special1, special_1);
-
-        return collision_lib;
-    }
-}
 
 impl CollisionLibrary {
-    fn new() -> CollisionLibrary {
-        CollisionLibrary {
-            collision_info: HashMap::new(),
-            fireball_collision: CollisionInfo::from_byte(FIREBALL_COLLISION)
+    pub fn new_from_sheet(character_sheet: &CharacterSheet) -> CollisionLibrary {
+        let mut collision_info = HashMap::new();
+        for (k, v) in character_sheet.animations.iter() {
+            let animation_state = AnimationState::from_string(&k);
+            let mut a_collison_info = CollisionInfo::new();
+            for (index, frame) in v.collision_data.iter().enumerate() {
+                
+                let mapped_data : Vec<CollisionBox> = frame.iter().map(|x| x.into_collision_box()).collect();
+                a_collison_info.frame_collision.insert(index as u32, mapped_data);
+            }
+            collision_info.insert(animation_state, a_collison_info);
         }
-    }
 
+        return CollisionLibrary {
+            collision_info,
+            fireball_collision: CollisionInfo::from_byte(FIREBALL_COLLISION)
+        };
+    }
 }

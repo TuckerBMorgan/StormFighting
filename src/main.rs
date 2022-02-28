@@ -81,7 +81,6 @@ impl App for FighthingApp {
         ctx.request_stop();
     }
 
-
     fn on_update(&mut self, ctx: &mut Context<Self>, _delta: f32) {
         match self.game_state {
             GameState::Game => {
@@ -96,7 +95,7 @@ impl App for FighthingApp {
                     self.transitioning = true;
                     //self.game = Some(Game::load_basic_game(ctx));
 
-                    ctx.request_read(&[String::from("./src/resources/ryu_character_sheet.json")], move |ctx, _app, assets|{
+                    ctx.request_read(&[String::from("../resources/ryu_character_sheet.json")], move |ctx, _app, assets|{
                         for asset in assets {
                             match asset.result {
                                 Ok(a_thing) => {
@@ -144,6 +143,7 @@ impl App for FighthingApp {
                                         animation_for_character_state_library.insert(CharacterState::Lost, AnimationStateForCharacterState::new(AnimationState::Lost, AnimationState::Lost));
                                         animation_for_character_state_library.insert(CharacterState::Jump, AnimationStateForCharacterState::new(AnimationState::Jump, AnimationState::Jump));
                                         animation_for_character_state_library.insert(CharacterState::Parry, AnimationStateForCharacterState::new(AnimationState::Parry, AnimationState::Parry));
+                                        animation_for_character_state_library.insert(CharacterState::Parried, AnimationStateForCharacterState::new(AnimationState::LightHitRecovery, AnimationState::LightHitRecovery));
                                         
                                         let animation_state = vec![
                                             AnimationState::Idle,
@@ -175,7 +175,7 @@ impl App for FighthingApp {
                                             animation_configs.insert(state, AnimationConfig::new(character_sheet.animations.get(&state.to_string()).unwrap().frame_lengths.clone()));
                                         }
 
-                                        let mut game_config = GameConfig::new(CollisionLibrary::default(), ComboLibrary::default(), animation_texture_library, animation_for_character_state_library, animation_configs, character_sheet.clone());
+                                        let game_config = GameConfig::new(CollisionLibrary::new_from_sheet(&character_sheet), ComboLibrary::default(), animation_texture_library, animation_for_character_state_library, animation_configs, character_sheet.clone());
 
                                         app.game = Some(Game::load_game_with_config(ctx, game_config));
                                         app.game_state = GameState::Game;

@@ -5,6 +5,7 @@ use storm::cgmath::Vector2;
 
 pub const CHARACTER_X_SPEED : f32 = 5.0;
 pub const FRAME_HISTORY_LENGTH: usize = 30;
+pub const HITSTUN_AMOUNT : usize = 5;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
 pub enum ScreenSide {
@@ -46,7 +47,8 @@ pub enum CharacterState {
     Won,
     Lost,
     Jump,
-    Parry
+    Parry,
+    Parried
 }
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone, Debug)]

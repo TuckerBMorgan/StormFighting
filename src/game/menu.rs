@@ -70,6 +70,12 @@ impl Menu {
         }
     }
 
+    pub fn files_needed_to_start() -> Vec<String> {
+        return vec![
+            String::from("../resources/");
+        ];
+    }
+
     pub fn tick(&mut self, ctx: &mut Context<FighthingApp>) -> GameState {
         if self.button.confirmed_click  {
             return GameState::Game;

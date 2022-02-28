@@ -174,11 +174,11 @@ impl Round {
 
         //Get just the hurt boxes
         let character_1_hurt_boxes : Vec<_> = character_1_position_corrected_aabbs.iter().filter(|x|{
-            return x.1 == CollisionBoxType::Hurt;
+            return x.1 == CollisionBoxType::Hurt || return x.1 == CollisionBoxType::Parry;
         }).collect();
 
         let character_2_hurt_boxes : Vec<_> = character_2_position_corrected_aabbs.iter().filter(|x|{
-            return x.1 == CollisionBoxType::Hurt;
+            return x.1 == CollisionBoxType::Hurt || return x.1 == CollisionBoxType::Parry;
         }).collect();
 
         //For each characters hurt boxes, check them against the other characters total set of Hurt and Hit Boxes
@@ -201,9 +201,10 @@ impl Round {
             }
         }
 
-        //Parries are those overlaps that are Hurt or Hurt boxes
+
+        //If a parry box hit a 
         let parries = collision_reports.iter().filter(|x|{
-            return x.collider_type == CollisionBoxType::Hurt && x.collide_type == x.collider_type;
+            return x.collider_type == CollisionBoxType::Parry && x.collide_type == CollisionBoxType::Hurt;
         });
 
         //Strikes are Hurt on Hit boxes
@@ -213,8 +214,19 @@ impl Round {
 
 
         //TODO: handle parries, idk, things do 
-        for _par in parries {
-            
+        for par in parries {
+            match par.collider_character {
+                CharacterNumber::Number1 =>  {
+                    let damage_amount = 5;
+                    self.do_damage_to_character(1, damage_amount, true, game_config);
+                    self.hit_stun_counter += 6;
+                },
+                CharacterNumber::Number2 => {
+                    let damage_amount = 5;
+                    self.do_damage_to_character(0, damage_amount, true, game_config);
+                    self.hit_stun_counter += 6;
+                }
+            }
         }
 
         //Preform strikes and assign damage
@@ -222,12 +234,12 @@ impl Round {
             match strike.collider_character {
                 CharacterNumber::Number1 =>  {
                     let damage_amount = self.characters[0].get_current_damage();
-                    self.do_damage_to_character(1, damage_amount, game_config);
+                    self.do_damage_to_character(1, damage_amount, false, game_config);
                     self.hit_stun_counter += 3;
                 },
                 CharacterNumber::Number2 => {
                     let damage_amount = self.characters[1].get_current_damage();
-                    self.do_damage_to_character(0, damage_amount, game_config);
+                    self.do_damage_to_character(0, damage_amount, false, game_config);
                     self.hit_stun_counter += 3;
                 }
             }
@@ -273,12 +285,12 @@ impl Round {
             for strike in collision_reports {
                 match strike.collider_character {
                     CharacterNumber::Number1 =>  {
-                        self.do_damage_to_character(1, 5, game_config);
-                        self.hit_stun_counter += 3;
+                        self.do_damage_to_character(1, 5, false, game_config);
+                        self.hit_stun_counter += HITSTUN_AMOUNT;
                     },
                     CharacterNumber::Number2 => {
-                        self.do_damage_to_character(0, 5, game_config);
-                        self.hit_stun_counter += 3;
+                        self.do_damage_to_character(0, 5, false, game_config);
+                        self.hit_stun_counter += HITSTUN_AMOUNT;
                     }
                 }
             }
@@ -298,7 +310,10 @@ impl Round {
     }
 
     pub fn who_won_who_lost(&self) -> (usize, usize) {
-        return (0, 1);
+        if self.characters[0].health > self.characters[1].health {
+            return (0, 1);
+        }
+        return (1, 0);
     }
 
     pub fn character_tick(&mut self, character_index: usize, frame_input: Input, game_config: &mut GameConfig) {
@@ -438,6 +453,10 @@ impl Round {
             self.characters[character_index].character_velocity.y = 0.0;
             self.characters[character_index].character_velocity.x = CHARACTER_X_SPEED * self.characters[character_index].screen_side.direction();
         }
+        else if self.characters[character_index].character_state == CharacterState::Parried {
+            self.characters[character_index].character_velocity.y = 0.0;
+            self.characters[character_index].character_velocity.x = CHARACTER_X_SPEED / 2.0 * self.characters[character_index].screen_side.direction();
+        }
         else if self.characters[character_index].character_state == CharacterState::Jump {            
             self.characters[character_index].character_velocity.y = game_config.character_sheet.animations[&String::from("Jump")].displacements[self.characters[character_index].current_animation.current_frame as usize].y;
         }
@@ -448,7 +467,7 @@ impl Round {
 
     }
 
-    pub fn do_damage_to_character(&mut self, character_index: usize, amount: u32, game_config: &mut GameConfig) {
+    pub fn do_damage_to_character(&mut self, character_index: usize, amount: u32, was_a_parry: bool, game_config: &mut GameConfig) {
         match self.characters[character_index].character_state {
             CharacterState::Blocking => {
                 if self.characters[character_index].health <= (amount/10) {
@@ -466,7 +485,12 @@ impl Round {
                 else {
                     self.characters[character_index].health -= amount;
                 }
-                self.characters[character_index].set_character_state(CharacterState::LightHitRecovery, &game_config);
+                if was_a_parry  {
+                    self.characters[character_index].set_character_state(CharacterState::Parried, &game_config);
+                }
+                else {
+                    self.characters[character_index].set_character_state(CharacterState::LightHitRecovery, &game_config);
+                }
             }
         }
     }

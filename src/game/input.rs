@@ -86,25 +86,25 @@ impl Input {
                 self.light_attack = true;
             },
             KeyboardButton::Down => {
-                self.down_key_down = true;
+            //    self.down_key_down = true;
             },
             KeyboardButton::W => {
                 self.medium_attack = true;
             },
             KeyboardButton::E => {
-                self.heavy_attack = true;
+                self.jump_down = true;
             }
             KeyboardButton::A => {
-                self.light_kick = true;
+                //self.light_kick = true;
             }
             KeyboardButton::S => {
-                self.medium_kick = true;
+                //self.medium_kick = true;
             }
             KeyboardButton::D => {
-                self.heavy_kick = true;
+                //self.heavy_kick = true;
             }
             KeyboardButton::Space => {
-                self.jump_down = true;
+                //self.jump_down = true;
             }
             _ => {}
         }
@@ -128,7 +128,7 @@ impl Input {
                 self.medium_attack = false;
             },
             KeyboardButton::E => {
-                self.heavy_attack = false;
+                self.jump_down = false;
             }
             KeyboardButton::A => {
                 self.light_kick = false;
