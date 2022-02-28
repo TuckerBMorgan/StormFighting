@@ -3,6 +3,7 @@ use storm::*;
 use storm::{graphics::shaders::text::{TextShaderPass, TextShader}, fontdue::Font, color::RGBA8, math::AABB2D};
 use storm::graphics::shaders::text::{Text};
 use storm::fontdue::layout::LayoutSettings;
+use storm::asset::Asset;
 use crate::*;
 use super::*;
 
@@ -42,14 +43,13 @@ pub struct Menu {
     button_sprites: [Sprite;1],
     button_shader_pass: SpriteShaderPass,
     sprite_shader: SpriteShader
-
 }
 
 impl Menu {
-    pub fn new(ctx: &mut Context<FighthingApp>) -> Menu {
+    pub fn new(ctx: &mut Context<FighthingApp>, button_texture: Texture) -> Menu {
         let (text_shader_pass, text_shader) = setup_round_timer_text(ctx);
         let fonts = [Font::from_bytes(FONT, Default::default()).unwrap()];
-        let (button_sprites, button_shader_pass) = setup_join_game_button(ctx);
+        let (button_sprites, button_shader_pass) = setup_join_game_button(ctx, button_texture);
         let button_x = -250.0;
         let button_y = -300.0;
         let button_x_max = button_x + 500.0;
@@ -69,10 +69,36 @@ impl Menu {
             sprite_shader: SpriteShader::new(ctx)
         }
     }
+    
+    pub fn files_loaded(ctx: &mut Context<FighthingApp>, app: &mut FighthingApp, loaded_assets: Vec<Asset>)  {
+        let mut landing_screen: Option<Texture> = None;
+        let mut button: Option<Texture> = None;
+        for (index, asset) in loaded_assets.iter().enumerate() {
+            match &asset.result {
+                Ok(the_asset) => {
+                    if index == 0 {
+                        landing_screen =Some(Texture::from_png(ctx, &the_asset, TextureFiltering::NONE));
+                    }
+                    else if index == 1 {
+                        button = Some(Texture::from_png(ctx, &the_asset, TextureFiltering::NONE));
+                    }
+                },
+                Err(e) => {
+                    panic!("{:?} {:?}", e, asset.relative_path);
+                }
+            }
+        }
+
+        let menu = Menu::new(ctx, landing_screen.unwrap());
+        app.menu = Some(menu);
+        app.game_state = GameState::Menu;
+
+    }
 
     pub fn files_needed_to_start() -> Vec<String> {
         return vec![
-            String::from("../resources/");
+            String::from(RESOURCE_PATH) + &String::from("landing_screen.png"),
+            String::from(RESOURCE_PATH) + &String::from("button.png")
         ];
     }
 
@@ -82,11 +108,6 @@ impl Menu {
         }
         ctx.clear(ClearMode::color_depth(RGBA8::BLACK));
 
-
-        self.button_sprites[0].pos.x = self.button.bounds.min.x;
-        self.button_sprites[0].pos.y = self.button.bounds.min.y;
-        self.button_sprites[0].size.x = (self.button.bounds.max.x - self.button.bounds.min.x) as u16;
-        self.button_sprites[0].size.y = (self.button.bounds.max.y - self.button.bounds.min.y) as u16;
         if self.button.started_click {
             self.button_sprites[0].color = RGBA8::RED;
         }
@@ -108,7 +129,7 @@ impl Menu {
             &self.fonts,
             &layout_settings,
             &[Text {
-                text: "Find a match?",
+                text: "",
                 font_index: 0,
                 px: 200.0,
                 color: RGBA8::WHITE,
