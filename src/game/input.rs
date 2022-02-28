@@ -15,7 +15,8 @@ pub const INPUT_MEDIUM_ATTACK: u16 = 1 << 4;
 pub const INPUT_HEAVY_ATTACK: u16 = 1 << 5;
 pub const INPUT_LIGHT_KICK: u16 = 1 << 6;
 pub const INPUT_MEDIUM_KICK: u16 = 1 << 7;
-pub const INPUT_HEAVY_KICK: u16 = 1 << 8;
+pub const INPUT_HEAVY_KICK: u16 = 1 << 9;
+pub const INPUT_JUMP: u16 = 1 << 8; 
 
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Default, Copy, Clone, Debug)]
@@ -29,6 +30,7 @@ pub struct Input {
     pub light_kick:     bool,
     pub medium_kick:    bool,
     pub heavy_kick:     bool,
+    pub jump_down:      bool,
     pub has_input:      bool
 }
 
@@ -44,6 +46,7 @@ impl Input {
             light_kick:     false,
             medium_kick:    false,
             heavy_kick:     false,
+            jump_down:      false,
             has_input:      false
         }
     }
@@ -64,6 +67,7 @@ impl Input {
             light_kick:     (recombined_input & INPUT_LIGHT_KICK) != 0,
             medium_kick:    (recombined_input & INPUT_MEDIUM_KICK) != 0,
             heavy_kick:     (recombined_input & INPUT_HEAVY_KICK) != 0,
+            jump_down:      (recombined_input & INPUT_JUMP) != 0,
             has_input
         }
     }
@@ -82,22 +86,25 @@ impl Input {
                 self.light_attack = true;
             },
             KeyboardButton::Down => {
-                self.down_key_down = true;
+            //    self.down_key_down = true;
             },
             KeyboardButton::W => {
                 self.medium_attack = true;
             },
             KeyboardButton::E => {
-                self.heavy_attack = true;
+                self.jump_down = true;
             }
             KeyboardButton::A => {
-                self.light_kick = true;
+                //self.light_kick = true;
             }
             KeyboardButton::S => {
-                self.medium_kick = true;
+                //self.medium_kick = true;
             }
             KeyboardButton::D => {
-                self.heavy_kick = true;
+                //self.heavy_kick = true;
+            }
+            KeyboardButton::Space => {
+                //self.jump_down = true;
             }
             _ => {}
         }
@@ -121,7 +128,7 @@ impl Input {
                 self.medium_attack = false;
             },
             KeyboardButton::E => {
-                self.heavy_attack = false;
+                self.jump_down = false;
             }
             KeyboardButton::A => {
                 self.light_kick = false;
@@ -131,6 +138,9 @@ impl Input {
             }
             KeyboardButton::D => {
                 self.heavy_kick = false;
+            }
+            KeyboardButton::Space => {
+                self.jump_down = false;
             }
             _ => {}
         }
@@ -151,7 +161,8 @@ pub struct ScreenSideAdjustedInput {
     pub light_kick:     bool,
     pub medium_kick:    bool,
     pub heavy_kick:     bool,
-    pub has_input:      bool
+    pub has_input:      bool,
+    pub jump:           bool
 }
 
 impl ScreenSideAdjustedInput {
@@ -181,7 +192,8 @@ impl ScreenSideAdjustedInput {
             light_kick:     input.light_kick,
             medium_kick:    input.medium_kick,
             heavy_kick:     input.heavy_kick,
-            has_input:      input.has_input
+            has_input:      input.has_input,
+            jump:           input.jump_down
         }
     }
 }
@@ -234,6 +246,9 @@ impl PatternElement {
             CharacterAction::HeavyKick => {
                 button_down_in_this_frame = input.heavy_kick;
             },
+            CharacterAction::Jump => {
+                button_down_in_this_frame = input.jump;
+            }
             _ => {
                 button_down_in_this_frame = false;
             }

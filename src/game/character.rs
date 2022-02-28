@@ -5,6 +5,7 @@ use storm::cgmath::Vector2;
 
 pub const CHARACTER_X_SPEED : f32 = 5.0;
 pub const FRAME_HISTORY_LENGTH: usize = 30;
+pub const HITSTUN_AMOUNT : usize = 5;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
 pub enum ScreenSide {
@@ -44,7 +45,10 @@ pub enum CharacterState {
     BackwardDash,
     Special1,
     Won,
-    Lost
+    Lost,
+    Jump,
+    Parry,
+    Parried
 }
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone, Debug)]
@@ -61,7 +65,9 @@ pub enum CharacterAction {
     MediumKick,
     HeavyKick,
     Crouch,
-    Special1
+    Special1,
+    Jump,
+    Parry
 }
 
 pub struct AnimationStateForCharacterState {
@@ -97,7 +103,7 @@ impl Character {
         Character {
             animation_state: AnimationState::Idle,
             character_state: CharacterState::Idle,
-            current_animation: AnimationConfig::new(0, 0),
+            current_animation: AnimationConfig::new(vec![1;1]),
             character_position: Vector2::new(0.0, 0.0),
             character_velocity: Vector2::new(0.0, 0.0),
             screen_side,
@@ -145,7 +151,7 @@ impl Character {
     }
 
     pub fn get_current_animation_config(&self) -> AnimationConfig {
-        return self.current_animation;
+        return self.current_animation.clone();
     }
     
     pub fn process_new_input(&mut self, frame_input: ScreenSideAdjustedInput, combo_library: &mut ComboLibrary) -> CharacterAction {
@@ -198,6 +204,10 @@ impl Character {
         else if frame_input.down_key_down {
             return CharacterAction::Crouch;
         }
+        else if frame_input.jump {
+            //TODO: make jump work again
+            return CharacterAction::Parry;
+        }
         
 
         return CharacterAction::None;
@@ -208,7 +218,7 @@ impl Character {
     //At some point we should remove this, and simply  have frames marked as "invulnerable"
     //TODO: do above comment
     pub fn is_in_damageable_state(&self) -> bool {
-        return self.character_state != CharacterState::LightHitRecovery;
+        return self.character_state != CharacterState::LightHitRecovery && self.character_state != CharacterState::Jump;
     }
     //A function used to get the information need to lookup a collision box
     pub fn get_collision_box_lookup_info(&self) -> (AnimationState, u32) {
@@ -230,7 +240,7 @@ impl Character {
         //They need to be data driven at some point
         //TODO: REMOVE THE MAGIC NUMBERS
         return AABB2D::new(self.character_position.x + 131.0, self.character_position.y + 57.0, 
-                           self.character_position.x + 131.0 + 33.0, self.character_position.y + 57.0 + 103.0);
+                           self.character_position.x + 131.0 + 33.0, self.character_position.y + 67.0);
     }
 
     pub fn get_current_damage(&self) -> u32 {

@@ -7,6 +7,7 @@ mod collision;
 mod projectile;
 mod menu;
 mod setup_functions;
+mod character_sheet;
 
 #[cfg(target_arch = "wasm32")]
 mod web_net;
@@ -24,6 +25,7 @@ pub use input::*;
 pub use projectile::*;
 pub use menu::*;
 pub use setup_functions::*;
+pub use character_sheet::*;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use net::*;

@@ -1,6 +1,7 @@
-use storm::graphics::default_texture;
-use storm::graphics::{Buffer, std140,DrawMode, Shader, ShaderDescriptor, Texture, Uniform,
+use storm::Context;
+use storm::graphics::{Buffer, std140,DrawMode, Shader, ShaderDescriptor, Texture, Uniform, TextureFiltering
 };
+use crate::FighthingApp;
 use crate::shaders::sprite::Sprite;
 use cgmath::Matrix4;
 
@@ -32,14 +33,14 @@ pub struct SpriteShader {
 }
 
 impl SpriteShader {
-    pub fn new() -> SpriteShader {
+    pub fn new(ctx: &mut Context<FighthingApp>) -> SpriteShader {
         SpriteShader {
-            shader: Shader::new(),
+            shader: Shader::new(ctx),
         }
     }
 
     /// Draws to the screen.
-    pub fn draw(&self, uniform: &Uniform<SpriteUniform>, atlas: &Texture, scanline: &Texture, buffer: &Buffer<Sprite>) {
+    pub fn draw(&self, uniform: &Uniform<SpriteUniform>, atlas: &Texture, _scanline: &Texture, buffer: &Buffer<Sprite>) {
         self.shader.draw_instanced(DrawMode::TriangleStrip, uniform, [atlas], &[buffer], 4);
     }
 }
@@ -52,12 +53,12 @@ pub struct SpriteShaderPass {
 }
 
 impl SpriteShaderPass {
-    pub fn new(ortho: Matrix4<f32>) -> SpriteShaderPass {
+    pub fn new(ortho: Matrix4<f32>, ctx: &mut Context<FighthingApp>) -> SpriteShaderPass {
         SpriteShaderPass {
-            uniform: Uniform::new(SpriteUniform::new(ortho)),
-            atlas: default_texture(),
-            scanline: Texture::from_png(include_bytes!("../../resources/scanline_5.png")),
-            buffer: Buffer::new(),
+            uniform: Uniform::new(ctx, SpriteUniform::new(ortho)),
+            atlas: ctx.default_texture(),
+            scanline: Texture::from_png(ctx, include_bytes!("../../resources/scanline_5.png"), TextureFiltering::NONE),
+            buffer: Buffer::new(ctx),
         }
     }
 
@@ -67,6 +68,6 @@ impl SpriteShaderPass {
     }
 
     pub fn set_transform(&mut self, transform: Matrix4<f32>) {
-        self.uniform = Uniform::new(SpriteUniform::new(transform));
+        self.uniform.set(SpriteUniform::new(transform));
     }
 }

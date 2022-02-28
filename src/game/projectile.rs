@@ -4,7 +4,7 @@ use storm::cgmath::Vector2;
 
 use super::{ScreenSide, AnimationConfig};
 
-#[derive(Serialize, Deserialize, Copy, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Projectile {
     pub position: Vector2<f32>,
     pub velocity: Vector2<f32>,
@@ -24,7 +24,7 @@ impl Projectile {
             position,
             velocity,
             screen_side,
-            timer: AnimationConfig::new(20, 4),
+            timer: AnimationConfig::new(vec![4;20]),
             team
         }
     }

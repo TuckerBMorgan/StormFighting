@@ -1,4 +1,5 @@
 use cgmath::{Vector2};
+use storm::*;
 use storm::{graphics::shaders::text::{TextShaderPass, TextShader}, fontdue::Font, color::RGBA8, math::AABB2D};
 use storm::graphics::shaders::text::{Text};
 use storm::fontdue::layout::LayoutSettings;
@@ -45,10 +46,10 @@ pub struct Menu {
 }
 
 impl Menu {
-    pub fn new() -> Menu {
-        let (text_shader_pass, text_shader) = setup_round_timer_text();
+    pub fn new(ctx: &mut Context<FighthingApp>) -> Menu {
+        let (text_shader_pass, text_shader) = setup_round_timer_text(ctx);
         let fonts = [Font::from_bytes(FONT, Default::default()).unwrap()];
-        let (button_sprites, button_shader_pass) = setup_join_game_button();
+        let (button_sprites, button_shader_pass) = setup_join_game_button(ctx);
         let button_x = -250.0;
         let button_y = -300.0;
         let button_x_max = button_x + 500.0;
@@ -65,15 +66,21 @@ impl Menu {
             },
             button_sprites,
             button_shader_pass,
-            sprite_shader: SpriteShader::new()
+            sprite_shader: SpriteShader::new(ctx)
         }
     }
 
-    pub fn tick(&mut self) -> GameState {
+    pub fn files_needed_to_start() -> Vec<String> {
+        return vec![
+            String::from("../resources/");
+        ];
+    }
+
+    pub fn tick(&mut self, ctx: &mut Context<FighthingApp>) -> GameState {
         if self.button.confirmed_click  {
             return GameState::Game;
         }
-        clear(ClearMode::color_depth(RGBA8::BLACK));
+        ctx.clear(ClearMode::color_depth(RGBA8::BLACK));
 
 
         self.button_sprites[0].pos.x = self.button.bounds.min.x;
