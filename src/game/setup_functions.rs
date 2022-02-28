@@ -78,24 +78,21 @@ pub fn setup_ui_backplate(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], Spri
     return (background_sprite, background_sprite_pass);
 }
 
-pub fn setup_join_game_button(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], SpriteShaderPass) {
+pub fn setup_join_game_button(ctx: &mut Context<FighthingApp>, button_texture: Texture) -> ([Sprite; 1], SpriteShaderPass) {
     let mut transform = OrthographicCamera::new(ctx.window_logical_size());
     transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
     let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix(), ctx);
-    let loaded_texture = Texture::from_png(ctx,BUTTON, TextureFiltering::NONE);
-    let first_frame = loaded_texture.subsection(0, loaded_texture.width(), 0, loaded_texture.height());
-
-
+    let first_frame = button_texture.subsection(0, button_texture.width(), 0, button_texture.height());
     let background_sprite = [
         Sprite {
-            pos: Vector3::new(-1500.0, 200.0, -0.09),
-            size: Vector2::new(loaded_texture.width() as u16 * 3, (loaded_texture.height() as u16 * 3) / 2),
+            pos: Vector3::new(0.0, 0.0, -0.09),
+            size: Vector2::new(button_texture.width() as u16, button_texture.height() as u16 ),
             color: RGBA8::WHITE,
             texture: first_frame,
             ..Default::default()
         }
     ];
-    background_sprite_pass.atlas = loaded_texture;
+    background_sprite_pass.atlas = button_texture;
     return (background_sprite, background_sprite_pass);
 }
 

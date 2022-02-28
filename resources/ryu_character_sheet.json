@@ -3,7 +3,7 @@
     "movespeed": 5.0,
     "animations": {
         "MediumKick": {
-            "image_file_location": "../resources/sheets/ryu\\MediumKick\\full.png",
+            "image_file_location": "sheets/ryu\\MediumKick\\full.png",
             "collision_data": [
                 [
                     {
@@ -420,7 +420,7 @@
             ]
         },
         "MediumAttack": {
-            "image_file_location": "../resources/sheets/ryu\\MediumAttack\\full.png",
+            "image_file_location": "sheets/ryu\\MediumAttack\\full.png",
             "collision_data": [
                 [
                     {
@@ -969,7 +969,7 @@
             ]
         },
         "Blocking": {
-            "image_file_location": "../resources/sheets/ryu\\Blocking\\full.png",
+            "image_file_location": "sheets/ryu\\Blocking\\full.png",
             "collision_data": [
                 [
                     {
@@ -1182,7 +1182,7 @@
             ]
         },
         "ForwardRun": {
-            "image_file_location": "../resources/sheets/ryu\\ForwardRun\\full.png",
+            "image_file_location": "sheets/ryu\\ForwardRun\\full.png",
             "collision_data": [
                 [
                     {
@@ -1752,7 +1752,7 @@
             ]
         },
         "HeavyAttack": {
-            "image_file_location": "../resources/sheets/ryu\\HeavyAttack\\full.png",
+            "image_file_location": "sheets/ryu\\HeavyAttack\\full.png",
             "collision_data": [
                 [
                     {
@@ -2351,7 +2351,7 @@
             ]
         },
         "BackwardRun": {
-            "image_file_location": "../resources/sheets/ryu\\BackwardRun\\full.png",
+            "image_file_location": "sheets/ryu\\BackwardRun\\full.png",
             "collision_data": [
                 [
                     {
@@ -2943,7 +2943,7 @@
             ]
         },
         "HeavyKick": {
-            "image_file_location": "../resources/sheets/ryu\\HeavyKick\\full.png",
+            "image_file_location": "sheets/ryu\\HeavyKick\\full.png",
             "collision_data": [
                 [
                     {
@@ -3681,7 +3681,7 @@
             ]
         },
         "LightAttack": {
-            "image_file_location": "../resources/sheets/ryu\\LightAttack\\full.png",
+            "image_file_location": "sheets/ryu\\LightAttack\\full.png",
             "collision_data": [
                 [
                     {
@@ -3967,7 +3967,7 @@
             ]
         },
         "Crouched": {
-            "image_file_location": "../resources/sheets/ryu\\Crouched\\full.png",
+            "image_file_location": "sheets/ryu\\Crouched\\full.png",
             "collision_data": [
                 [
                     {
@@ -4158,7 +4158,7 @@
             ]
         },
         "ForwardDash": {
-            "image_file_location": "../resources/sheets/ryu\\ForwardDash\\full.png",
+            "image_file_location": "sheets/ryu\\ForwardDash\\full.png",
             "collision_data": [
                 [
                     {
@@ -4473,7 +4473,7 @@
             ]
         },
         "Idle": {
-            "image_file_location": "../resources/sheets/ryu\\Idle\\full.png",
+            "image_file_location": "sheets/ryu\\Idle\\full.png",
             "collision_data": [
                 [
                     {
@@ -4992,7 +4992,7 @@
             ]
         },
         "LightKick": {
-            "image_file_location": "../resources/sheets/ryu\\LightKick\\full.png",
+            "image_file_location": "sheets/ryu\\LightKick\\full.png",
             "collision_data": [
                 [
                     {
@@ -5384,7 +5384,7 @@
             ]
         },
         "Crouching": {
-            "image_file_location": "../resources/sheets/ryu\\Crouching\\full.png",
+            "image_file_location": "sheets/ryu\\Crouching\\full.png",
             "collision_data": [
                 [
                     {
@@ -5484,7 +5484,7 @@
             ]
         },
         "Jump": {
-            "image_file_location": "../resources/sheets/ryu\\Jump\\full.png",
+            "image_file_location": "sheets/ryu\\Jump\\full.png",
             "collision_data": [
                 [
                     {
@@ -6101,7 +6101,7 @@
             ]
         },
         "LightHitRecovery": {
-            "image_file_location": "../resources/sheets/ryu\\LightHitRecovery\\full.png",
+            "image_file_location": "sheets/ryu\\LightHitRecovery\\full.png",
             "collision_data": [
                 [
                     {
@@ -6347,7 +6347,7 @@
             ]
         },
         "Lost": {
-            "image_file_location": "../resources/sheets/ryu\\Lost\\full.png",
+            "image_file_location": "sheets/ryu\\Lost\\full.png",
             "collision_data": [
                 [
                     {
@@ -6446,7 +6446,7 @@
             ]
         },
         "Parry": {
-            "image_file_location": "../resources/sheets/ryu\\Parry\\full.png",
+            "image_file_location": "sheets/ryu\\Parry\\full.png",
             "collision_data": [
                 [
                     {
@@ -6765,7 +6765,7 @@
             ]
         },
         "Special1": {
-            "image_file_location": "../resources/sheets/ryu\\Special1\\full.png",
+            "image_file_location": "sheets/ryu\\Special1\\full.png",
             "collision_data": [
                 [
                     {
@@ -7488,7 +7488,7 @@
             ]
         },
         "Won": {
-            "image_file_location": "../resources/sheets/ryu\\Won\\full.png",
+            "image_file_location": "sheets/ryu\\Won\\full.png",
             "collision_data": [
                 [
                     {
@@ -7605,7 +7605,7 @@
             ]
         },
         "LightCrouchAttack": {
-            "image_file_location": "../resources/sheets/ryu\\LightCrouchAttack\\full.png",
+            "image_file_location": "sheets/ryu\\LightCrouchAttack\\full.png",
             "collision_data": [
                 [
                     {
@@ -7891,7 +7891,7 @@
             ]
         },
         "HeavyCrouchingAttack": {
-            "image_file_location": "../resources/sheets/ryu\\HeavyCrouchingAttack\\full.png",
+            "image_file_location": "sheets/ryu\\HeavyCrouchingAttack\\full.png",
             "collision_data": [
                 [
                     {
@@ -8337,7 +8337,7 @@
             ]
         },
         "BackwardDash": {
-            "image_file_location": "../resources/sheets/ryu\\BackwardDash\\full.png",
+            "image_file_location": "sheets/ryu\\BackwardDash\\full.png",
             "collision_data": [
                 [
                     {

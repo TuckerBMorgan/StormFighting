@@ -18,6 +18,12 @@ use shaders::*;
 static FONT: &[u8] = include_bytes!("resources/gomarice_game_continue_02.ttf");
 static FIREBALL: &[u8] = include_bytes!("resources/fireball_main.png");
 
+#[cfg(target_arch = "wasm32")]
+static RESOURCE_PATH : &'static str = "../resources/";
+
+#[cfg(not(target_arch = "wasm32"))]
+static RESOURCE_PATH : &'static str = "./resources/";
+
 const WIDTH : usize =  1440;
 const HEIGHT : usize =  1080;
 
@@ -63,9 +69,11 @@ pub struct FighthingApp {
 impl App for FighthingApp {
     fn new(ctx: &mut Context<Self>) -> Self {
         ctx.wait_periodic(Some(Duration::from_secs_f32(1.0 / 60.0)));
-        let game_state = GameState::Menu;
+        let game_state = GameState::Loading;
         let game: Option<Game> = None;
-        let menu = Some(Menu::new(ctx));
+        let menu : Option<Menu> = None;
+
+        ctx.request_read(&Menu::files_needed_to_start(), Menu::files_loaded);
 
         FighthingApp {
             game_state,
@@ -73,8 +81,6 @@ impl App for FighthingApp {
             menu,
             transitioning: false
         }
-
-
     }
 
     fn on_close_requested(&mut self, ctx: &mut Context<Self>) {
@@ -95,7 +101,7 @@ impl App for FighthingApp {
                     self.transitioning = true;
                     //self.game = Some(Game::load_basic_game(ctx));
 
-                    ctx.request_read(&[String::from("../resources/ryu_character_sheet.json")], move |ctx, _app, assets|{
+                    ctx.request_read(&[String::from(RESOURCE_PATH) + &String::from("ryu_character_sheet.json")], move |ctx, _app, assets|{
                         for asset in assets {
                             match asset.result {
                                 Ok(a_thing) => {
@@ -106,7 +112,7 @@ impl App for FighthingApp {
                                     for (name, animation_data) in character_sheet.animations.clone() {
                                         let k = animation_data.image_file_location;
                                         names_of_animations.push(name.clone());
-                                        images_to_load.push(k);
+                                        images_to_load.push(String::from(RESOURCE_PATH) + &k);
                                     }
                                     ctx.request_read(&images_to_load[..], move |ctx, app, assets|{
                                         let mut animation_texture_library = AnimationTextureLibrary::new();
