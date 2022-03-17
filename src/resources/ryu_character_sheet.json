@@ -6597,7 +6597,7 @@
                         ]
                     },
                     {
-                        "box_type": "Parry",
+                        "box_type": "Hurt",
                         "origin": [
                             79,
                             68
@@ -6654,7 +6654,7 @@
                         ]
                     },
                     {
-                        "box_type": "Parry",
+                        "box_type": "Hurt",
                         "origin": [
                             83,
                             70

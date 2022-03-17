@@ -117,7 +117,7 @@ impl<'a> Game<'a> {
         
         //-108 is HEIGHT / 2 / SCALING FACTOR
         transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), HEIGHT as f32 / 2.0 / 5.0, 0.0);
-        transform.set().scale = 5.0;
+        transform.set().scale = 0.25;
         Game {
             current_round,
             local_input: Input::new(),

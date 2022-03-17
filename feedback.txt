@@ -1,0 +1,9 @@
+Show which player is which one
+crash on second 
+You won and you lost
+Names
+room codes
+Only Q tends to win
+When parry., auto next attack
+Crashes on second due to setTimeout
+crashes in wasm due to 

@@ -15,8 +15,7 @@ pub struct  Displacement {
 #[derive(Serialize, Deserialize, Debug, Copy, Clone)]
 pub enum BoxType {
     Hit,
-    Hurt,
-    Parry
+    Hurt
 }
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone)]
@@ -43,9 +42,6 @@ impl AABB {
             },
             BoxType::Hurt => {
                 CollisionBoxType::Hurt
-            },
-            BoxType::Parry => {
-                CollisionBoxType::Parry
             }
         };
         

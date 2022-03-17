@@ -174,11 +174,11 @@ impl Round {
 
         //Get just the hurt boxes
         let character_1_hurt_boxes : Vec<_> = character_1_position_corrected_aabbs.iter().filter(|x|{
-            return x.1 == CollisionBoxType::Hurt || return x.1 == CollisionBoxType::Parry;
+            return x.1 == CollisionBoxType::Hurt;
         }).collect();
 
         let character_2_hurt_boxes : Vec<_> = character_2_position_corrected_aabbs.iter().filter(|x|{
-            return x.1 == CollisionBoxType::Hurt || return x.1 == CollisionBoxType::Parry;
+            return x.1 == CollisionBoxType::Hurt;
         }).collect();
 
         //For each characters hurt boxes, check them against the other characters total set of Hurt and Hit Boxes
@@ -204,7 +204,7 @@ impl Round {
 
         //If a parry box hit a 
         let parries = collision_reports.iter().filter(|x|{
-            return x.collider_type == CollisionBoxType::Parry && x.collide_type == CollisionBoxType::Hurt;
+            return x.collider_type == CollisionBoxType::Hurt && x.collide_type == CollisionBoxType::Hurt;
         });
 
         //Strikes are Hurt on Hit boxes
@@ -454,8 +454,8 @@ impl Round {
             self.characters[character_index].character_velocity.x = CHARACTER_X_SPEED * self.characters[character_index].screen_side.direction();
         }
         else if self.characters[character_index].character_state == CharacterState::Parried {
+            self.characters[character_index].character_velocity.x = -(CHARACTER_X_SPEED * self.characters[character_index].screen_side.direction()) * 5.0;
             self.characters[character_index].character_velocity.y = 0.0;
-            self.characters[character_index].character_velocity.x = CHARACTER_X_SPEED / 2.0 * self.characters[character_index].screen_side.direction();
         }
         else if self.characters[character_index].character_state == CharacterState::Jump {            
             self.characters[character_index].character_velocity.y = game_config.character_sheet.animations[&String::from("Jump")].displacements[self.characters[character_index].current_animation.current_frame as usize].y;
@@ -489,7 +489,12 @@ impl Round {
                     self.characters[character_index].set_character_state(CharacterState::Parried, &game_config);
                 }
                 else {
-                    self.characters[character_index].set_character_state(CharacterState::LightHitRecovery, &game_config);
+                    if self.characters[character_index].character_state != CharacterState::Parried {
+                        self.characters[character_index].set_character_state(CharacterState::LightHitRecovery, &game_config);
+                    }
+                    else {
+                        //TODO: Handle a "HEAVY HIT RECOVERY"
+                    }
                 }
             }
         }

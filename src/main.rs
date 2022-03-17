@@ -19,7 +19,7 @@ static FONT: &[u8] = include_bytes!("resources/gomarice_game_continue_02.ttf");
 static FIREBALL: &[u8] = include_bytes!("resources/fireball_main.png");
 
 #[cfg(target_arch = "wasm32")]
-static RESOURCE_PATH : &'static str = "./resources/";
+static RESOURCE_PATH : &'static str = "../resources/";
 
 #[cfg(not(target_arch = "wasm32"))]
 static RESOURCE_PATH : &'static str = "./resources/";

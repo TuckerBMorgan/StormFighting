@@ -26,8 +26,7 @@ impl Reflect for AABB2D {
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum CollisionBoxType {
     Hurt,
-    Hit,
-    Parry
+    Hit
 }
 #[derive(Debug)]
 pub struct CollisionBox {
