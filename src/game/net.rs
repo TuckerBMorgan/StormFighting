@@ -1,5 +1,5 @@
 use ggrs::SessionState;
-use ggrs::{P2PSession, PlayerType};
+use ggrs::{P2PSession, PlayerType, SessionBuilder, UdpNonBlockingSocket};
 
 use std::io::prelude::*;
 use std::marker::PhantomData;
@@ -18,14 +18,14 @@ pub enum NetState {
 
 
 pub struct Net<'a> {
-    pub session: Option<P2PSession<Round>>,
+    pub session: Option<P2PSession<GGRSConfig>>,
     pub local_handle: usize,
     marker: PhantomData<&'a ()>,
     pub state: NetState
 }
 
 impl<'a> Net<'a> {
-    pub fn new(session: P2PSession<Round>, local_handle: usize) -> Net<'a>  {
+    pub fn new(session: P2PSession<GGRSConfig>, local_handle: usize) -> Net<'a>  {
         Net {
             session: Some(session),
             local_handle,
@@ -38,11 +38,15 @@ impl<'a> Net<'a> {
         return self.session.as_ref().unwrap().current_state() == SessionState::Running;
     }
 
+    pub fn add_local_input(&mut self, handle: usize, inputs: NetInput) {
+        self.session.as_mut().unwrap().add_local_input(handle, inputs).unwrap();
+    }
+
     pub fn launch_session() -> Net<'a> {
         //Connect to the Cupid server
        // let mut stream = TcpStream::connect("24.19.122.147:7878").unwrap();
         let mut stream = TcpStream::connect("192.168.0.20:7878").unwrap();
-        //let listener = TcpListener::bind("192.168.0.20:7878").unwrap();
+
         let mut players = vec![String::from("localhost")];
     
         let mut buffer = [0;512];
@@ -80,39 +84,31 @@ impl<'a> Net<'a> {
         let mut local_handle = 0;
         let num_players = 2;//This is a peer to peer fighting game, there will only ever be 2 players
         assert!(num_players > 0);
-    
-        // create a GGRS session
-        let mut sess = P2PSession::<Round>::new(num_players as u32, INPUT_SIZE,8, stream.local_addr().unwrap().port()).unwrap();
-    
-        // turn on sparse saving
-        sess.set_sparse_saving(false).unwrap();
-    
-        // set FPS (default is 60, so this doesn't change anything as is)
-        sess.set_fps(FPS as u32).unwrap();
-    
+        let mut sess = SessionBuilder::<GGRSConfig>::new()
+            .with_num_players(num_players)
+            .with_fps(FPS as usize).unwrap()
+            .with_input_delay(2);
+
         // add players
         for (i, player_addr) in players.iter().enumerate() {
             // local player
             if player_addr == "localhost" {
-                sess.add_player(PlayerType::Local, i).unwrap();
+                sess = sess.add_player(PlayerType::Local, i).unwrap();
                 local_handle = i;
             } else {
+
                 // remote players
                 let remote_addr: SocketAddr = player_addr.parse().unwrap();
-                sess.add_player(PlayerType::Remote(remote_addr), i).unwrap();
+                println!("{:?}", remote_addr);
+                sess = sess.add_player(PlayerType::Remote(remote_addr), i).unwrap();
             }
         }
-    
-        // set input delay for the local player
-        sess.set_frame_delay(2, local_handle).unwrap();
-    
-        // set change default expected update frequency
-        sess.set_fps(FPS as u32).unwrap();
-        // start the GGRS session
-        sess.start_session().unwrap();
 
+        let socket = UdpNonBlockingSocket::bind_to_port(stream.local_addr().unwrap().port()).unwrap();
+        let sess = sess.start_p2p_session(socket).unwrap();
         return Net::new(sess, local_handle);
     }
+
     pub fn tick(&mut self) {
         self.session.as_mut().unwrap().poll_remote_clients();
     }

@@ -77,10 +77,10 @@ impl Menu {
             match &asset.result {
                 Ok(the_asset) => {
                     if index == 0 {
-                        landing_screen =Some(Texture::from_png(ctx, &the_asset, TextureFiltering::NONE));
+                        landing_screen =Some(Texture::from_png(ctx, &the_asset, TextureFiltering::none()));
                     }
                     else if index == 1 {
-                        button = Some(Texture::from_png(ctx, &the_asset, TextureFiltering::NONE));
+                        button = Some(Texture::from_png(ctx, &the_asset, TextureFiltering::none()));
                     }
                 },
                 Err(e) => {
@@ -106,7 +106,7 @@ impl Menu {
         if self.button.confirmed_click  {
             return GameState::Game;
         }
-        ctx.clear(ClearMode::color_depth(RGBA8::BLACK));
+        ctx.clear(ClearMode::new().with_color(RGBA8::BLUE).with_depth(0.0, DepthTest::Greater));
 
         if self.button.started_click {
             self.button_sprites[0].color = RGBA8::RED;
@@ -115,7 +115,7 @@ impl Menu {
             self.button_sprites[0].color = RGBA8::WHITE;
         }
 
-        self.button_shader_pass.buffer.set(&self.button_sprites);
+        self.button_shader_pass.buffer.set_data(&self.button_sprites);
         self.button_shader_pass.draw(&self.sprite_shader);
 
         self.text_shader_pass.clear_text();

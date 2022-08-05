@@ -6,10 +6,11 @@ use storm::graphics::TextureSection;
 use storm::*;
 use crate::FighthingApp;
 
-pub static BACKGROUND_CASTLE: &[u8] = include_bytes!("../resources/background_castle.png");
-pub static UI_BACKPLATE: &[u8] = include_bytes!("../resources/health_and_time_ui.png");
-pub static GREYSCALE_HEALTH_BAR_GRADIANT: &[u8] = include_bytes!("../resources/greyscale_health_bar.png");
-pub static BUTTON: &[u8] = include_bytes!("../resources/button.png");
+// TODO: load these normally
+pub static BACKGROUND_CASTLE: &[u8] = include_bytes!("../../resources/background_castle.png");
+pub static UI_BACKPLATE: &[u8] = include_bytes!("../../resources/health_and_time_ui.png");
+pub static GREYSCALE_HEALTH_BAR_GRADIANT: &[u8] = include_bytes!("../../resources/greyscale_health_bar.png");
+pub static BUTTON: &[u8] = include_bytes!("../../resources/button.png");
 
 pub const FRAME_HEIGHT: u32 =  178;
 pub const FRAME_WIDTH: u32 =  290;
@@ -37,7 +38,8 @@ pub enum AnimationState {
     Won,
     Lost,
     Jump,
-    Parry
+    Parry,
+    ForwardJump
 }
 
 // TODO: Just all of this :( I feel bad for this
@@ -111,6 +113,9 @@ impl AnimationState {
         if value == "Parry" {
             return AnimationState::Parry;
         }
+        if value == "ForwardJump" {
+            return AnimationState::ForwardJump;
+        }
         panic!("{:?} is an unknow animation state", value);
     }
 
@@ -181,6 +186,9 @@ impl AnimationState {
             }
             AnimationState::Parry => {
                 return String::from("Parry");
+            }
+            AnimationState::ForwardJump => {
+                return String::from("ForwardJump");
             }
         }
     }
@@ -276,7 +284,7 @@ impl AnimationTextureLibrary {
         }
 
         // Use storm to load the image
-        let loaded_texture = Texture::from_png(ctx, atlas, TextureFiltering::NONE);
+        let loaded_texture = Texture::from_png(ctx, atlas, TextureFiltering::none());
         self.animations.insert(animation_state, loaded_texture);
     }
 

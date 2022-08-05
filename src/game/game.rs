@@ -18,7 +18,7 @@ use ggrs::{GGRSError};
 
 use hashbrown::HashMap;
 
-use ggrs::{Frame, GGRSRequest, GameInput, GameState, GameStateCell, PlayerHandle, NULL_FRAME};
+use ggrs::{Frame, GGRSRequest, GameStateCell, PlayerHandle, NULL_FRAME, InputStatus};
 use storm::math::OrthographicCamera;
 
 use super::*;
@@ -100,13 +100,12 @@ impl<'a> Game<'a> {
         let net = Net::launch_session();
 
         let (background_sprite, background_sprite_pass) = setup_background(ctx);
-        ctx.clear(ClearMode::color_depth(RGBA8::BLACK));
         let sprite_shader = SpriteShader::new(ctx);
         let (sprites_1, 
             sprite_pass_1) = load_character_sprite(&game_config.animation_library, &mut current_round.characters[0], ctx);
         let (sprites_2, 
             sprite_pass_2) = load_character_sprite(&game_config.animation_library, &mut current_round.characters[1], ctx);
-        let fireball_texture = Texture::from_png(ctx, FIREBALL, TextureFiltering::NONE);
+        let fireball_texture = Texture::from_png(ctx, FIREBALL, TextureFiltering::none());
         let ui = setup_ui(ctx);    
         //load the font used for the timer
         let fonts = [Font::from_bytes(FONT, Default::default()).unwrap()];
@@ -153,7 +152,7 @@ impl<'a> Game<'a> {
 
     // deserialize gamestate to load and overwrite current gamestate
     pub fn load_game_state(&mut self, cell: GameStateCell<Round>) {
-        self.current_round = cell.load().data.expect("No data found.");
+        self.current_round = cell.load().expect("No data found.");
     }
 
     // serialize current gamestate, create a checksum
@@ -161,12 +160,12 @@ impl<'a> Game<'a> {
     fn save_game_state(&mut self, cell: GameStateCell<Round>, frame: Frame) {
         // assert_eq!(self.game_state.frame, frame);
         let buffer = bincode::serialize(&self.current_round).unwrap();
-        let checksum = fletcher16(&buffer) as u64;
+        let checksum = fletcher16(&buffer) as u128;
 
-        cell.save(GameState::new_with_checksum(frame, Some(self.current_round.clone()), checksum));
+        cell.save(frame, Some(self.current_round.clone()), Some(checksum));
     }
     
-    fn advance_frame(&mut self, inputs: Vec<GameInput>) {
+    fn advance_frame(&mut self, inputs: Vec<(NetInput, InputStatus)>) {
         // advance the game state
         self.current_round.advance(inputs, &mut self.game_config);
         if self.current_round.round_done && self.current_round.reset_round_timer.finished() {
@@ -184,9 +183,9 @@ impl<'a> Game<'a> {
     }
 
     pub fn update(&mut self, ctx: &mut Context<FighthingApp>) {
-        
 
-        ctx.clear(ClearMode::color_depth(RGBA8::BLACK));
+
+        ctx.clear(ClearMode::new().with_color(RGBA8::BLUE).with_depth(0.0, DepthTest::Greater));
         
         self.net.tick();
         match self.net.state {
@@ -197,6 +196,8 @@ impl<'a> Game<'a> {
 
             }
         }
+
+
         if self.net.is_running() {
             // this is to keep ticks between clients synchronized.
             // if a client is ahead, it will run frames slightly slower to allow catching up
@@ -209,14 +210,16 @@ impl<'a> Game<'a> {
             let delta = Instant::now().duration_since(self.last_update);
             self.accumulator = self.accumulator.saturating_add(delta);
             self.last_update = Instant::now();
+            
+
+
 
             // if enough time is accumulated, we run a frame
             while self.accumulator.as_secs_f64() > fps_delta {
                 // decrease accumulator
                 self.accumulator = self.accumulator.saturating_sub(Duration::from_secs_f64(fps_delta));
-
-                let input = self.local_input(0);
-                match self.net.session.as_mut().unwrap().advance_frame(self.net.local_handle, &input) {
+                self.net.add_local_input(self.net.local_handle, self.local_input(self.net.local_handle));
+                match self.net.session.as_mut().unwrap().advance_frame() {
                     Ok(requests) => self.handle_requests(requests),
                     Err(GGRSError::PredictionThreshold) => println!("Frame skipped"),
                     Err(e) => panic!("{:?}", e),
@@ -329,30 +332,32 @@ impl<'a> Game<'a> {
                 }],
             );
 
+            self.background_sprite_pass.set_transform(self.camera_transform.matrix());
+            self.background_sprite_pass.buffer.set_data(&self.background_sprite);
+            self.background_sprite_pass.draw(&self.sprite_shader);            
+
             self.ui.timer_text.0.draw(&self.ui.timer_text.1);
 
-            self.ui.backplate.1.buffer.set(&mut self.ui.backplate.0);
+            self.ui.backplate.1.buffer.set_data(&mut self.ui.backplate.0);
             self.ui.backplate.1.draw(&self.sprite_shader);
 
             for projectile_sprites in self.projectile_sprites.iter_mut() {
                 projectile_sprites.1.set_transform(self.camera_transform.matrix());
-                projectile_sprites.1.buffer.set(&projectile_sprites.0);
+                projectile_sprites.1.buffer.set_data(&projectile_sprites.0);
                 projectile_sprites.1.draw(&self.sprite_shader);
             }
 
             self.sprite_pass_2.set_transform(self.camera_transform.matrix());
             self.sprite_pass_1.set_transform(self.camera_transform.matrix());
 
-            self.sprite_pass_1.buffer.set(&self.character_1_sprites);
+            self.sprite_pass_1.buffer.set_data(&self.character_1_sprites);
             self.sprite_pass_1.draw(&self.sprite_shader);
             
-            self.sprite_pass_2.buffer.set(&self.character_2_sprites);
+            self.sprite_pass_2.buffer.set_data(&self.character_2_sprites);
             self.sprite_pass_2.draw(&self.sprite_shader);
+            
 
-            self.background_sprite_pass.set_transform(self.camera_transform.matrix());
-            self.background_sprite_pass.buffer.set(&self.background_sprite);
-            self.background_sprite_pass.draw(&self.sprite_shader);            
-
+            
             //Render Health Bars
             let health_ratio_player_one = self.current_round.characters[0].health as f32 / 250.0;
             let health_ratio_player_two = self.current_round.characters[1].health as f32 / 250.0;
@@ -382,13 +387,14 @@ impl<'a> Game<'a> {
             let removed_amount_player_2 = 1.0 - health_ratio_player_two;
             self.ui.healthbars.0[1].pos.x = 160.0 + (480.0 * removed_amount_player_2);
 
-            self.ui.healthbars.1.buffer.set(&self.ui.healthbars.0);
+            self.ui.healthbars.1.buffer.set_data(&self.ui.healthbars.0);
             self.ui.healthbars.1.draw(&self.sprite_shader);
+
         }
     }
 
     // for each request, call the appropriate function
-    pub fn handle_requests(&mut self, requests: Vec<GGRSRequest<Round>>) {
+    pub fn handle_requests(&mut self, requests: Vec<GGRSRequest<GGRSConfig>>) {
         for request in requests {
             match request {
                 GGRSRequest::LoadGameState { cell, frame: _ } => self.load_game_state(cell),
@@ -400,7 +406,7 @@ impl<'a> Game<'a> {
 
     #[allow(dead_code)]
     // creates a compact representation of currently pressed keys and serializes it
-    pub fn local_input(&self, handle: PlayerHandle) -> Vec<u8> {
+    pub fn local_input(&self, handle: PlayerHandle) -> NetInput {
         let mut input: u16 = 0;
 
         // ugly, but it works...
@@ -437,6 +443,6 @@ impl<'a> Game<'a> {
                 input |= INPUT_JUMP;
             }
         }
-        return input.to_le_bytes().to_vec();
+        return NetInput{ input};//input.to_le_bytes();.to_vec();
     }
 }

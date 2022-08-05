@@ -5,7 +5,7 @@ use hashbrown::HashMap;
 use crate::*;
 
 use super::{FRAME_WIDTH, AnimationState};
-pub static FIREBALL_COLLISION: &[u8] = include_bytes!("../resources/fireball_main.ase");
+pub static FIREBALL_COLLISION: &[u8] = include_bytes!("../../resources/fireball_main.ase");
 
 pub trait Reflect {
     fn reflect(&self, x_axis: usize) -> AABB2D;

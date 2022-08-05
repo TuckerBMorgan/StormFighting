@@ -8,7 +8,7 @@ edition = "2018"
 [dependencies]
 storm = {git = "https://github.com/mooman219/storm"}
 hashbrown = { version = "0.11.2", features = ["serde"]}
-ggrs = "0.8.0"
+ggrs = "*"
 structopt = "0.3"
 instant = "0.1"
 bincode = "1.3"
@@ -24,3 +24,4 @@ matchbox_socket = {path = "../matchbox/matchbox_socket", features=["ggrs-socket"
 tungstenite = "0.16.0"
 async-executor = "1.4.1"
 futures = { version = "0.3", features=["executor"] }
+bytemuck = {version = "1.7", features = ["derive"]}

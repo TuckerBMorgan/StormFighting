@@ -6,6 +6,7 @@ use storm::graphics::*;
 use storm::fontdue::layout::LayoutSettings;
 use storm::fontdue::Font;
 use storm::graphics::shaders::text::{Text, TextShader, TextShaderPass};
+
 use super::*;
 
 use crate::*;
@@ -31,7 +32,7 @@ pub fn load_character_sprite(animation_library: &AnimationTextureLibrary, charac
             ..Default::default()
         }
     ];
-    sprite_1.buffer.set(&sprites_1);
+    sprite_1.buffer.set_data(&sprites_1);
 
     return (sprites_1, sprite_1);
 }
@@ -41,12 +42,12 @@ pub fn setup_background(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], Sprite
     let mut transform = OrthographicCamera::new(ctx.window_logical_size());
     transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
     let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix(), ctx);
-    let loaded_texture = Texture::from_png(ctx, BACKGROUND_CASTLE, TextureFiltering::NONE);
+    let loaded_texture = Texture::from_png(ctx, BACKGROUND_CASTLE, TextureFiltering::none());
     let first_frame = loaded_texture.subsection(0, 896, 0, 512);
     background_sprite_pass.atlas = loaded_texture;
     let background_sprite = [
         Sprite {
-            pos: Vector3::new(0.0, 0.0, -0.1),
+            pos: Vector3::new(0.0, 0.0, 0.1),
             size: Vector2::new(896, 512),
             color: RGBA8::WHITE,
             texture: first_frame,
@@ -61,13 +62,13 @@ pub fn setup_ui_backplate(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], Spri
     let mut transform = OrthographicCamera::new(ctx.window_logical_size());
     transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
     let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix(), ctx);
-    let loaded_texture = Texture::from_png(ctx, UI_BACKPLATE, TextureFiltering::NONE);
+    let loaded_texture = Texture::from_png(ctx, UI_BACKPLATE, TextureFiltering::none());
     let first_frame = loaded_texture.subsection(0, loaded_texture.width(), 0, loaded_texture.height());
 
     let scale_factor = 1.5;
     let background_sprite = [
         Sprite {
-            pos: Vector3::new(WIDTH as f32 / 2.0 - loaded_texture.width() as f32 * scale_factor / 2.0, HEIGHT as f32 - loaded_texture.height() as f32 * scale_factor, -0.09),
+            pos: Vector3::new(WIDTH as f32 / 2.0 - loaded_texture.width() as f32 * scale_factor / 2.0, HEIGHT as f32 - loaded_texture.height() as f32 * scale_factor, 0.09),
             size: Vector2::new((loaded_texture.width() as f32 * scale_factor ) as u16, (loaded_texture.height() as f32 * scale_factor) as u16),
             color: RGBA8::WHITE,
             texture: first_frame,
@@ -85,7 +86,7 @@ pub fn setup_join_game_button(ctx: &mut Context<FighthingApp>, button_texture: T
     let first_frame = button_texture.subsection(0, button_texture.width(), 0, button_texture.height());
     let background_sprite = [
         Sprite {
-            pos: Vector3::new(0.0, 0.0, -0.09),
+            pos: Vector3::new(0.0, 0.0, 0.09),
             size: Vector2::new(button_texture.width() as u16, button_texture.height() as u16 ),
             color: RGBA8::WHITE,
             texture: first_frame,
@@ -108,7 +109,7 @@ pub fn setup_health_bars(ctx: &mut Context<FighthingApp>) -> ([Sprite; 2], Sprit
     let mut transform = OrthographicCamera::new(ctx.window_logical_size());
     transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
     let mut health_bar_render_pass = SpriteShaderPass::new(transform.matrix(), ctx);
-    let loaded_texture = Texture::from_png(ctx, GREYSCALE_HEALTH_BAR_GRADIANT, TextureFiltering::NONE);
+    let loaded_texture = Texture::from_png(ctx, GREYSCALE_HEALTH_BAR_GRADIANT, TextureFiltering::none());
     let first_frame = loaded_texture.subsection(0, loaded_texture.width(), 0, loaded_texture.height());
     let health_bars = [
         Sprite {
@@ -127,7 +128,7 @@ pub fn setup_health_bars(ctx: &mut Context<FighthingApp>) -> ([Sprite; 2], Sprit
         },
     ];
     health_bar_render_pass.atlas = loaded_texture;
-    health_bar_render_pass.buffer.set(&health_bars);
+    health_bar_render_pass.buffer.set_data(&health_bars);
     return (health_bars, health_bar_render_pass);
 }
 
@@ -153,7 +154,7 @@ pub fn setup_fireball(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], SpriteSh
             ..Default::default()
         }
     ];
-    fireball_render_pass.buffer.set(&fireball_sprites);
+    fireball_render_pass.buffer.set_data(&fireball_sprites);
     return (fireball_sprites, fireball_render_pass);
 }
 

@@ -1,10 +1,10 @@
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use ggrs::GameInput;
+use ggrs::{Config, Frame, GGRSRequest, GameStateCell, InputStatus, PlayerHandle, NULL_FRAME};
 use storm::math::AABB2D;
 use storm::cgmath::*;
 
-
+use std::net::SocketAddr;
 use super::*;
 
 const MAX_PLAYER_DISTANCE : f32 = FRAME_WIDTH as f32;
@@ -21,7 +21,7 @@ pub struct Round {
 }
 
 impl Round {
-    pub fn advance(&mut self, inputs: Vec<GameInput>, game_config: &mut GameConfig) {
+    pub fn advance(&mut self, inputs: Vec<(NetInput, InputStatus)>, game_config: &mut GameConfig) {
         
         self.frame += 1;
         if self.hit_stun_counter > 0 {
@@ -39,8 +39,8 @@ impl Round {
         }
 
         
-        self.character_tick(0, Input::from_game_input(inputs[0].clone()), game_config);
-        self.character_tick(1, Input::from_game_input(inputs[1].clone()), game_config);
+        self.character_tick(0, Input::from_game_input(inputs[0].0.clone()), game_config);
+        self.character_tick(1, Input::from_game_input(inputs[1].0.clone()), game_config);
 
         for projectile in self.projectiles.iter_mut() {
             projectile.tick();
@@ -66,16 +66,18 @@ impl Round {
         //into a single funciton on character
         if self.characters[0].character_velocity.x != 0.0 || self.characters[0].character_velocity.y != 0.0 {
             let mut reshift = Vector2::new(0.0, 0.0);
-            if self.characters[1].character_state == CharacterState::Jump {
+            if self.characters[0].character_state == CharacterState::Jump || self.characters[0].character_state == CharacterState::ForwardJump {
                 if character_1_walk_box.slide(&self.characters[0].character_velocity, &[]) {
                     //Overlap. hmmmm
-                    reshift.x = CHARACTER_X_SPEED * 1.1 * self.characters[0].screen_side.direction() * -1.0;
+
+                    //    reshift.x = CHARACTER_X_SPEED * 1.1 * self.characters[0].screen_side.direction() * -1.0;
+                    println!("Overallp 1");
                 }
             }
             else { 
                 if character_1_walk_box.slide(&self.characters[0].character_velocity, &[character_2_walk_box]) {
                     //Overlap. hmmmm
-
+                    println!("Overallp 2");
                 }
             }
 
@@ -92,6 +94,7 @@ impl Round {
             }
             else if f32::abs(self.characters[0].character_position.x - self.characters[1].character_position.x) > MAX_PLAYER_DISTANCE {
                 //TODO: Handle screen sides when we add in jumping
+                
                 self.characters[0].character_position.x = self.characters[1].character_position.x + MAX_PLAYER_DISTANCE;
             }
         }
@@ -99,10 +102,10 @@ impl Round {
 
         if self.characters[1].character_velocity.x != 0.0 || self.characters[1].character_velocity.y != 0.0 {
             let mut reshift = Vector2::new(0.0, 0.0);
-            if self.characters[0].character_state == CharacterState::Jump {
+            if self.characters[1].character_state == CharacterState::Jump  || self.characters[1].character_state == CharacterState::ForwardJump {
                 if character_2_walk_box.slide(&self.characters[1].character_velocity, &[]) {
                     //Overlap. hmmmm
-                    reshift.x = CHARACTER_X_SPEED * 1.1 * self.characters[1].screen_side.direction() * -1.0;
+                 //   reshift.x = CHARACTER_X_SPEED * 1.1 * self.characters[1].screen_side.direction() * -1.0;
                 }
             }
             else { 
@@ -422,6 +425,11 @@ impl Round {
             else if character_action == CharacterAction::Jump {
                 self.characters[character_index].set_character_state(CharacterState::Jump, &game_config);
             }
+            else if character_action == CharacterAction::ForwardJump {
+                self.characters[character_index].set_character_state(CharacterState::ForwardJump, &game_config);
+                let value = self.characters[character_index].screen_side.direction();
+                self.characters[character_index].set_move_starting_screen_side(value);
+            }
         }
 
         if self.characters[character_index].character_state == CharacterState::ForwardRun || self.characters[character_index].character_state == CharacterState::BackwardRun {
@@ -457,7 +465,11 @@ impl Round {
             self.characters[character_index].character_velocity.x = -(CHARACTER_X_SPEED * self.characters[character_index].screen_side.direction()) * 5.0;
             self.characters[character_index].character_velocity.y = 0.0;
         }
-        else if self.characters[character_index].character_state == CharacterState::Jump {            
+        else if self.characters[character_index].character_state == CharacterState::ForwardJump { 
+            self.characters[character_index].character_velocity.y = game_config.character_sheet.animations[&String::from("ForwardJump")].displacements[self.characters[character_index].current_animation.current_frame as usize].y;
+            self.characters[character_index].character_velocity.x = game_config.character_sheet.animations[&String::from("ForwardJump")].displacements[self.characters[character_index].current_animation.current_frame as usize].x * self.characters[character_index].move_starting_screen_side;
+        }
+        else if self.characters[character_index].character_state == CharacterState::Jump { 
             self.characters[character_index].character_velocity.y = game_config.character_sheet.animations[&String::from("Jump")].displacements[self.characters[character_index].current_animation.current_frame as usize].y;
         }
         else {
@@ -523,6 +535,16 @@ impl Round {
     }
 }
 
+pub struct GGRSConfig {
+
+}
+
+
+impl Config for GGRSConfig {
+    type Input = NetInput;
+    type State = Round;
+    type Address = SocketAddr;
+}
 
 
 impl Default for Round{

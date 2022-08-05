@@ -15,8 +15,8 @@ mod shaders;
 use game::*;
 use shaders::*;
 
-static FONT: &[u8] = include_bytes!("resources/gomarice_game_continue_02.ttf");
-static FIREBALL: &[u8] = include_bytes!("resources/fireball_main.png");
+static FONT: &[u8] = include_bytes!("../resources/gomarice_game_continue_02.ttf");
+static FIREBALL: &[u8] = include_bytes!("../resources/fireball_main.png");
 
 #[cfg(target_arch = "wasm32")]
 static RESOURCE_PATH : &'static str = "../resources/";
@@ -73,7 +73,7 @@ impl App for FighthingApp {
         let game: Option<Game> = None;
         let menu : Option<Menu> = None;
 
-        ctx.request_read(&Menu::files_needed_to_start(), Menu::files_loaded);
+        ctx.read(&Menu::files_needed_to_start(), Menu::files_loaded);
 
         FighthingApp {
             game_state,
@@ -101,7 +101,7 @@ impl App for FighthingApp {
                     self.transitioning = true;
                     //self.game = Some(Game::load_basic_game(ctx));
 
-                    ctx.request_read(&[String::from(RESOURCE_PATH) + &String::from("ryu_character_sheet.json")], move |ctx, _app, assets|{
+                    ctx.read(&[String::from(RESOURCE_PATH) + &String::from("ryu_character_sheet.json")], move |ctx, _app, assets|{
                         for asset in assets {
                             match asset.result {
                                 Ok(a_thing) => {
@@ -114,7 +114,7 @@ impl App for FighthingApp {
                                         names_of_animations.push(name.clone());
                                         images_to_load.push(String::from(RESOURCE_PATH) + &k);
                                     }
-                                    ctx.request_read(&images_to_load[..], move |ctx, app, assets|{
+                                    ctx.read(&images_to_load[..], move |ctx, app, assets|{
                                         let mut animation_texture_library = AnimationTextureLibrary::new();
                                         for (index, name) in names_of_animations.iter().enumerate() {
                                             match &assets[index].result {
@@ -150,6 +150,7 @@ impl App for FighthingApp {
                                         animation_for_character_state_library.insert(CharacterState::Jump, AnimationStateForCharacterState::new(AnimationState::Jump, AnimationState::Jump));
                                         animation_for_character_state_library.insert(CharacterState::Parry, AnimationStateForCharacterState::new(AnimationState::Parry, AnimationState::Parry));
                                         animation_for_character_state_library.insert(CharacterState::Parried, AnimationStateForCharacterState::new(AnimationState::LightHitRecovery, AnimationState::LightHitRecovery));
+                                        animation_for_character_state_library.insert(CharacterState::ForwardJump, AnimationStateForCharacterState::new(AnimationState::ForwardJump, AnimationState::ForwardJump));
                                         
                                         let animation_state = vec![
                                             AnimationState::Idle,
@@ -173,7 +174,8 @@ impl App for FighthingApp {
                                             AnimationState::Won,
                                             AnimationState::Lost,
                                             AnimationState::Jump,
-                                            AnimationState::Parry
+                                            AnimationState::Parry,
+                                            AnimationState::ForwardJump
                                         ];
                                         
                                         let mut animation_configs = HashMap::new();

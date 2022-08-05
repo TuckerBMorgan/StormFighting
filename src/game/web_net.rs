@@ -1,12 +1,11 @@
-use ggrs::SessionState;
-use ggrs::{P2PSession, PlayerType, NonBlockingSocket};
+use ggrs::{GGRSError, PlayerType, SessionBuilder, SessionState, UdpNonBlockingSocket};
 
 use std::io::prelude::*;
 use std::net::TcpStream;
 use std::net::SocketAddr;
 use async_executor::LocalExecutor;
 use futures::*;
-use matchbox_socket::*;
+use matchbox_socket::WebRtcSocket;
 use crate::game::web_net::executor::block_on;
 use super::*;
 pub const FPS: f64 = 60.0;
@@ -23,14 +22,14 @@ pub struct Net<'a> {
     pub session: Option<P2PSession<Round>>,
     pub local_handle: usize,
     pub local_executor: LocalExecutor<'a>,
-    pub socket: Option<WebRtcNonBlockingSocket>
+    pub socket: Option<WebRtcSocket>
 }
 
 
 impl<'a> Net<'a> {
 
     pub fn launch_session() -> Net<'a> {
-        let (mut socket, message_loop) = WebRtcNonBlockingSocket::new("wss://extreme-bevy.match.helsing.studio/next_2");
+        let (mut socket, message_loop) = WebRtcSocket::new("wss://0.0.0.0:3536/made_in_heaven");
         let local_executor = LocalExecutor::new();
         let task = local_executor.spawn(message_loop);
         task.detach();
@@ -59,25 +58,26 @@ impl<'a> Net<'a> {
         
         let players = self.socket.as_mut().unwrap().players();
         //    let (mut socket, _) = connect(Url::parse("ws://192.168.0.20:9001").unwrap())?;
+
+        let mut sess_build = SessionBuilder::<Round>::new().with_num_players(2).with_fps(FPS as u32).with_input_delay(2);
+
+
         let mut sess = P2PSession::<Round>::new_with_socket(2, INPUT_SIZE, 16, self.socket.take().unwrap());
+
+        // add players
+        for (i, player) in players.into_iter().enumerate() {
+            sess_build
+                .add_player(player, i)
+                .expect("failed to add player");
+        }
+
+
         // turn on sparse saving
         sess.set_sparse_saving(false).unwrap();
     
         // set FPS (default is 60, so this doesn't change anything as is)
         sess.set_fps(FPS as u32).unwrap();
 
-        // add players
-        for (i, player) in players.into_iter().enumerate() {
-            sess
-                .add_player(player, i)
-                .expect("failed to add player");
-    
-            if player == PlayerType::Local {
-                // set input delay for the local player
-                sess.set_frame_delay(2, i).unwrap();
-                self.local_handle = i;
-            }
-        }
     
         // set input delay for the local player
    //     sess.set_frame_delay(2, local_handle).unwrap();

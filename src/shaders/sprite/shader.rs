@@ -41,7 +41,7 @@ impl SpriteShader {
 
     /// Draws to the screen.
     pub fn draw(&self, uniform: &Uniform<SpriteUniform>, atlas: &Texture, _scanline: &Texture, buffer: &Buffer<Sprite>) {
-        self.shader.draw_instanced(DrawMode::TriangleStrip, uniform, [atlas], &[buffer], 4);
+        self.shader.draw(DrawMode::TriangleStrip, uniform, [atlas], &[buffer]);
     }
 }
 
@@ -57,7 +57,7 @@ impl SpriteShaderPass {
         SpriteShaderPass {
             uniform: Uniform::new(ctx, SpriteUniform::new(ortho)),
             atlas: ctx.default_texture(),
-            scanline: Texture::from_png(ctx, include_bytes!("../../resources/scanline_5.png"), TextureFiltering::NONE),
+            scanline: Texture::from_png(ctx, include_bytes!("../.../../../../resources/scanline_5.png"), TextureFiltering::none()),
             buffer: Buffer::new(ctx),
         }
     }

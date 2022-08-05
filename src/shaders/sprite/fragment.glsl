@@ -14,9 +14,17 @@ void main() {
 	vec4 scanlines = vec4(sl.x, sl.x, sl.x, 1.0);
     scanlines += vec4(0.01, 0.01, 0.01, 0.0);
     a_color = texture(texT, v_uv) * v_color;
+    /*
+    //So this 100 doable
+    if (a_color.r > 0.96 && a_color.g > ) {
+        a_color = vec4(1.0, 1.0, 0.0, a_color.a);
+    }
+    */
     a_color *= scanlines * 1.3;
 
     if (a_color.a <= 0.0) {
         discard;
     }
+
+
 }

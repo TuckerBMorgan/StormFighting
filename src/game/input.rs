@@ -1,7 +1,8 @@
-use ggrs::GameInput;
+
 use storm::event::*;
 use super::*;
 use serde::{Deserialize, Serialize};
+use bytemuck::{Pod, Zeroable};
 
 //To reduce the size of the input we send between 
 //players we fit it onto a u16
@@ -17,6 +18,12 @@ pub const INPUT_LIGHT_KICK: u16 = 1 << 6;
 pub const INPUT_MEDIUM_KICK: u16 = 1 << 7;
 pub const INPUT_HEAVY_KICK: u16 = 1 << 9;
 pub const INPUT_JUMP: u16 = 1 << 8; 
+
+#[repr(C)]
+#[derive(Copy, Clone, PartialEq, Pod, Zeroable)]
+pub struct NetInput {
+    pub input: u16
+}
 
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Default, Copy, Clone, Debug)]
@@ -51,11 +58,8 @@ impl Input {
         }
     }
 
-    pub fn from_game_input(game_input: GameInput) -> Input {
-        let mut recombined_input = game_input.buffer[0] as u16;
-        let mut second_half = game_input.buffer[1] as u16;
-        second_half = second_half << 8;
-        recombined_input = recombined_input | second_half;
+    pub fn from_game_input(game_input: NetInput) -> Input {
+        let recombined_input = game_input.input;
         let has_input = recombined_input > 0;
         Input {
             left_key_down:  (recombined_input & INPUT_LEFT) != 0,
@@ -86,25 +90,25 @@ impl Input {
                 self.light_attack = true;
             },
             KeyboardButton::Down => {
-            //    self.down_key_down = true;
+                self.down_key_down = true;
             },
             KeyboardButton::W => {
                 self.medium_attack = true;
             },
             KeyboardButton::E => {
-                self.jump_down = true;
+                self.heavy_attack = true;
             }
             KeyboardButton::A => {
-                //self.light_kick = true;
+                self.light_kick = true;
             }
             KeyboardButton::S => {
-                //self.medium_kick = true;
+                self.medium_kick = true;
             }
             KeyboardButton::D => {
-                //self.heavy_kick = true;
+                self.heavy_kick = true;
             }
             KeyboardButton::Space => {
-                //self.jump_down = true;
+                self.jump_down = true;
             }
             _ => {}
         }
@@ -128,7 +132,7 @@ impl Input {
                 self.medium_attack = false;
             },
             KeyboardButton::E => {
-                self.jump_down = false;
+                self.heavy_attack = false;
             }
             KeyboardButton::A => {
                 self.light_kick = false;
@@ -334,9 +338,11 @@ impl Default for ComboLibrary {
         let forward_dash = ComboPattern::new(vec![CharacterAction::MoveForward, CharacterAction::MoveForward], CharacterAction::DashForward);
         let backward_dash = ComboPattern::new(vec![CharacterAction::MoveBackward, CharacterAction::MoveBackward], CharacterAction::DashBackward);
         let hadokon = ComboPattern::new(vec![CharacterAction::Crouch, CharacterAction::MoveForward, CharacterAction::LightAttack], CharacterAction::Special1);
+        let forwrad_jump = ComboPattern::new(vec![CharacterAction::MoveForward, CharacterAction::Jump], CharacterAction::ForwardJump);
+        let backward_jump = ComboPattern::new(vec![CharacterAction::MoveForward, CharacterAction::Jump], CharacterAction::ForwardJump);
 
         ComboLibrary {
-            combos: vec![forward_dash, backward_dash, hadokon]
+            combos: vec![forward_dash, backward_dash, hadokon, forwrad_jump]
         }
     }
 }

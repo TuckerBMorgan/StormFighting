@@ -48,7 +48,8 @@ pub enum CharacterState {
     Lost,
     Jump,
     Parry,
-    Parried
+    Parried,
+    ForwardJump
 }
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone, Debug)]
@@ -67,7 +68,8 @@ pub enum CharacterAction {
     Crouch,
     Special1,
     Jump,
-    Parry
+    Parry,
+    ForwardJump
 }
 
 pub struct AnimationStateForCharacterState {
@@ -95,7 +97,8 @@ pub struct Character {
     pub health: u32, //How much health it has
     pub is_crouched: bool, //Is character crouched at the moment, used so we don't have a set of "crouched" states
     pub past_inputs: Vec<ScreenSideAdjustedInput>, //A buffer that contains the last FRAME_HISTORY_LENGTH input states
-    pub done: bool
+    pub done: bool,
+    pub move_starting_screen_side: f32
 }
 
 impl Character {
@@ -110,7 +113,8 @@ impl Character {
             health: 250,
             is_crouched: false,
             past_inputs: vec![],
-            done: false
+            done: false,
+            move_starting_screen_side: 0.0
         }
     }
 
@@ -127,6 +131,10 @@ impl Character {
         self.current_animation = game_config.animation_configs.get(&animation_state).unwrap().clone();
         self.current_animation.reset();
         self.set_animation_state(animation_state);
+    }
+
+    pub fn set_move_starting_screen_side(&mut self, screen_side: f32) {
+        self.move_starting_screen_side = screen_side;
     }
 
     pub fn finished_animation_whats_next(&mut self) -> CharacterState {
@@ -206,7 +214,7 @@ impl Character {
         }
         else if frame_input.jump {
             //TODO: make jump work again
-            return CharacterAction::Parry;
+            return CharacterAction::Jump;
         }
         
 
@@ -218,7 +226,7 @@ impl Character {
     //At some point we should remove this, and simply  have frames marked as "invulnerable"
     //TODO: do above comment
     pub fn is_in_damageable_state(&self) -> bool {
-        return self.character_state != CharacterState::LightHitRecovery && self.character_state != CharacterState::Jump;
+        return self.character_state != CharacterState::LightHitRecovery && self.character_state != CharacterState::Jump && self.character_state != CharacterState::ForwardJump;
     }
     //A function used to get the information need to lookup a collision box
     pub fn get_collision_box_lookup_info(&self) -> (AnimationState, u32) {
