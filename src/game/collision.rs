@@ -51,15 +51,17 @@ pub enum CharacterNumber {
 pub struct CollisionReport {
     pub collider_type: CollisionBoxType,
     pub collide_type: CollisionBoxType,
-    pub collider_character: CharacterNumber
+    pub collider_character: CharacterNumber,
+    pub where_x: f32
 }
 
 impl CollisionReport {
-    pub fn new(collider_type: CollisionBoxType, collide_type: CollisionBoxType, collider_character: CharacterNumber) -> CollisionReport {
+    pub fn new(collider_type: CollisionBoxType, collide_type: CollisionBoxType, collider_character: CharacterNumber, where_x: f32) -> CollisionReport {
         CollisionReport {
             collider_type,
             collide_type,
-            collider_character
+            collider_character,
+            where_x
         }
     }
 }

@@ -1,5 +1,5 @@
 use storm::color::RGBA8;
-use storm::graphics::{TextureSection, VertexAttribute, VertexDescriptor, VertexInputType, VertexOutputType};
+use storm::graphics::{*};
 use storm::graphics::VertexInstancing;
 use storm::math::AABB2D;
 use cgmath::*;
@@ -34,6 +34,7 @@ impl VertexDescriptor for Sprite {
         VertexAttribute::new(1, VertexInputType::U16, VertexOutputType::NormalizedF32),
         VertexAttribute::new(4, VertexInputType::U16, VertexOutputType::NormalizedF32),
     ];
+    const DRAW_MODE: DrawMode = DrawMode::TriangleStrip;
 }
 
 impl Default for Sprite {

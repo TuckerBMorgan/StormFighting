@@ -8,7 +8,6 @@ use std::net::SocketAddr;
 use crate::*;
 
 pub const FPS: f64 = 60.0;
-pub const INPUT_SIZE: usize = std::mem::size_of::<[u8;2]>();
 
 
 pub enum NetState {

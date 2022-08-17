@@ -15,8 +15,12 @@ mod shaders;
 use game::*;
 use shaders::*;
 
+use std::fs::File;
+use std::io::{self, BufRead};
+
 static FONT: &[u8] = include_bytes!("../resources/gomarice_game_continue_02.ttf");
 static FIREBALL: &[u8] = include_bytes!("../resources/fireball_main.png");
+static LIGHT_HIT_EFFECT_TEXTURE: &[u8] = include_bytes!("../resources/sheets/Effects/LightHit/full.png");
 
 #[cfg(target_arch = "wasm32")]
 static RESOURCE_PATH : &'static str = "../resources/";
@@ -42,7 +46,42 @@ pub enum GameState {
     Game
 }
 
+use std::{fs::{self, DirEntry}, path::Path, ffi::OsString};
+fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
+where P: AsRef<Path>, {
+    let file = File::open(filename)?;
+    Ok(io::BufReader::new(file).lines())
+}
+
+fn read_palletes() -> Vec<Vec<cgmath::Vector3<f32>>> {
+    let pallete_fokder = fs::read_dir("./palletes").unwrap();
+    let mut palletes = vec![];
+    for file in pallete_fokder {
+        if let Ok(lines) = read_lines(&file.unwrap().path()) {
+            // Consumes the iterator, returns an (Optional) String
+            let mut colors = vec![];
+            for line in lines.skip(3) {
+                match line {
+                    Ok(l) => {
+                        let mut result = l.split(' ');
+                        let value = cgmath::Vector3::new(result.next().unwrap().parse::<f32>().unwrap() / 256.0, result.next().unwrap().parse::<f32>().unwrap() / 256.0, result.next().unwrap().parse::<f32>().unwrap() / 256.0);
+                        colors.push(value);
+                    },
+                    Err(e) => {
+
+                    }
+                }
+            }
+            palletes.push(colors);
+        }    
+    }
+
+    palletes
+}
+
 fn main() {
+    let test_image = storm::image::Image::from_vec(vec![1, 2, 3, 4, 5, 6], 3, 2);
+    
     //I am initing this logger to avoid an error on mac
     let _ = SimpleLogger::init(LevelFilter::Warn, Config::default());
     // Create the engine context and describe the window.
@@ -127,7 +166,7 @@ impl App for FighthingApp {
                                                 }
                                             }
                                         }
-                                        app.transitioning = false;
+                                        app.transitioning = false;  
 
                                         let mut animation_for_character_state_library = HashMap::new();
                                         animation_for_character_state_library.insert(CharacterState::Idle, AnimationStateForCharacterState::new(AnimationState::Crouched, AnimationState::Idle));
@@ -139,9 +178,9 @@ impl App for FighthingApp {
                                         animation_for_character_state_library.insert(CharacterState::LightAttack, AnimationStateForCharacterState::new(AnimationState::LightCrouchAttack, AnimationState::LightAttack));
                                         animation_for_character_state_library.insert(CharacterState::MediumAttack, AnimationStateForCharacterState::new(AnimationState::LightCrouchAttack, AnimationState::MediumAttack));
                                         animation_for_character_state_library.insert(CharacterState::HeavyAttack, AnimationStateForCharacterState::new(AnimationState::HeavyCrouchingAttack, AnimationState::HeavyAttack));
-                                        animation_for_character_state_library.insert(CharacterState::LightKick, AnimationStateForCharacterState::new(AnimationState::LightKick, AnimationState::LightKick));
-                                        animation_for_character_state_library.insert(CharacterState::MediumKick, AnimationStateForCharacterState::new(AnimationState::MediumKick, AnimationState::MediumKick));
-                                        animation_for_character_state_library.insert(CharacterState::HeavyKick, AnimationStateForCharacterState::new(AnimationState::HeavyKick, AnimationState::HeavyKick));
+                                        animation_for_character_state_library.insert(CharacterState::LightKick, AnimationStateForCharacterState::new(AnimationState::LightCrouchKick, AnimationState::LightKick));
+                                        animation_for_character_state_library.insert(CharacterState::MediumKick, AnimationStateForCharacterState::new(AnimationState::MediumCrouchKick, AnimationState::MediumKick));
+                                        animation_for_character_state_library.insert(CharacterState::HeavyKick, AnimationStateForCharacterState::new(AnimationState::HeavyCrouchKick, AnimationState::HeavyKick));
                                         animation_for_character_state_library.insert(CharacterState::ForwardDash, AnimationStateForCharacterState::new(AnimationState::ForwardDash, AnimationState::ForwardDash));
                                         animation_for_character_state_library.insert(CharacterState::BackwardDash, AnimationStateForCharacterState::new(AnimationState::BackwardDash, AnimationState::BackwardDash));
                                         animation_for_character_state_library.insert(CharacterState::Special1, AnimationStateForCharacterState::new(AnimationState::Special1, AnimationState::Special1));
@@ -175,15 +214,22 @@ impl App for FighthingApp {
                                             AnimationState::Lost,
                                             AnimationState::Jump,
                                             AnimationState::Parry,
-                                            AnimationState::ForwardJump
+                                            AnimationState::ForwardJump,
+                                            AnimationState::LightCrouchKick,
+                                            AnimationState::MediumCrouchKick,
+                                            AnimationState::HeavyCrouchKick
                                         ];
                                         
                                         let mut animation_configs = HashMap::new();
                                         for state in animation_state {
                                             animation_configs.insert(state, AnimationConfig::new(character_sheet.animations.get(&state.to_string()).unwrap().frame_lengths.clone()));
                                         }
-
-                                        let game_config = GameConfig::new(CollisionLibrary::new_from_sheet(&character_sheet), ComboLibrary::default(), animation_texture_library, animation_for_character_state_library, animation_configs, character_sheet.clone());
+                                        let mut pallete : [cgmath::Vector3<f32>; 256] = [cgmath::Vector3::<f32>::new(0.0, 0.0, 0.0);256];
+                                        let test = read_palletes();
+                                        for i in 0..256 {
+                                            pallete[i] = test[0][i];
+                                        }
+                                        let game_config = GameConfig::new(CollisionLibrary::new_from_sheet(&character_sheet), ComboLibrary::default(), animation_texture_library, animation_for_character_state_library, animation_configs, character_sheet.clone(), pallete);
 
                                         app.game = Some(Game::load_game_with_config(ctx, game_config));
                                         app.game_state = GameState::Game;

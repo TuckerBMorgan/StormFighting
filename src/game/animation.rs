@@ -10,10 +10,12 @@ use crate::FighthingApp;
 pub static BACKGROUND_CASTLE: &[u8] = include_bytes!("../../resources/background_castle.png");
 pub static UI_BACKPLATE: &[u8] = include_bytes!("../../resources/health_and_time_ui.png");
 pub static GREYSCALE_HEALTH_BAR_GRADIANT: &[u8] = include_bytes!("../../resources/greyscale_health_bar.png");
-pub static BUTTON: &[u8] = include_bytes!("../../resources/button.png");
+//pub static BUTTON: &[u8] = include_bytes!("../../resources/button.png");
 
 pub const FRAME_HEIGHT: u32 =  178;
 pub const FRAME_WIDTH: u32 =  290;
+
+pub const EFFECT_FRAME_WIDTH: u32 = 640;
 
 #[derive(Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Copy, Clone)]
 pub enum AnimationState {
@@ -29,6 +31,9 @@ pub enum AnimationState {
     Blocking,
     LightCrouchAttack,
     HeavyCrouchingAttack,
+    LightCrouchKick,
+    MediumCrouchKick,
+    HeavyCrouchKick,
     LightKick,
     MediumKick,
     HeavyKick,
@@ -116,6 +121,15 @@ impl AnimationState {
         if value == "ForwardJump" {
             return AnimationState::ForwardJump;
         }
+        if value == "HeavyCrouchKick" {
+            return AnimationState::HeavyCrouchKick;
+        }
+        if value == "MediumCrouchKick" {
+            return AnimationState::MediumCrouchKick;
+        }
+        if value == "LightCrouchKick" {
+            return AnimationState::LightCrouchKick;
+        }
         panic!("{:?} is an unknow animation state", value);
     }
 
@@ -190,6 +204,15 @@ impl AnimationState {
             AnimationState::ForwardJump => {
                 return String::from("ForwardJump");
             }
+            AnimationState::LightCrouchKick => {
+                return String::from("LightCrouchKick");
+            }
+            AnimationState::MediumCrouchKick => {
+                return String::from("MediumCrouchKick");
+            }
+            AnimationState::HeavyCrouchKick => {
+                return String::from("HeavyCrouchKick");
+            }
         }
     }
 }
@@ -231,7 +254,7 @@ impl SpriteTimer {
     pub fn reset(&mut self) {
         self.current_frame = 0;
         self.finished = false;
-    }
+}
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -284,7 +307,12 @@ impl AnimationTextureLibrary {
         }
 
         // Use storm to load the image
-        let loaded_texture = Texture::from_png(ctx, atlas, TextureFiltering::none());
+//        let loaded_texture = Texture::from_png(ctx, atlas, TextureFiltering::none());
+        let width = [atlas[0], atlas[1], atlas[2], atlas[3]];
+        let width = u32::from_le_bytes(width);
+        let height = [atlas[4], atlas[5], atlas[6], atlas[7]];
+        let height = u32::from_le_bytes(height);
+        let loaded_texture = Texture::from_image(ctx, &storm::image::Image::from_vec(atlas[8..].to_vec(), width, height), TextureFiltering::none());
         self.animations.insert(animation_state, loaded_texture);
     }
 
@@ -298,6 +326,50 @@ impl AnimationTextureLibrary {
     //Makes an assumption that all frames for all animations are of the same width
     //returns the section starting at frame_number * FRAME_WIDTH to frame_number * FRAME_WIDTH + FRAME_WIDTH
     pub fn get_atlas_subsection(& self, animation: AnimationState, frame_number: u32) -> TextureSection {
+        let left = frame_number * FRAME_WIDTH;
+        return self.animations.get(&animation).unwrap().subsection(left, left + FRAME_WIDTH, 0, FRAME_HEIGHT);
+    }
+}
+
+
+#[derive(Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Copy, Clone)]
+pub enum EffectAnimationState {
+    LightHit
+}
+
+pub struct EffectAnimationTextureLibrary {
+    pub animations: HashMap<EffectAnimationState, Texture>,
+}
+
+impl EffectAnimationTextureLibrary {
+    pub fn new() -> EffectAnimationTextureLibrary {
+    EffectAnimationTextureLibrary {
+            animations: HashMap::new()
+        }
+    }
+
+    // Given atlas(a u8 representation of the image we want) and the animation state we want
+    // Build a mapping between the two so that we can look it up later
+    pub fn load_animation(&mut self, atlas: &[u8], animation_state: EffectAnimationState, ctx: &mut Context<FighthingApp>) {
+        if self.animations.contains_key(&animation_state) {
+            panic!("{:?} was already in animation dictionary", animation_state);
+        }
+
+        // Use storm to load the image
+        let loaded_texture = Texture::from_png(ctx, atlas, TextureFiltering::none());
+        self.animations.insert(animation_state, loaded_texture);
+    }
+
+    //Returns a immutable reference to the underalying loaded atlas, which has been loaded by Storm
+    pub fn get_atlas_for_animation(&self, animation_state: EffectAnimationState) -> Texture {
+        let current_animation = self.animations.get(&animation_state).unwrap();
+        return current_animation.clone();
+    }
+
+    //Returns the subsection of an atlas used for rendering
+    //Makes an assumption that all frames for all animations are of the same width
+    //returns the section starting at frame_number * FRAME_WIDTH to frame_number * FRAME_WIDTH + FRAME_WIDTH
+    pub fn get_atlas_subsection(& self, animation: EffectAnimationState, frame_number: u32) -> TextureSection {
         let left = frame_number * FRAME_WIDTH;
         return self.animations.get(&animation).unwrap().subsection(left, left + FRAME_WIDTH, 0, FRAME_HEIGHT);
     }

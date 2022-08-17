@@ -2,8 +2,1223 @@
     "name": "ryu",
     "movespeed": 5.0,
     "animations": {
+        "HeavyCrouchKick": {
+            "image_file_location": "./sheets/ryu\\HeavyCrouchKick\\full.tpf",
+            "collision_data": [
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            128,
+                            145
+                        ],
+                        "size": [
+                            83,
+                            16
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            106,
+                            127
+                        ],
+                        "size": [
+                            64,
+                            18
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            131,
+                            97
+                        ],
+                        "size": [
+                            43,
+                            30
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            134,
+                            84
+                        ],
+                        "size": [
+                            26,
+                            13
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            104,
+                            97
+                        ],
+                        "size": [
+                            28,
+                            13
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            89,
+                            85
+                        ],
+                        "size": [
+                            43,
+                            12
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            107,
+                            126
+                        ],
+                        "size": [
+                            60,
+                            32
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            126,
+                            99
+                        ],
+                        "size": [
+                            42,
+                            27
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            102,
+                            85
+                        ],
+                        "size": [
+                            24,
+                            14
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            109,
+                            99
+                        ],
+                        "size": [
+                            17,
+                            16
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            131,
+                            86
+                        ],
+                        "size": [
+                            34,
+                            13
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            132,
+                            127
+                        ],
+                        "size": [
+                            48,
+                            30
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            132,
+                            88
+                        ],
+                        "size": [
+                            37,
+                            39
+                        ]
+                    },
+                    {
+                        "box_type": "Hurt",
+                        "origin": [
+                            48,
+                            142
+                        ],
+                        "size": [
+                            36,
+                            16
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            84,
+                            129
+                        ],
+                        "size": [
+                            48,
+                            18
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            132,
+                            136
+                        ],
+                        "size": [
+                            46,
+                            21
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            80,
+                            127
+                        ],
+                        "size": [
+                            52,
+                            17
+                        ]
+                    },
+                    {
+                        "box_type": "Hurt",
+                        "origin": [
+                            45,
+                            133
+                        ],
+                        "size": [
+                            35,
+                            14
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            132,
+                            111
+                        ],
+                        "size": [
+                            39,
+                            25
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            120,
+                            97
+                        ],
+                        "size": [
+                            20,
+                            14
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            140,
+                            88
+                        ],
+                        "size": [
+                            31,
+                            23
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            82,
+                            120
+                        ],
+                        "size": [
+                            93,
+                            23
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            137,
+                            144
+                        ],
+                        "size": [
+                            16,
+                            13
+                        ]
+                    },
+                    {
+                        "box_type": "Hurt",
+                        "origin": [
+                            54,
+                            118
+                        ],
+                        "size": [
+                            28,
+                            18
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            136,
+                            89
+                        ],
+                        "size": [
+                            37,
+                            31
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            120,
+                            96
+                        ],
+                        "size": [
+                            16,
+                            13
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hurt",
+                        "origin": [
+                            67,
+                            108
+                        ],
+                        "size": [
+                            19,
+                            22
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            86,
+                            117
+                        ],
+                        "size": [
+                            46,
+                            18
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            111,
+                            103
+                        ],
+                        "size": [
+                            21,
+                            13
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            132,
+                            95
+                        ],
+                        "size": [
+                            43,
+                            65
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            132,
+                            113
+                        ],
+                        "size": [
+                            41,
+                            46
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            90,
+                            113
+                        ],
+                        "size": [
+                            42,
+                            24
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            107,
+                            99
+                        ],
+                        "size": [
+                            57,
+                            14
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            95,
+                            110
+                        ],
+                        "size": [
+                            81,
+                            14
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            111,
+                            124
+                        ],
+                        "size": [
+                            55,
+                            33
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            118,
+                            102
+                        ],
+                        "size": [
+                            57,
+                            8
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            136,
+                            86
+                        ],
+                        "size": [
+                            36,
+                            16
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            108,
+                            126
+                        ],
+                        "size": [
+                            59,
+                            18
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            123,
+                            144
+                        ],
+                        "size": [
+                            42,
+                            13
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            109,
+                            97
+                        ],
+                        "size": [
+                            26,
+                            18
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            135,
+                            84
+                        ],
+                        "size": [
+                            32,
+                            42
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            167,
+                            95
+                        ],
+                        "size": [
+                            23,
+                            49
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            106,
+                            123
+                        ],
+                        "size": [
+                            96,
+                            38
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            131,
+                            83
+                        ],
+                        "size": [
+                            47,
+                            40
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            107,
+                            102
+                        ],
+                        "size": [
+                            24,
+                            21
+                        ]
+                    }
+                ]
+            ],
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "LightCrouchKick": {
+            "image_file_location": "./sheets/ryu\\LightCrouchKick\\full.tpf",
+            "collision_data": [
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            135,
+                            88
+                        ],
+                        "size": [
+                            20,
+                            17
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            116,
+                            112
+                        ],
+                        "size": [
+                            71,
+                            31
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            121,
+                            105
+                        ],
+                        "size": [
+                            61,
+                            7
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            106,
+                            143
+                        ],
+                        "size": [
+                            79,
+                            18
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            124,
+                            105
+                        ],
+                        "size": [
+                            48,
+                            11
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            107,
+                            133
+                        ],
+                        "size": [
+                            84,
+                            27
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            116,
+                            116
+                        ],
+                        "size": [
+                            59,
+                            17
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            145,
+                            94
+                        ],
+                        "size": [
+                            21,
+                            11
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            84,
+                            139
+                        ],
+                        "size": [
+                            107,
+                            20
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            112,
+                            111
+                        ],
+                        "size": [
+                            67,
+                            29
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            148,
+                            97
+                        ],
+                        "size": [
+                            20,
+                            14
+                        ]
+                    },
+                    {
+                        "box_type": "Hurt",
+                        "origin": [
+                            54,
+                            143
+                        ],
+                        "size": [
+                            30,
+                            13
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            105,
+                            136
+                        ],
+                        "size": [
+                            86,
+                            23
+                        ]
+                    },
+                    {
+                        "box_type": "Hurt",
+                        "origin": [
+                            62,
+                            143
+                        ],
+                        "size": [
+                            43,
+                            14
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            112,
+                            114
+                        ],
+                        "size": [
+                            67,
+                            22
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            149,
+                            98
+                        ],
+                        "size": [
+                            19,
+                            16
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            97,
+                            145
+                        ],
+                        "size": [
+                            95,
+                            15
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            116,
+                            116
+                        ],
+                        "size": [
+                            58,
+                            16
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            127,
+                            104
+                        ],
+                        "size": [
+                            45,
+                            12
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            112,
+                            132
+                        ],
+                        "size": [
+                            66,
+                            13
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            145,
+                            96
+                        ],
+                        "size": [
+                            24,
+                            8
+                        ]
+                    }
+                ]
+            ],
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
+        "MediumCrouchKick": {
+            "image_file_location": "./sheets/ryu\\MediumCrouchKick\\full.tpf",
+            "collision_data": [
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            99,
+                            149
+                        ],
+                        "size": [
+                            87,
+                            12
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            112,
+                            120
+                        ],
+                        "size": [
+                            66,
+                            29
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            112,
+                            109
+                        ],
+                        "size": [
+                            62,
+                            11
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            129,
+                            88
+                        ],
+                        "size": [
+                            47,
+                            21
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            110,
+                            132
+                        ],
+                        "size": [
+                            89,
+                            29
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            109,
+                            121
+                        ],
+                        "size": [
+                            57,
+                            11
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            123,
+                            85
+                        ],
+                        "size": [
+                            31,
+                            12
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            108,
+                            97
+                        ],
+                        "size": [
+                            63,
+                            18
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            133,
+                            115
+                        ],
+                        "size": [
+                            35,
+                            6
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            100,
+                            128
+                        ],
+                        "size": [
+                            55,
+                            14
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            116,
+                            142
+                        ],
+                        "size": [
+                            30,
+                            15
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            107,
+                            97
+                        ],
+                        "size": [
+                            34,
+                            19
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            141,
+                            90
+                        ],
+                        "size": [
+                            37,
+                            38
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            73,
+                            141
+                        ],
+                        "size": [
+                            70,
+                            17
+                        ]
+                    },
+                    {
+                        "box_type": "Hurt",
+                        "origin": [
+                            42,
+                            134
+                        ],
+                        "size": [
+                            31,
+                            23
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            111,
+                            117
+                        ],
+                        "size": [
+                            84,
+                            24
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            141,
+                            100
+                        ],
+                        "size": [
+                            43,
+                            17
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            77,
+                            140
+                        ],
+                        "size": [
+                            67,
+                            19
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            111,
+                            118
+                        ],
+                        "size": [
+                            85,
+                            22
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            144,
+                            98
+                        ],
+                        "size": [
+                            40,
+                            20
+                        ]
+                    },
+                    {
+                        "box_type": "Hurt",
+                        "origin": [
+                            56,
+                            135
+                        ],
+                        "size": [
+                            21,
+                            24
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            112,
+                            122
+                        ],
+                        "size": [
+                            46,
+                            36
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            82,
+                            141
+                        ],
+                        "size": [
+                            30,
+                            19
+                        ]
+                    },
+                    {
+                        "box_type": "Hurt",
+                        "origin": [
+                            60,
+                            135
+                        ],
+                        "size": [
+                            22,
+                            23
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            142,
+                            93
+                        ],
+                        "size": [
+                            38,
+                            29
+                        ]
+                    }
+                ],
+                [
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            102,
+                            126
+                        ],
+                        "size": [
+                            104,
+                            31
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            135,
+                            106
+                        ],
+                        "size": [
+                            51,
+                            20
+                        ]
+                    },
+                    {
+                        "box_type": "Hit",
+                        "origin": [
+                            121,
+                            91
+                        ],
+                        "size": [
+                            48,
+                            15
+                        ]
+                    }
+                ]
+            ],
+            "frame_lengths": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+            ],
+            "displacements": [
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                },
+                {
+                    "x": 0.0,
+                    "y": 0.0
+                }
+            ]
+        },
         "Crouching": {
-            "image_file_location": "./sheets/ryu\\Crouching\\full.png",
+            "image_file_location": "./sheets/ryu\\Crouching\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -103,7 +1318,7 @@
             ]
         },
         "Parry": {
-            "image_file_location": "./sheets/ryu\\Parry\\full.png",
+            "image_file_location": "./sheets/ryu\\Parry\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -422,7 +1637,7 @@
             ]
         },
         "Crouched": {
-            "image_file_location": "./sheets/ryu\\Crouched\\full.png",
+            "image_file_location": "./sheets/ryu\\Crouched\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -613,7 +1828,7 @@
             ]
         },
         "Blocking": {
-            "image_file_location": "./sheets/ryu\\Blocking\\full.png",
+            "image_file_location": "./sheets/ryu\\Blocking\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -826,7 +2041,7 @@
             ]
         },
         "LightAttack": {
-            "image_file_location": "./sheets/ryu\\LightAttack\\full.png",
+            "image_file_location": "./sheets/ryu\\LightAttack\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -1112,7 +2327,7 @@
             ]
         },
         "HeavyCrouchingAttack": {
-            "image_file_location": "./sheets/ryu\\HeavyCrouchingAttack\\full.png",
+            "image_file_location": "./sheets/ryu\\HeavyCrouchingAttack\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -1558,7 +2773,7 @@
             ]
         },
         "Jump": {
-            "image_file_location": "./sheets/ryu\\Jump\\full.png",
+            "image_file_location": "./sheets/ryu\\Jump\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -2175,7 +3390,7 @@
             ]
         },
         "Special1": {
-            "image_file_location": "./sheets/ryu\\Special1\\full.png",
+            "image_file_location": "./sheets/ryu\\Special1\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -2898,7 +4113,7 @@
             ]
         },
         "HeavyKick": {
-            "image_file_location": "./sheets/ryu\\HeavyKick\\full.png",
+            "image_file_location": "./sheets/ryu\\HeavyKick\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -3636,7 +4851,7 @@
             ]
         },
         "Lost": {
-            "image_file_location": "./sheets/ryu\\Lost\\full.png",
+            "image_file_location": "./sheets/ryu\\Lost\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -3735,7 +4950,7 @@
             ]
         },
         "BackwardDash": {
-            "image_file_location": "./sheets/ryu\\BackwardDash\\full.png",
+            "image_file_location": "./sheets/ryu\\BackwardDash\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -4072,7 +5287,7 @@
             ]
         },
         "MediumKick": {
-            "image_file_location": "./sheets/ryu\\MediumKick\\full.png",
+            "image_file_location": "./sheets/ryu\\MediumKick\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -4489,7 +5704,7 @@
             ]
         },
         "Won": {
-            "image_file_location": "./sheets/ryu\\Won\\full.png",
+            "image_file_location": "./sheets/ryu\\Won\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -4606,7 +5821,7 @@
             ]
         },
         "ForwardRun": {
-            "image_file_location": "./sheets/ryu\\ForwardRun\\full.png",
+            "image_file_location": "./sheets/ryu\\ForwardRun\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -5176,7 +6391,7 @@
             ]
         },
         "LightCrouchAttack": {
-            "image_file_location": "./sheets/ryu\\LightCrouchAttack\\full.png",
+            "image_file_location": "./sheets/ryu\\LightCrouchAttack\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -5462,7 +6677,7 @@
             ]
         },
         "ForwardJump": {
-            "image_file_location": "./sheets/ryu\\ForwardJump\\full.png",
+            "image_file_location": "./sheets/ryu\\ForwardJump\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -6075,7 +7290,7 @@
             ]
         },
         "BackwardRun": {
-            "image_file_location": "./sheets/ryu\\BackwardRun\\full.png",
+            "image_file_location": "./sheets/ryu\\BackwardRun\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -6667,7 +7882,7 @@
             ]
         },
         "Idle": {
-            "image_file_location": "./sheets/ryu\\Idle\\full.png",
+            "image_file_location": "./sheets/ryu\\Idle\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -7186,7 +8401,7 @@
             ]
         },
         "LightHitRecovery": {
-            "image_file_location": "./sheets/ryu\\LightHitRecovery\\full.png",
+            "image_file_location": "./sheets/ryu\\LightHitRecovery\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -7432,7 +8647,7 @@
             ]
         },
         "ForwardDash": {
-            "image_file_location": "./sheets/ryu\\ForwardDash\\full.png",
+            "image_file_location": "./sheets/ryu\\ForwardDash\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -7747,7 +8962,7 @@
             ]
         },
         "HeavyAttack": {
-            "image_file_location": "./sheets/ryu\\HeavyAttack\\full.png",
+            "image_file_location": "./sheets/ryu\\HeavyAttack\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -8346,7 +9561,7 @@
             ]
         },
         "LightKick": {
-            "image_file_location": "./sheets/ryu\\LightKick\\full.png",
+            "image_file_location": "./sheets/ryu\\LightKick\\full.tpf",
             "collision_data": [
                 [
                     {
@@ -8738,7 +9953,7 @@
             ]
         },
         "MediumAttack": {
-            "image_file_location": "./sheets/ryu\\MediumAttack\\full.png",
+            "image_file_location": "./sheets/ryu\\MediumAttack\\full.tpf",
             "collision_data": [
                 [
                     {

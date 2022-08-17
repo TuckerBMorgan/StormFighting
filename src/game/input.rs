@@ -339,7 +339,7 @@ impl Default for ComboLibrary {
         let backward_dash = ComboPattern::new(vec![CharacterAction::MoveBackward, CharacterAction::MoveBackward], CharacterAction::DashBackward);
         let hadokon = ComboPattern::new(vec![CharacterAction::Crouch, CharacterAction::MoveForward, CharacterAction::LightAttack], CharacterAction::Special1);
         let forwrad_jump = ComboPattern::new(vec![CharacterAction::MoveForward, CharacterAction::Jump], CharacterAction::ForwardJump);
-        let backward_jump = ComboPattern::new(vec![CharacterAction::MoveForward, CharacterAction::Jump], CharacterAction::ForwardJump);
+        //let backward_jump = ComboPattern::new(vec![CharacterAction::MoveForward, CharacterAction::Jump], CharacterAction::ForwardJump);
 
         ComboLibrary {
             combos: vec![forward_dash, backward_dash, hadokon, forwrad_jump]

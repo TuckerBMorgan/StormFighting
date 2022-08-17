@@ -1,0 +1,44 @@
+Add in missing attacks:
+    In air 
+        kicks
+            Light
+            Medium
+            Heavy
+        Punches
+            Light
+            Medium
+            Heavy
+
+    Which all consists of 
+        1. Creating a folder for each move
+        2. Moving the images for those moves into those folders
+        3. For each of those images making hit and hurt boxes
+        4. Running sticher ones this is one to create the entires into the *_character_sheet.json
+        5. Copy this new sheet back to the main game
+        6. Adding these states to the right enums
+        7. Hooking up the input for all of these as well
+    Special one:
+        Ryu 
+            Hadukun
+
+
+
+Add in missing movings
+
+    Backward Jumps
+
+Add in hit effects:
+    Sound effects, three levels
+        Light
+        Medium
+        Heavy
+
+    Visual effects
+        Three levels
+        Light
+        Medium
+        Heavy
+
+Pallete render
+
+Picking the pallate for your character

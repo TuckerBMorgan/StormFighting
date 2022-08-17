@@ -5,7 +5,7 @@ use storm::cgmath::Vector2;
 
 pub const CHARACTER_X_SPEED : f32 = 5.0;
 pub const FRAME_HISTORY_LENGTH: usize = 30;
-pub const HITSTUN_AMOUNT : usize = 5;
+pub const HITSTUN_AMOUNT : usize = 10;
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
 pub enum ScreenSide {
@@ -98,7 +98,8 @@ pub struct Character {
     pub is_crouched: bool, //Is character crouched at the moment, used so we don't have a set of "crouched" states
     pub past_inputs: Vec<ScreenSideAdjustedInput>, //A buffer that contains the last FRAME_HISTORY_LENGTH input states
     pub done: bool,
-    pub move_starting_screen_side: f32
+    pub move_starting_screen_side: f32,
+    pub stun_bar: u32
 }
 
 impl Character {
@@ -114,7 +115,8 @@ impl Character {
             is_crouched: false,
             past_inputs: vec![],
             done: false,
-            move_starting_screen_side: 0.0
+            move_starting_screen_side: 0.0,
+            stun_bar: 0
         }
     }
 

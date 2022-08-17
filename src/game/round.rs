@@ -1,6 +1,6 @@
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use ggrs::{Config, Frame, GGRSRequest, GameStateCell, InputStatus, PlayerHandle, NULL_FRAME};
+use ggrs::{Config, InputStatus};
 use storm::math::AABB2D;
 use storm::cgmath::*;
 
@@ -17,12 +17,26 @@ pub struct Round {
     pub round_done: bool,
     pub hit_stun_counter: usize,
     pub projectiles: Vec<Projectile>,
-    pub reset_round_timer: SpriteTimer
+    pub reset_round_timer: SpriteTimer,
+    pub effects: Vec<Effect>
 }
 
 impl Round {
     pub fn advance(&mut self, inputs: Vec<(NetInput, InputStatus)>, game_config: &mut GameConfig) {
-        
+        let mut removed_indexes = vec![];
+        for (index, effect) in self.effects.iter_mut().enumerate() {
+            effect.advance();
+            
+            if effect.is_use == false {
+                removed_indexes.push(index);
+            }
+        }
+
+        //TODO: techinally this is slow, so might want to solve this later in a better fashion
+        for index in removed_indexes.iter().rev() {
+            self.effects.remove(*index);
+        }
+
         self.frame += 1;
         if self.hit_stun_counter > 0 {
             self.hit_stun_counter -= 1;
@@ -37,7 +51,6 @@ impl Round {
             self.characters[0].screen_side = ScreenSide::Left;
             self.characters[1].screen_side = ScreenSide::Right;
         }
-
         
         self.character_tick(0, Input::from_game_input(inputs[0].0.clone()), game_config);
         self.character_tick(1, Input::from_game_input(inputs[1].0.clone()), game_config);
@@ -65,7 +78,7 @@ impl Round {
         //TODO: these two functions are very fragile, would like to refactor them
         //into a single funciton on character
         if self.characters[0].character_velocity.x != 0.0 || self.characters[0].character_velocity.y != 0.0 {
-            let mut reshift = Vector2::new(0.0, 0.0);
+            //let mut reshift = Vector2::new(0.0, 0.0);
             if self.characters[0].character_state == CharacterState::Jump || self.characters[0].character_state == CharacterState::ForwardJump {
                 if character_1_walk_box.slide(&self.characters[0].character_velocity, &[]) {
                     //Overlap. hmmmm
@@ -83,7 +96,7 @@ impl Round {
 
             //We need to remove the offset that we build in from the initial unshifted AABBS
             //This will give us the characters new position
-            self.characters[0].character_position = character_1_walk_box.min - Vector2::new(131.0, 57.0) + reshift;
+            self.characters[0].character_position = character_1_walk_box.min - Vector2::new(131.0, 57.0);// + reshift;
 
             //Keep the character in the arena, and close enough to the other playear
             if self.characters[0].character_position.x  < 0.0  {
@@ -101,7 +114,7 @@ impl Round {
 
 
         if self.characters[1].character_velocity.x != 0.0 || self.characters[1].character_velocity.y != 0.0 {
-            let mut reshift = Vector2::new(0.0, 0.0);
+            //let mut reshift = Vector2::new(0.0, 0.0);
             if self.characters[1].character_state == CharacterState::Jump  || self.characters[1].character_state == CharacterState::ForwardJump {
                 if character_2_walk_box.slide(&self.characters[1].character_velocity, &[]) {
                     //Overlap. hmmmm
@@ -116,7 +129,7 @@ impl Round {
             }
             //We need to remove the offset that we build in from the initial unshifted AABBS
             //This will give us the characters new position
-            self.characters[1].character_position = character_2_walk_box.min - Vector2::new(131.0, 57.0) + reshift;
+            self.characters[1].character_position = character_2_walk_box.min - Vector2::new(131.0, 57.0);// + reshift;
 
             if self.characters[1].character_position.x  < 0.0  {
                 self.characters[1].character_position.x = 0.0;
@@ -185,11 +198,12 @@ impl Round {
         }).collect();
 
         //For each characters hurt boxes, check them against the other characters total set of Hurt and Hit Boxes
+        //TODO: aabb.0.x needs to be changed to maybe something between characters
         let mut collision_reports = vec![];
         for hurt_box in character_1_hurt_boxes {
             for aabb in character_2_position_corrected_aabbs.iter() {
                 if hurt_box.0.intersects(&aabb.0) {
-                    let collision_report = CollisionReport::new(hurt_box.1, aabb.1, CharacterNumber::Number1);
+                    let collision_report = CollisionReport::new(hurt_box.1, aabb.1, CharacterNumber::Number1, aabb.0.min.x);
                     collision_reports.push(collision_report);
                 }
             }
@@ -198,7 +212,7 @@ impl Round {
         for hurt_box in character_2_hurt_boxes {
             for aabb in character_1_position_corrected_aabbs.iter() {
                 if hurt_box.0.intersects(&aabb.0) {
-                    let collision_report = CollisionReport::new(hurt_box.1, aabb.1, CharacterNumber::Number2);
+                    let collision_report = CollisionReport::new(hurt_box.1, aabb.1, CharacterNumber::Number2, aabb.0.min.x);
                     collision_reports.push(collision_report);
                 }
             }
@@ -234,13 +248,20 @@ impl Round {
 
         //Preform strikes and assign damage
         for strike in strikes {
+
             match strike.collider_character {
                 CharacterNumber::Number1 =>  {
+                    let effect = Effect::new(3,  10, EffectKind::Low, self.characters[1].character_position.x, 0.0, ScreenSide::Right);
+                    self.effects.push(effect);
+                    
                     let damage_amount = self.characters[0].get_current_damage();
                     self.do_damage_to_character(1, damage_amount, false, game_config);
                     self.hit_stun_counter += 3;
                 },
                 CharacterNumber::Number2 => {
+                    let effect = Effect::new(3,  10, EffectKind::Low, self.characters[0].character_position.x, 0.0, ScreenSide::Right);
+                    self.effects.push(effect);
+
                     let damage_amount = self.characters[1].get_current_damage();
                     self.do_damage_to_character(0, damage_amount, false, game_config);
                     self.hit_stun_counter += 3;
@@ -268,7 +289,7 @@ impl Round {
             if team == 0 {
                 for aabb in character_2_position_corrected_aabbs.iter() {
                     if projectile_aab.intersects(&aabb.0) {
-                        let collision_report = CollisionReport::new(box_type, aabb.1, CharacterNumber::Number1);
+                        let collision_report = CollisionReport::new(box_type, aabb.1, CharacterNumber::Number1, aabb.0.min.x);
                         collision_reports.push(collision_report);
                     }
                 }
@@ -276,7 +297,7 @@ impl Round {
             else {
                 for aabb in character_1_position_corrected_aabbs.iter() {
                     if projectile_aab.intersects(&aabb.0) {
-                        let collision_report = CollisionReport::new(box_type, aabb.1, CharacterNumber::Number2);
+                        let collision_report = CollisionReport::new(box_type, aabb.1, CharacterNumber::Number2, aabb.0.min.x);
                         collision_reports.push(collision_report);
                     }
                 }
@@ -530,7 +551,8 @@ impl Round {
             round_done: false,
             hit_stun_counter: 0,
             projectiles: vec![],
-            reset_round_timer: SpriteTimer::new(5 * 60)
+            reset_round_timer: SpriteTimer::new(5 * 60),
+            effects: vec![]
         }
     }
 }
@@ -566,7 +588,8 @@ impl Default for Round{
             round_done: false,
             hit_stun_counter: 0,
             projectiles: vec![],
-            reset_round_timer: SpriteTimer::new(3 * 60)
+            reset_round_timer: SpriteTimer::new(3 * 60),
+            effects: vec![]
         }
     }
 }

@@ -47,7 +47,8 @@ pub struct GameConfig {
     pub animation_library: AnimationTextureLibrary,
     pub animation_for_character_state_library: HashMap<CharacterState, AnimationStateForCharacterState>,
     pub animation_configs: HashMap<AnimationState, AnimationConfig>,
-    pub character_sheet: CharacterSheet
+    pub character_sheet: CharacterSheet,
+    pub pallete: [cgmath::Vector3<f32>; 256]
 }
 
 impl GameConfig {
@@ -56,14 +57,16 @@ impl GameConfig {
                animation_library: AnimationTextureLibrary,
                animation_for_character_state_library: HashMap<CharacterState, AnimationStateForCharacterState>,
                animation_configs: HashMap<AnimationState, AnimationConfig>,
-               character_sheet: CharacterSheet) -> GameConfig {
+               character_sheet: CharacterSheet,
+               pallete: [cgmath::Vector3<f32>; 256]) -> GameConfig {
         GameConfig {
             collision_library,
             combo_library,
             animation_library,
             animation_for_character_state_library,
             animation_configs,
-            character_sheet
+            character_sheet,
+            pallete
         }
     }
 }
@@ -76,14 +79,19 @@ pub struct Game<'a> {
     pub game_config: GameConfig,
     pub net: Net<'a>,
     pub ui: UI,
-    pub character_1_sprites: [Sprite;1],
-    pub sprite_pass_1: SpriteShaderPass,
-    pub character_2_sprites: [Sprite;1],
-    pub sprite_pass_2: SpriteShaderPass,
+
+    pub character_1_sprites: [PalleteSprite;1],
+    pub sprite_pass_1: PalleteSpriteShaderPass,
+    pub character_2_sprites: [PalleteSprite;1],
+    pub sprite_pass_2: PalleteSpriteShaderPass,
+    pub pallete_sprite_shader: PalleteSpriteShader,
     pub sprite_shader: SpriteShader,
+
     pub projectile_sprites: Vec<([Sprite;1], SpriteShaderPass)>,
+    pub effects_sprites: Vec<([Sprite;1], SpriteShaderPass)>,
     pub fonts: [Font;1],
     pub fireball_texture: Texture,
+    pub light_hit_effect_texture: Texture,
     pub last_update: Instant,
     pub accumulator: Duration,
     pub background_sprite: [Sprite;1],
@@ -101,11 +109,13 @@ impl<'a> Game<'a> {
 
         let (background_sprite, background_sprite_pass) = setup_background(ctx);
         let sprite_shader = SpriteShader::new(ctx);
+        let pallete_sprite_shader = PalleteSpriteShader::new(ctx);
         let (sprites_1, 
-            sprite_pass_1) = load_character_sprite(&game_config.animation_library, &mut current_round.characters[0], ctx);
+            sprite_pass_1) = load_character_sprite(&game_config.animation_library, &mut current_round.characters[0], ctx, game_config.pallete);
         let (sprites_2, 
-            sprite_pass_2) = load_character_sprite(&game_config.animation_library, &mut current_round.characters[1], ctx);
+            sprite_pass_2) = load_character_sprite(&game_config.animation_library, &mut current_round.characters[1], ctx, game_config.pallete);
         let fireball_texture = Texture::from_png(ctx, FIREBALL, TextureFiltering::none());
+        let light_hit_effect_texture = Texture::from_png(ctx, LIGHT_HIT_EFFECT_TEXTURE, TextureFiltering::none());
         let ui = setup_ui(ctx);    
         //load the font used for the timer
         let fonts = [Font::from_bytes(FONT, Default::default()).unwrap()];
@@ -130,9 +140,12 @@ impl<'a> Game<'a> {
             character_2_sprites: sprites_2,
             sprite_pass_2,
             sprite_shader,
+            pallete_sprite_shader,
             projectile_sprites: vec![],
+            effects_sprites: vec![],
             fonts,
             fireball_texture,
+            light_hit_effect_texture,
             last_update,
             accumulator,
             background_sprite,
@@ -268,6 +281,7 @@ impl<'a> Game<'a> {
                     }
                 }
 
+                            
                 for (index, projectile) in self.current_round.projectiles.iter().enumerate() {
                     let left = projectile.timer.current_frame * FRAME_WIDTH;
 
@@ -284,6 +298,43 @@ impl<'a> Game<'a> {
                     }
                     self.projectile_sprites[index].0[0].texture = test;
                 }
+
+                
+                if self.effects_sprites.len() != self.current_round.effects.len() {
+                    let diff = self.current_round.effects.len().abs_diff(self.effects_sprites.len());
+
+                    if self.current_round.effects.len() > self.effects_sprites.len() {
+                        //we need to add the number of new sprites
+                        for _ in 0..diff {
+                            let (fireball_sprite, mut fireball_render_pass) = setup_light_hit_effect(ctx);
+                            fireball_render_pass.atlas = self.light_hit_effect_texture.clone();
+                            self.effects_sprites.push((fireball_sprite, fireball_render_pass))
+                        }
+                    }
+                    else {
+                        //remove the 
+                        self.effects_sprites.truncate(self.effects_sprites.len() - diff);
+                    }
+                }
+
+                for (index, effect) in self.current_round.effects.iter().enumerate() {
+                    let left = effect.current_frame as u32 * EFFECT_FRAME_WIDTH;
+
+                    let test;
+                    match effect.screen_side {
+                        ScreenSide::Left => {
+                            test = self.effects_sprites[index].1.atlas.subsection(left, left + EFFECT_FRAME_WIDTH, 0, 480).mirror_y();
+                            self.effects_sprites[index].0[0].pos.x = effect.position_x * X_SCALE as f32 ;//+ (FRAME_WIDTH as f32 / 2.0) * X_SCALE as f32;
+                        },
+                        ScreenSide::Right => {
+                            test = self.effects_sprites[index].1.atlas.subsection(left, left + EFFECT_FRAME_WIDTH, 0, 480);
+                            self.effects_sprites[index].0[0].pos.x = effect.position_x * X_SCALE as f32 - (EFFECT_FRAME_WIDTH as f32 / 2.0) * X_SCALE as f32;
+                            self.effects_sprites[index].0[0].pos.y = -480.0 * 0.2f32;
+                        }
+                    }
+                    self.effects_sprites[index].0[0].texture = test;
+                }
+
             }
 
             //MAGIC NUMBER: 145
@@ -347,14 +398,22 @@ impl<'a> Game<'a> {
                 projectile_sprites.1.draw(&self.sprite_shader);
             }
 
+
+            for effect_sprite in self.effects_sprites.iter_mut() {
+                effect_sprite.1.set_transform(self.camera_transform.matrix());
+                effect_sprite.1.buffer.set_data(&effect_sprite.0);
+                effect_sprite.1.draw(&self.sprite_shader);
+            }
+
+
             self.sprite_pass_2.set_transform(self.camera_transform.matrix());
             self.sprite_pass_1.set_transform(self.camera_transform.matrix());
 
             self.sprite_pass_1.buffer.set_data(&self.character_1_sprites);
-            self.sprite_pass_1.draw(&self.sprite_shader);
+            self.sprite_pass_1.draw(&self.pallete_sprite_shader);
             
             self.sprite_pass_2.buffer.set_data(&self.character_2_sprites);
-            self.sprite_pass_2.draw(&self.sprite_shader);
+            self.sprite_pass_2.draw(&self.pallete_sprite_shader);
             
 
             
@@ -362,7 +421,7 @@ impl<'a> Game<'a> {
             let health_ratio_player_one = self.current_round.characters[0].health as f32 / 250.0;
             let health_ratio_player_two = self.current_round.characters[1].health as f32 / 250.0;
             if health_ratio_player_one > 0.95 {
-                self.ui.healthbars.0[0].color = RGBA8::GREEN;                
+                self.ui.healthbars.0[0].color = RGBA8::GREEN;
             }
             if health_ratio_player_one < 0.95 && health_ratio_player_one > 0.25  {
                 self.ui.healthbars.0[0].color = RGBA8::YELLOW;

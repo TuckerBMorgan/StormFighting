@@ -13,10 +13,10 @@ use crate::*;
 
 
 //Reusable function that loads the character sprite, the shader to render it, and where on the screen it will be
-pub fn load_character_sprite(animation_library: &AnimationTextureLibrary, character: &mut Character, ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], SpriteShaderPass) { 
+pub fn load_character_sprite(animation_library: &AnimationTextureLibrary, character: &mut Character, ctx: &mut Context<FighthingApp>, pallete: [cgmath::Vector3<f32>; 256]) -> ([PalleteSprite; 1], PalleteSpriteShaderPass) { 
     let mut transform = OrthographicCamera::new(ctx.window_logical_size());
     transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
-    let mut sprite_1 = SpriteShaderPass::new(transform.matrix(), ctx);
+    let mut sprite_1 = PalleteSpriteShaderPass::new(transform.matrix(), ctx, pallete);
 
     sprite_1.atlas = animation_library.get_atlas_for_animation(character.animation_state);
     //And set the texture of the sprite as the subsection of the atlas for the first frame of animation
@@ -24,7 +24,7 @@ pub fn load_character_sprite(animation_library: &AnimationTextureLibrary, charac
     let frame_1 = animation_library.get_atlas_subsection(character.animation_state, frame_1.current_frame);
 
     let sprites_1 = [
-        Sprite {
+        PalleteSprite {
             pos: Vector3::new(0.0, 0.0, 0.0),
             size: Vector2::new(FRAME_WIDTH as u16, FRAME_HEIGHT as u16),
             color: RGBA8::WHITE,
@@ -157,6 +157,24 @@ pub fn setup_fireball(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], SpriteSh
     fireball_render_pass.buffer.set_data(&fireball_sprites);
     return (fireball_sprites, fireball_render_pass);
 }
+
+
+pub fn setup_light_hit_effect(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], SpriteShaderPass){
+    let mut transform = OrthographicCamera::new(ctx.window_logical_size());
+    transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
+    let mut fireball_render_pass = SpriteShaderPass::new(transform.matrix(), ctx);
+    let fireball_sprites = [
+        Sprite {
+            pos: Vector3::new(0.0, 0.0, 0.0),
+            size: Vector2::new(EFFECT_FRAME_WIDTH as u16, 480 as u16),
+            color: RGBA8::WHITE,
+            ..Default::default()
+        }
+    ];
+    fireball_render_pass.buffer.set_data(&fireball_sprites);
+    return (fireball_sprites, fireball_render_pass);
+}
+
 
 //Load the sprites and the text shader pass used for the timer
 pub fn setup_round_timer_text(ctx: &mut Context<FighthingApp>) -> (TextShaderPass, TextShader) {
