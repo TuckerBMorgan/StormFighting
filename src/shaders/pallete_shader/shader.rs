@@ -1,5 +1,5 @@
 use storm::Context;
-use storm::graphics::{Buffer, std140,DrawMode, Shader, ShaderDescriptor, Texture, Uniform, TextureFiltering
+use storm::graphics::{Buffer, std140, Shader, ShaderDescriptor, Texture, Uniform, TextureFiltering
 };
 use crate::FighthingApp;
 use crate::shaders::{PalleteSprite};
@@ -48,7 +48,7 @@ impl PalleteSpriteShader {
     }
 
     /// Draws to the screen.
-    pub fn draw(&self, uniform: &Uniform<PalleteSpriteUniform>, atlas: &Texture, _scanline: &Texture, buffer: &Buffer<PalleteSprite>) {
+    pub fn draw(&self, _uniform: &Uniform<PalleteSpriteUniform>, _atlas: &Texture, _scanline: &Texture, _buffer: &Buffer<PalleteSprite>) {
       //  self.shader.draw(DrawMode::TriangleStrip, uniform, [atlas], &[buffer]);
     }
 }

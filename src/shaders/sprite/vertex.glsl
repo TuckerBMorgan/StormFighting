@@ -13,8 +13,6 @@ out vec4 v_color;
 
 layout(std140) uniform vertex {
     mat4 ortho;
-    vec3 color_pallete_in[5];
-    vec3 color_pallete_out[5];
 };
 
 // UV Layout: xmin xmax ymin ymax

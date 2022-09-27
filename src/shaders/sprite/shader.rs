@@ -17,9 +17,7 @@ impl ShaderDescriptor<1> for SpriteShader {
 #[std140::uniform]
 #[derive(Copy, Clone)]
 pub struct SpriteUniform {
-    pub ortho: std140::mat4,
-    pub color_pallete_in: [std140::vec3;4],
-    pub color_pallete_out: [std140::vec3;4]
+    pub ortho: std140::mat4
     /*
     pub color_pallete_in: std140::mat4,
     pub color_pallete_out: std140::mat4
@@ -28,54 +26,10 @@ pub struct SpriteUniform {
 
 impl SpriteUniform {
     pub fn new(ortho: Matrix4<f32>) -> SpriteUniform {
-        let mut color_pallete_in = [std140::vec3::fill(0.96), std140::vec3::fill(0.96), std140::vec3::fill(0.96), std140::vec3::fill(0.96)];
 
-        color_pallete_in[0].x = 246.0 / 255.0;
-        color_pallete_in[0].y = 246.0 / 255.0;
-        color_pallete_in[0].z = 246.0 / 255.0;
-
-        color_pallete_in[1].x = 197.0 / 255.0;
-        color_pallete_in[1].y = 197.0 / 255.0;
-        color_pallete_in[1].z = 230.0 / 255.0;
-
-        color_pallete_in[2].x = 230.0 / 255.0;
-        color_pallete_in[2].y = 230.0 / 255.0;
-        color_pallete_in[2].z = 213.0 / 255.0;
-
-        color_pallete_in[3].x = 230.0 / 255.0;
-        color_pallete_in[3].y = 213.0 / 255.0;
-        color_pallete_in[3].z = 197.0 / 255.0;
-
-        color_pallete_in[3].x = 180.0 / 255.0;
-        color_pallete_in[3].y = 180.0 / 255.0;
-        color_pallete_in[3].z = 180.0 / 255.0;
-
-        let mut color_pallete_out = [std140::vec3::fill(0.10), std140::vec3::fill(0.20), std140::vec3::fill(0.10), std140::vec3::fill(0.10)];
-
-        color_pallete_out[1].x = 49.0 / 255.0;
-        color_pallete_out[1].y = 115.0 / 255.0;
-        color_pallete_out[1].z = 131.0 / 255.0;
-
-        color_pallete_out[1].x = 32.0 / 255.0;
-        color_pallete_out[1].y = 82.0 / 255.0;
-        color_pallete_out[1].z = 98.0 / 255.0;
-
-        color_pallete_out[2].x = 49.0 / 255.0;
-        color_pallete_out[2].y = 98.0 / 255.0;
-        color_pallete_out[2].z = 115.0 / 255.0;
-
-        color_pallete_out[3].x = 49.0 / 255.0;
-        color_pallete_out[3].y = 32.0 / 255.0;
-        color_pallete_out[3].z = 115.0 / 255.0;
-
-        color_pallete_out[3].x = 0.0 / 255.0;
-        color_pallete_out[3].y = 0.0 / 255.0;
-        color_pallete_out[3].z = 10.0 / 255.0;
 
         SpriteUniform {
-            ortho: ortho.into(),
-            color_pallete_in,
-            color_pallete_out
+            ortho: ortho.into()
         }
     }
 }

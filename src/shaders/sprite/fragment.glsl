@@ -5,11 +5,6 @@ in vec4 v_color;
 out vec4 a_color;
 uniform sampler2D texT;
 
-layout(std140) uniform vertex {
-    mat4 ortho;
-    vec3 color_pallete_in[5];
-    vec3 color_pallete_out[5];
-};
 
 float border (vec2 uv){
 	float radius = min(1.0, 0.08);

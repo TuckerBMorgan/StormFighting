@@ -9,6 +9,7 @@ mod menu;
 mod setup_functions;
 mod character_sheet;
 mod effects;
+//mod state_machine;
 
 #[cfg(target_arch = "wasm32")]
 mod web_net;
@@ -28,6 +29,7 @@ pub use menu::*;
 pub use setup_functions::*;
 pub use character_sheet::*;
 pub use effects::*;
+//pub use state_machine::*;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use net::*;

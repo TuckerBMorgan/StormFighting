@@ -72,7 +72,7 @@ impl Menu {
     
     pub fn files_loaded(ctx: &mut Context<FighthingApp>, app: &mut FighthingApp, loaded_assets: Vec<Asset>)  {
         let mut landing_screen: Option<Texture> = None;
-        let mut button: Option<Texture> = None;
+        //let mut button: Option<Texture> = None;
         for (index, asset) in loaded_assets.iter().enumerate() {
             match &asset.result {
                 Ok(the_asset) => {
@@ -80,7 +80,7 @@ impl Menu {
                         landing_screen =Some(Texture::from_png(ctx, &the_asset, TextureFiltering::none()));
                     }
                     else if index == 1 {
-                        button = Some(Texture::from_png(ctx, &the_asset, TextureFiltering::none()));
+                    //    button = Some(Texture::from_png(ctx, &the_asset, TextureFiltering::none()));
                     }
                 },
                 Err(e) => {

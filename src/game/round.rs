@@ -18,7 +18,8 @@ pub struct Round {
     pub hit_stun_counter: usize,
     pub projectiles: Vec<Projectile>,
     pub reset_round_timer: SpriteTimer,
-    pub effects: Vec<Effect>
+    pub effects: Vec<Effect>,
+    //state_machine: StateMachine,
 }
 
 impl Round {
@@ -97,6 +98,9 @@ impl Round {
             //We need to remove the offset that we build in from the initial unshifted AABBS
             //This will give us the characters new position
             self.characters[0].character_position = character_1_walk_box.min - Vector2::new(131.0, 57.0);// + reshift;
+            if self.characters[0].character_position.y < 0.0 {
+                self.characters[0].character_position.y = 0.0;
+            }
 
             //Keep the character in the arena, and close enough to the other playear
             if self.characters[0].character_position.x  < 0.0  {
@@ -445,11 +449,15 @@ impl Round {
             }
             else if character_action == CharacterAction::Jump {
                 self.characters[character_index].set_character_state(CharacterState::Jump, &game_config);
+                self.characters[character_index].is_jumping = true;
+                self.characters[character_index].character_velocity.y = 100.0;
             }
             else if character_action == CharacterAction::ForwardJump {
                 self.characters[character_index].set_character_state(CharacterState::ForwardJump, &game_config);
                 let value = self.characters[character_index].screen_side.direction();
                 self.characters[character_index].set_move_starting_screen_side(value);
+                self.characters[character_index].is_jumping = true;
+                self.characters[character_index].character_velocity.y = 100.0;
             }
         }
 
@@ -487,11 +495,11 @@ impl Round {
             self.characters[character_index].character_velocity.y = 0.0;
         }
         else if self.characters[character_index].character_state == CharacterState::ForwardJump { 
-            self.characters[character_index].character_velocity.y = game_config.character_sheet.animations[&String::from("ForwardJump")].displacements[self.characters[character_index].current_animation.current_frame as usize].y;
             self.characters[character_index].character_velocity.x = game_config.character_sheet.animations[&String::from("ForwardJump")].displacements[self.characters[character_index].current_animation.current_frame as usize].x * self.characters[character_index].move_starting_screen_side;
+            self.characters[character_index].character_velocity.y -= 9.18f32;
         }
         else if self.characters[character_index].character_state == CharacterState::Jump { 
-            self.characters[character_index].character_velocity.y = game_config.character_sheet.animations[&String::from("Jump")].displacements[self.characters[character_index].current_animation.current_frame as usize].y;
+            self.characters[character_index].character_velocity.y -= 9.18f32;
         }
         else {
             self.characters[character_index].character_velocity.x = 0.0;
@@ -565,7 +573,7 @@ pub struct GGRSConfig {
 impl Config for GGRSConfig {
     type Input = NetInput;
     type State = Round;
-    type Address = SocketAddr;
+    type Address = String;
 }
 
 

@@ -74,14 +74,16 @@ pub enum CharacterAction {
 
 pub struct AnimationStateForCharacterState {
     pub crouched: AnimationState,
-    pub standing: AnimationState
+    pub standing: AnimationState,
+    pub jumping: AnimationState
 }
 
 impl AnimationStateForCharacterState {
-    pub fn new(crouched: AnimationState, standing: AnimationState) -> AnimationStateForCharacterState {
+    pub fn new(crouched: AnimationState, standing: AnimationState, jumping: AnimationState) -> AnimationStateForCharacterState {
         AnimationStateForCharacterState {
             crouched,
-            standing
+            standing,
+            jumping
         }
     }
 }
@@ -96,6 +98,7 @@ pub struct Character {
     pub screen_side: ScreenSide, //Which side of the screen it is on
     pub health: u32, //How much health it has
     pub is_crouched: bool, //Is character crouched at the moment, used so we don't have a set of "crouched" states
+    pub is_jumping: bool,
     pub past_inputs: Vec<ScreenSideAdjustedInput>, //A buffer that contains the last FRAME_HISTORY_LENGTH input states
     pub done: bool,
     pub move_starting_screen_side: f32,
@@ -113,6 +116,7 @@ impl Character {
             screen_side,
             health: 250,
             is_crouched: false,
+            is_jumping: false,
             past_inputs: vec![],
             done: false,
             move_starting_screen_side: 0.0,

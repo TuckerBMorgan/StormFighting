@@ -1,6 +1,6 @@
 precision highp float;
 
-const float TWO_PI = 6.283185307179586476925286766559;
+//const float TWO_PI = 6.283185307179586476925286766559;
 
 layout(location = 0) in vec3 a_pos;
 layout(location = 1) in vec2 a_size;
@@ -32,7 +32,7 @@ vec2 size_lut[4] = vec2[4](
     vec2(1.0, 0.0)); // right bottom
 
 vec4 rotateZ(vec3 pos) {
-    float psi = TWO_PI * a_rotation;
+    float psi = 6.283 * a_rotation;
     float sina = sin(psi);
     float cosa = cos(psi);
     vec2 origin = vec2(

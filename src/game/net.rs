@@ -97,9 +97,7 @@ impl<'a> Net<'a> {
             } else {
 
                 // remote players
-                let remote_addr: SocketAddr = player_addr.parse().unwrap();
-                println!("{:?}", remote_addr);
-                sess = sess.add_player(PlayerType::Remote(remote_addr), i).unwrap();
+                sess = sess.add_player(PlayerType::Remote(player_addr), i).unwrap();
             }
         }
 

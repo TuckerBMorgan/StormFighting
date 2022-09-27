@@ -68,7 +68,7 @@ pub fn setup_ui_backplate(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], Spri
     let scale_factor = 1.5;
     let background_sprite = [
         Sprite {
-            pos: Vector3::new(WIDTH as f32 / 2.0 - loaded_texture.width() as f32 * scale_factor / 2.0, HEIGHT as f32 - loaded_texture.height() as f32 * scale_factor, 0.09),
+            pos: Vector3::new(WIDTH as f32 / 2.0 - loaded_texture.width() as f32 * scale_factor / 2.0, HEIGHT as f32 - loaded_texture.height() as f32 * scale_factor - 100.0, 0.09),
             size: Vector2::new((loaded_texture.width() as f32 * scale_factor ) as u16, (loaded_texture.height() as f32 * scale_factor) as u16),
             color: RGBA8::WHITE,
             texture: first_frame,
@@ -111,16 +111,17 @@ pub fn setup_health_bars(ctx: &mut Context<FighthingApp>) -> ([Sprite; 2], Sprit
     let mut health_bar_render_pass = SpriteShaderPass::new(transform.matrix(), ctx);
     let loaded_texture = Texture::from_png(ctx, GREYSCALE_HEALTH_BAR_GRADIANT, TextureFiltering::none());
     let first_frame = loaded_texture.subsection(0, loaded_texture.width(), 0, loaded_texture.height());
+    let height_offset = 160.0;
     let health_bars = [
         Sprite {
-            pos: Vector3::new(WIDTH as f32 / 2.0 + 95.0, HEIGHT as f32 - 140.0, 0.0),
+            pos: Vector3::new(WIDTH as f32 / 2.0 + 95.0, HEIGHT as f32 - height_offset, 0.0),
             size: Vector2::new(480, 43),
             color: RGBA8::GREEN,
             texture: first_frame,
             ..Default::default()
         },
         Sprite {
-            pos: Vector3::new(160.0, HEIGHT as f32 - 140.0, 0.0),
+            pos: Vector3::new(160.0, HEIGHT as f32 - height_offset, 0.0),
             size: Vector2::new(480, 43),
             color: RGBA8::GREEN,
             texture: first_frame,

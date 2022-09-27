@@ -1,4 +1,5 @@
-use ggrs::{GGRSError, PlayerType, SessionBuilder, SessionState, UdpNonBlockingSocket};
+use ggrs::SessionState;
+use ggrs::{P2PSession, PlayerType, SessionBuilder, UdpNonBlockingSocket};
 
 use std::io::prelude::*;
 use std::net::TcpStream;
@@ -19,7 +20,7 @@ pub enum NetState {
 
 pub struct Net<'a> {
     pub state: NetState,
-    pub session: Option<P2PSession<Round>>,
+    pub session: Option<P2PSession<GGRSConfig>>,
     pub local_handle: usize,
     pub local_executor: LocalExecutor<'a>,
     pub socket: Option<WebRtcSocket>
@@ -29,10 +30,12 @@ pub struct Net<'a> {
 impl<'a> Net<'a> {
 
     pub fn launch_session() -> Net<'a> {
-        let (mut socket, message_loop) = WebRtcSocket::new("wss://0.0.0.0:3536/made_in_heaven");
+        let room_url = "ws://127.0.0.1:3536/next_2";
+        let (socket, message_loop) = WebRtcSocket::new(room_url);
         let local_executor = LocalExecutor::new();
         let task = local_executor.spawn(message_loop);
         task.detach();
+
         Net {
             local_handle: 0,
             state: NetState::Connecting,
@@ -45,6 +48,10 @@ impl<'a> Net<'a> {
     pub fn is_running(&self) -> bool {
         return self.session.as_ref().unwrap().current_state() == SessionState::Running;
     }
+
+    pub fn add_local_input(&mut self, handle: usize, inputs: NetInput) {
+        self.session.as_mut().unwrap().add_local_input(handle, inputs).unwrap();
+    }
     
     pub fn connecting_tick(&mut self) {
         let mut local_handle = 0;
@@ -55,38 +62,43 @@ impl<'a> Net<'a> {
         if remaining != 0 {
             return;
         }
+        let socket = self.socket.take().unwrap();
         
-        let players = self.socket.as_mut().unwrap().players();
-        //    let (mut socket, _) = connect(Url::parse("ws://192.168.0.20:9001").unwrap())?;
+        let players = socket.players();
+        // consume the socket (currently required because ggrs takes ownership of its socket)
 
-        let mut sess_build = SessionBuilder::<Round>::new().with_num_players(2).with_fps(FPS as u32).with_input_delay(2);
+        let max_prediction = 12;
 
+        // create a GGRS P2P session
+        let mut sess_build = SessionBuilder::<GGRSConfig>::new()
+            .with_num_players(2)
+            .with_max_prediction_window(max_prediction)
+            .with_input_delay(2)
+            .with_fps(60)
+            .expect("invalid fps");
 
-        let mut sess = P2PSession::<Round>::new_with_socket(2, INPUT_SIZE, 16, self.socket.take().unwrap());
-
-        // add players
         for (i, player) in players.into_iter().enumerate() {
-            sess_build
-                .add_player(player, i)
-                .expect("failed to add player");
+            match player {
+                PlayerType::Local => {
+                    sess_build = sess_build.add_player(PlayerType::Local, i).unwrap();
+                    self.local_handle = i;
+//                    local_handle = i;
+                },
+                PlayerType::Remote(addr) => {
+                    println!("{:?}", addr);
+                    sess_build = sess_build.add_player(PlayerType::Remote(addr), i).unwrap();
+                },
+                _ => {
+                    
+                }
+            }
         }
 
-
-        // turn on sparse saving
-        sess.set_sparse_saving(false).unwrap();
-    
-        // set FPS (default is 60, so this doesn't change anything as is)
-        sess.set_fps(FPS as u32).unwrap();
-
-    
-        // set input delay for the local player
-   //     sess.set_frame_delay(2, local_handle).unwrap();
-    
-        // set change default expected update frequency
-        sess.set_fps(FPS as u32).unwrap();
-        // start the GGRS session
-        sess.start_session().unwrap();
-
+    // start the GGRS session
+        let sess = sess_build
+        .start_p2p_session(socket)
+        .expect("failed to start session");
+        
         self.session = Some(sess);
         self.state = NetState::Live;
     }

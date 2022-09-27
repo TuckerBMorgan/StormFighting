@@ -23,7 +23,7 @@ static FIREBALL: &[u8] = include_bytes!("../resources/fireball_main.png");
 static LIGHT_HIT_EFFECT_TEXTURE: &[u8] = include_bytes!("../resources/sheets/Effects/LightHit/full.png");
 
 #[cfg(target_arch = "wasm32")]
-static RESOURCE_PATH : &'static str = "../resources/";
+static RESOURCE_PATH : &'static str = "./resources/";
 
 #[cfg(not(target_arch = "wasm32"))]
 static RESOURCE_PATH : &'static str = "./resources/";
@@ -54,28 +54,27 @@ where P: AsRef<Path>, {
 }
 
 fn read_palletes() -> Vec<Vec<cgmath::Vector3<f32>>> {
-    let pallete_fokder = fs::read_dir("./palletes").unwrap();
+    static test_pallate: &[u8] = include_bytes!("../palletes/palette000.pal");
+    let as_string = String::from_utf8(test_pallate.to_vec()).unwrap();
+    //let pallete_fokder = fs::read_dir("./palletes").unwrap();
     let mut palletes = vec![];
+
+    let mut colors = vec![];
+    for line in as_string.lines().skip(3) {
+
+        let mut result = line.split(' ');
+        let value = cgmath::Vector3::new(result.next().unwrap().parse::<f32>().unwrap() / 256.0, result.next().unwrap().parse::<f32>().unwrap() / 256.0, result.next().unwrap().parse::<f32>().unwrap() / 256.0);
+        colors.push(value);
+    }
+    palletes.push(colors);
+    /*
     for file in pallete_fokder {
         if let Ok(lines) = read_lines(&file.unwrap().path()) {
             // Consumes the iterator, returns an (Optional) String
-            let mut colors = vec![];
-            for line in lines.skip(3) {
-                match line {
-                    Ok(l) => {
-                        let mut result = l.split(' ');
-                        let value = cgmath::Vector3::new(result.next().unwrap().parse::<f32>().unwrap() / 256.0, result.next().unwrap().parse::<f32>().unwrap() / 256.0, result.next().unwrap().parse::<f32>().unwrap() / 256.0);
-                        colors.push(value);
-                    },
-                    Err(e) => {
 
-                    }
-                }
-            }
-            palletes.push(colors);
         }    
     }
-
+     */
     palletes
 }
 
@@ -169,27 +168,27 @@ impl App for FighthingApp {
                                         app.transitioning = false;  
 
                                         let mut animation_for_character_state_library = HashMap::new();
-                                        animation_for_character_state_library.insert(CharacterState::Idle, AnimationStateForCharacterState::new(AnimationState::Crouched, AnimationState::Idle));
-                                        animation_for_character_state_library.insert(CharacterState::ForwardRun, AnimationStateForCharacterState::new(AnimationState::ForwardRun, AnimationState::ForwardRun));
-                                        animation_for_character_state_library.insert(CharacterState::BackwardRun, AnimationStateForCharacterState::new(AnimationState::BackwardRun, AnimationState::BackwardRun));
-                                        animation_for_character_state_library.insert(CharacterState::LightHitRecovery, AnimationStateForCharacterState::new(AnimationState::LightHitRecovery, AnimationState::LightHitRecovery));
-                                        animation_for_character_state_library.insert(CharacterState::Blocking, AnimationStateForCharacterState::new(AnimationState::Blocking, AnimationState::Blocking));
-                                        animation_for_character_state_library.insert(CharacterState::Crouching, AnimationStateForCharacterState::new(AnimationState::Crouching, AnimationState::Crouching));
-                                        animation_for_character_state_library.insert(CharacterState::LightAttack, AnimationStateForCharacterState::new(AnimationState::LightCrouchAttack, AnimationState::LightAttack));
-                                        animation_for_character_state_library.insert(CharacterState::MediumAttack, AnimationStateForCharacterState::new(AnimationState::LightCrouchAttack, AnimationState::MediumAttack));
-                                        animation_for_character_state_library.insert(CharacterState::HeavyAttack, AnimationStateForCharacterState::new(AnimationState::HeavyCrouchingAttack, AnimationState::HeavyAttack));
-                                        animation_for_character_state_library.insert(CharacterState::LightKick, AnimationStateForCharacterState::new(AnimationState::LightCrouchKick, AnimationState::LightKick));
-                                        animation_for_character_state_library.insert(CharacterState::MediumKick, AnimationStateForCharacterState::new(AnimationState::MediumCrouchKick, AnimationState::MediumKick));
-                                        animation_for_character_state_library.insert(CharacterState::HeavyKick, AnimationStateForCharacterState::new(AnimationState::HeavyCrouchKick, AnimationState::HeavyKick));
-                                        animation_for_character_state_library.insert(CharacterState::ForwardDash, AnimationStateForCharacterState::new(AnimationState::ForwardDash, AnimationState::ForwardDash));
-                                        animation_for_character_state_library.insert(CharacterState::BackwardDash, AnimationStateForCharacterState::new(AnimationState::BackwardDash, AnimationState::BackwardDash));
-                                        animation_for_character_state_library.insert(CharacterState::Special1, AnimationStateForCharacterState::new(AnimationState::Special1, AnimationState::Special1));
-                                        animation_for_character_state_library.insert(CharacterState::Won, AnimationStateForCharacterState::new(AnimationState::Won, AnimationState::Won));
-                                        animation_for_character_state_library.insert(CharacterState::Lost, AnimationStateForCharacterState::new(AnimationState::Lost, AnimationState::Lost));
-                                        animation_for_character_state_library.insert(CharacterState::Jump, AnimationStateForCharacterState::new(AnimationState::Jump, AnimationState::Jump));
-                                        animation_for_character_state_library.insert(CharacterState::Parry, AnimationStateForCharacterState::new(AnimationState::Parry, AnimationState::Parry));
-                                        animation_for_character_state_library.insert(CharacterState::Parried, AnimationStateForCharacterState::new(AnimationState::LightHitRecovery, AnimationState::LightHitRecovery));
-                                        animation_for_character_state_library.insert(CharacterState::ForwardJump, AnimationStateForCharacterState::new(AnimationState::ForwardJump, AnimationState::ForwardJump));
+                                        animation_for_character_state_library.insert(CharacterState::Idle, AnimationStateForCharacterState::new(AnimationState::Crouched, AnimationState::Idle, AnimationState::Idle));
+                                        animation_for_character_state_library.insert(CharacterState::ForwardRun, AnimationStateForCharacterState::new(AnimationState::ForwardRun, AnimationState::ForwardRun, AnimationState::ForwardRun));
+                                        animation_for_character_state_library.insert(CharacterState::BackwardRun, AnimationStateForCharacterState::new(AnimationState::BackwardRun, AnimationState::BackwardRun, AnimationState::BackwardRun));
+                                        animation_for_character_state_library.insert(CharacterState::LightHitRecovery, AnimationStateForCharacterState::new(AnimationState::LightHitRecovery, AnimationState::LightHitRecovery, AnimationState::LightHitRecovery));
+                                        animation_for_character_state_library.insert(CharacterState::Blocking, AnimationStateForCharacterState::new(AnimationState::Blocking, AnimationState::Blocking, AnimationState::Blocking));
+                                        animation_for_character_state_library.insert(CharacterState::Crouching, AnimationStateForCharacterState::new(AnimationState::Crouching, AnimationState::Crouching, AnimationState::Crouching));
+                                        animation_for_character_state_library.insert(CharacterState::LightAttack, AnimationStateForCharacterState::new(AnimationState::LightCrouchAttack, AnimationState::LightAttack, AnimationState::LightJumpingKick));
+                                        animation_for_character_state_library.insert(CharacterState::MediumAttack, AnimationStateForCharacterState::new(AnimationState::LightCrouchAttack, AnimationState::MediumAttack, AnimationState::MediumAttack));
+                                        animation_for_character_state_library.insert(CharacterState::HeavyAttack, AnimationStateForCharacterState::new(AnimationState::HeavyCrouchingAttack, AnimationState::HeavyAttack, AnimationState::HeavyAttack));
+                                        animation_for_character_state_library.insert(CharacterState::LightKick, AnimationStateForCharacterState::new(AnimationState::LightCrouchKick, AnimationState::LightKick, AnimationState::LightKick));
+                                        animation_for_character_state_library.insert(CharacterState::MediumKick, AnimationStateForCharacterState::new(AnimationState::MediumCrouchKick, AnimationState::MediumKick, AnimationState::MediumKick));
+                                        animation_for_character_state_library.insert(CharacterState::HeavyKick, AnimationStateForCharacterState::new(AnimationState::HeavyCrouchKick, AnimationState::HeavyKick, AnimationState::HeavyKick));
+                                        animation_for_character_state_library.insert(CharacterState::ForwardDash, AnimationStateForCharacterState::new(AnimationState::ForwardDash, AnimationState::ForwardDash, AnimationState::ForwardDash));
+                                        animation_for_character_state_library.insert(CharacterState::BackwardDash, AnimationStateForCharacterState::new(AnimationState::BackwardDash, AnimationState::BackwardDash, AnimationState::BackwardDash));
+                                        animation_for_character_state_library.insert(CharacterState::Special1, AnimationStateForCharacterState::new(AnimationState::Special1, AnimationState::Special1, AnimationState::Special1));
+                                        animation_for_character_state_library.insert(CharacterState::Won, AnimationStateForCharacterState::new(AnimationState::Won, AnimationState::Won, AnimationState::Won));
+                                        animation_for_character_state_library.insert(CharacterState::Lost, AnimationStateForCharacterState::new(AnimationState::Lost, AnimationState::Lost, AnimationState::Lost));
+                                        animation_for_character_state_library.insert(CharacterState::Jump, AnimationStateForCharacterState::new(AnimationState::Jump, AnimationState::Jump, AnimationState::Jump));
+                                        animation_for_character_state_library.insert(CharacterState::Parry, AnimationStateForCharacterState::new(AnimationState::Parry, AnimationState::Parry, AnimationState::Parry));
+                                        animation_for_character_state_library.insert(CharacterState::Parried, AnimationStateForCharacterState::new(AnimationState::LightHitRecovery, AnimationState::LightHitRecovery, AnimationState::LightHitRecovery));
+                                        animation_for_character_state_library.insert(CharacterState::ForwardJump, AnimationStateForCharacterState::new(AnimationState::ForwardJump, AnimationState::ForwardJump, AnimationState::ForwardJump));
                                         
                                         let animation_state = vec![
                                             AnimationState::Idle,

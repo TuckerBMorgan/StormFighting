@@ -44,7 +44,8 @@ pub enum AnimationState {
     Lost,
     Jump,
     Parry,
-    ForwardJump
+    ForwardJump,
+    LightJumpingKick
 }
 
 // TODO: Just all of this :( I feel bad for this
@@ -130,6 +131,9 @@ impl AnimationState {
         if value == "LightCrouchKick" {
             return AnimationState::LightCrouchKick;
         }
+        if value == "LightJumpingKick" {
+            return AnimationState::LightJumpingKick;
+        }
         panic!("{:?} is an unknow animation state", value);
     }
 
@@ -212,6 +216,9 @@ impl AnimationState {
             }
             AnimationState::HeavyCrouchKick => {
                 return String::from("HeavyCrouchKick");
+            },
+            AnimationState::LightJumpingKick => {
+                return String::from("LightJumpingKick");
             }
         }
     }

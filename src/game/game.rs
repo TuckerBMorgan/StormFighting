@@ -293,7 +293,7 @@ impl<'a> Game<'a> {
                         },
                         ScreenSide::Right => {
                             test = self.projectile_sprites[index].1.atlas.subsection(left, 0 + FRAME_WIDTH, 0, FRAME_HEIGHT);
-                            self.projectile_sprites[index].0[0].pos.x = projectile.position.x * X_SCALE as f32 ;//+ (FRAME_WIDTH as f32 / 2.0) * X_SCALE as f32;
+                            self.projectile_sprites[index].0[0].pos.x = projectile.position.x * X_SCALE as f32 - (FRAME_WIDTH as f32 / 2.0) * X_SCALE as f32;
                         }
                     }
                     self.projectile_sprites[index].0[0].texture = test;
@@ -324,11 +324,11 @@ impl<'a> Game<'a> {
                     match effect.screen_side {
                         ScreenSide::Left => {
                             test = self.effects_sprites[index].1.atlas.subsection(left, left + EFFECT_FRAME_WIDTH, 0, 480).mirror_y();
-                            self.effects_sprites[index].0[0].pos.x = effect.position_x * X_SCALE as f32 ;//+ (FRAME_WIDTH as f32 / 2.0) * X_SCALE as f32;
+                            self.effects_sprites[index].0[0].pos.x = effect.position_x * 0.5f32 as f32 ;//+ (FRAME_WIDTH as f32 / 2.0) * X_SCALE as f32;
                         },
                         ScreenSide::Right => {
                             test = self.effects_sprites[index].1.atlas.subsection(left, left + EFFECT_FRAME_WIDTH, 0, 480);
-                            self.effects_sprites[index].0[0].pos.x = effect.position_x * X_SCALE as f32 - (EFFECT_FRAME_WIDTH as f32 / 2.0) * X_SCALE as f32;
+                            self.effects_sprites[index].0[0].pos.x = effect.position_x  - (FRAME_WIDTH as f32 * 0.9);// - (FRAME_WIDTH as f32 / 2.0);
                             self.effects_sprites[index].0[0].pos.y = -480.0 * 0.2f32;
                         }
                     }
@@ -389,9 +389,10 @@ impl<'a> Game<'a> {
 
             self.ui.timer_text.0.draw(&self.ui.timer_text.1);
 
+            /*
             self.ui.backplate.1.buffer.set_data(&mut self.ui.backplate.0);
             self.ui.backplate.1.draw(&self.sprite_shader);
-
+            */
             for projectile_sprites in self.projectile_sprites.iter_mut() {
                 projectile_sprites.1.set_transform(self.camera_transform.matrix());
                 projectile_sprites.1.buffer.set_data(&projectile_sprites.0);
@@ -470,38 +471,38 @@ impl<'a> Game<'a> {
 
         // ugly, but it works...
         // player 1 with WASD
-        if handle == 0 {
-            if self.local_input.left_key_down {
-                input |= INPUT_LEFT;
-            }
-            if self.local_input.right_key_down {
-                input |= INPUT_RIGHT;
-            }
-            if self.local_input.down_key_down {
-                input |= INPUT_DOWN;
-            }
-            if self.local_input.light_attack {
-                input |= INPUT_LIGHT_ATTACK;
-            }
-            if self.local_input.medium_attack {
-                input |= INPUT_MEDIUM_ATTACK;
-            }
-            if self.local_input.heavy_attack {
-                input |= INPUT_HEAVY_ATTACK;
-            }
-            if self.local_input.light_kick {
-                input |= INPUT_LIGHT_KICK;
-            }
-            if self.local_input.medium_kick {
-                input |= INPUT_MEDIUM_KICK;
-            }
-            if self.local_input.heavy_kick {
-                input |= INPUT_HEAVY_KICK;
-            }
-            if self.local_input.jump_down {
-                input |= INPUT_JUMP;
-            }
+
+        if self.local_input.left_key_down {
+            input |= INPUT_LEFT;
         }
+        if self.local_input.right_key_down {
+            input |= INPUT_RIGHT;
+        }
+        if self.local_input.down_key_down {
+            input |= INPUT_DOWN;
+        }
+        if self.local_input.light_attack {
+            input |= INPUT_LIGHT_ATTACK;
+        }
+        if self.local_input.medium_attack {
+            input |= INPUT_MEDIUM_ATTACK;
+        }
+        if self.local_input.heavy_attack {
+            input |= INPUT_HEAVY_ATTACK;
+        }
+        if self.local_input.light_kick {
+            input |= INPUT_LIGHT_KICK;
+        }
+        if self.local_input.medium_kick {
+            input |= INPUT_MEDIUM_KICK;
+        }
+        if self.local_input.heavy_kick {
+            input |= INPUT_HEAVY_KICK;
+        }
+        if self.local_input.jump_down {
+            input |= INPUT_JUMP;
+        }
+
         return NetInput{ input};//input.to_le_bytes();.to_vec();
     }
 }

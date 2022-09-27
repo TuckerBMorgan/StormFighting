@@ -6,8 +6,8 @@ out vec4 a_color;
 uniform sampler2D texT;
 
 layout(std140) uniform vertex {
-    mat4 ortho;
-    vec3 color_pallete[256];
+    highp mat4 ortho;
+    highp vec3 color_pallete[256];
 };
 
 float border (vec2 uv){
@@ -36,11 +36,12 @@ void main() {
 
     float scanlines_width = 0.25;
     vec4 index = texture(texT, v_uv);
-    if (int(index.r * 255) == 0) {
+    if (int(index.r * 255.0) == 0) {
         discard;
     }
     else {
-        a_color = vec4(color_pallete[int(index.r * 256)], 1.0);
+        a_color = vec4(color_pallete[int(index.r * 255.0)], 1.0);
+        //a_color = vec4(1.0, 1.0, 1.0, 1.0);
         float r = a_color.r;
         float g = a_color.g;
         float b = a_color.b;
