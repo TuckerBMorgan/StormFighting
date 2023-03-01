@@ -20,7 +20,7 @@ asefile = "0.3.1"
 time = {git = "https://github.com/time-rs/time", features=["local-offset"]}
 simplelog = "^0.10.0"
 crevice = {version = "0.8.0", features = ["cgmath"]}
-matchbox_socket = {path = "../matchbox/matchbox_socket", features=["ggrs-socket"]}
+matchbox_socket = {path = "./deps/matchbox/matchbox_socket", features=["ggrs-socket"]}
 tungstenite = "0.16.0"
 async-executor = "1.4.1"
 futures = { version = "0.3", features=["executor"] }

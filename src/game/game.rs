@@ -1,4 +1,5 @@
 
+use core::panic;
 use core::time::Duration;
 
 extern crate simplelog;
@@ -450,6 +451,9 @@ impl<'a> Game<'a> {
             self.ui.healthbars.1.buffer.set_data(&self.ui.healthbars.0);
             self.ui.healthbars.1.draw(&self.sprite_shader);
 
+        }
+        else {
+            panic!("Network was unable to connect");
         }
     }
 
