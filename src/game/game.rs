@@ -233,6 +233,8 @@ impl<'a> Game<'a> {
                 // decrease accumulator
                 self.accumulator = self.accumulator.saturating_sub(Duration::from_secs_f64(fps_delta));
                 self.net.add_local_input(self.net.local_handle, self.local_input(self.net.local_handle));
+
+                
                 match self.net.session.as_mut().unwrap().advance_frame() {
                     Ok(requests) => self.handle_requests(requests),
                     Err(GGRSError::PredictionThreshold) => println!("Frame skipped"),
@@ -451,9 +453,6 @@ impl<'a> Game<'a> {
             self.ui.healthbars.1.buffer.set_data(&self.ui.healthbars.0);
             self.ui.healthbars.1.draw(&self.sprite_shader);
 
-        }
-        else {
-            panic!("Network was unable to connect");
         }
     }
 

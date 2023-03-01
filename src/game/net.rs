@@ -46,7 +46,7 @@ impl<'a> Net<'a> {
        // let mut stream = TcpStream::connect("24.19.122.147:7878").unwrap();
         let mut stream = TcpStream::connect("34.70.119.85:7878").unwrap();
 
-        let mut players = vec![String::from("localhost")];
+        let mut players = vec![String::from(stream.local_addr().unwrap().to_string())];
     
         let mut buffer = [0;512];
         let mut message = vec![];
@@ -91,20 +91,20 @@ impl<'a> Net<'a> {
         // add players
         for (i, player_addr) in players.iter().enumerate() {
             // local player
-            if player_addr == "localhost" {
+            if *player_addr == stream.local_addr().unwrap().to_string() {
                 sess = sess.add_player(PlayerType::Local, i).unwrap();
                 local_handle = i;
             } else {
-
                 // remote players
                 let remote_addr : SocketAddr = player_addr.parse().unwrap();
                 println!("{:?}", remote_addr);
                 sess = sess.add_player(PlayerType::Remote(remote_addr), i).unwrap();
             }
         }
-
+        println!("{:?}", stream.local_addr());
         let socket = UdpNonBlockingSocket::bind_to_port(stream.local_addr().unwrap().port()).unwrap();
-        let sess = sess.start_p2p_session(socket).unwrap();
+        let mut sess = sess.start_p2p_session(socket).unwrap();
+
         return Net::new(sess, local_handle);
     }
 
