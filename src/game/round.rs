@@ -573,7 +573,7 @@ pub struct GGRSConfig {
 impl Config for GGRSConfig {
     type Input = NetInput;
     type State = Round;
-    type Address = String;
+    type Address = SocketAddr;
 }
 
 
