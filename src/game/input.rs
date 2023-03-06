@@ -107,7 +107,7 @@ impl Input {
             KeyboardButton::D => {
                 self.heavy_kick = true;
             }
-            KeyboardButton::Space => {
+            KeyboardButton::Up => {
                 self.jump_down = true;
             }
             _ => {}
@@ -143,7 +143,7 @@ impl Input {
             KeyboardButton::D => {
                 self.heavy_kick = false;
             }
-            KeyboardButton::Space => {
+            KeyboardButton::Up => {
                 self.jump_down = false;
             }
             _ => {}

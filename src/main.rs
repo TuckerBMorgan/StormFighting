@@ -54,7 +54,7 @@ where P: AsRef<Path>, {
 }
 
 fn read_palletes() -> Vec<Vec<cgmath::Vector3<f32>>> {
-    static test_pallate: &[u8] = include_bytes!("../palletes/palette000.pal");
+    static test_pallate: &[u8] = include_bytes!("../palletes/palette001.pal");
     let as_string = String::from_utf8(test_pallate.to_vec()).unwrap();
     //let pallete_fokder = fs::read_dir("./palletes").unwrap();
     let mut palletes = vec![];
@@ -189,6 +189,7 @@ impl App for FighthingApp {
                                         animation_for_character_state_library.insert(CharacterState::Parry, AnimationStateForCharacterState::new(AnimationState::Parry, AnimationState::Parry, AnimationState::Parry));
                                         animation_for_character_state_library.insert(CharacterState::Parried, AnimationStateForCharacterState::new(AnimationState::LightHitRecovery, AnimationState::LightHitRecovery, AnimationState::LightHitRecovery));
                                         animation_for_character_state_library.insert(CharacterState::ForwardJump, AnimationStateForCharacterState::new(AnimationState::ForwardJump, AnimationState::ForwardJump, AnimationState::ForwardJump));
+                                        animation_for_character_state_library.insert(CharacterState::Dizzie, AnimationStateForCharacterState::new(AnimationState::Dizzie, AnimationState::Dizzie, AnimationState::Dizzie));
                                         
                                         let animation_state = vec![
                                             AnimationState::Idle,

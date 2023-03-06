@@ -450,14 +450,14 @@ impl Round {
             else if character_action == CharacterAction::Jump {
                 self.characters[character_index].set_character_state(CharacterState::Jump, &game_config);
                 self.characters[character_index].is_jumping = true;
-                self.characters[character_index].character_velocity.y = 100.0;
+                self.characters[character_index].character_velocity.y = 15.0;
             }
             else if character_action == CharacterAction::ForwardJump {
                 self.characters[character_index].set_character_state(CharacterState::ForwardJump, &game_config);
                 let value = self.characters[character_index].screen_side.direction();
                 self.characters[character_index].set_move_starting_screen_side(value);
                 self.characters[character_index].is_jumping = true;
-                self.characters[character_index].character_velocity.y = 100.0;
+                self.characters[character_index].character_velocity.y = 15.0;
             }
         }
 
@@ -496,10 +496,10 @@ impl Round {
         }
         else if self.characters[character_index].character_state == CharacterState::ForwardJump { 
             self.characters[character_index].character_velocity.x = game_config.character_sheet.animations[&String::from("ForwardJump")].displacements[self.characters[character_index].current_animation.current_frame as usize].x * self.characters[character_index].move_starting_screen_side;
-            self.characters[character_index].character_velocity.y -= 9.18f32;
+            self.characters[character_index].character_velocity.y -= 1.0;
         }
         else if self.characters[character_index].character_state == CharacterState::Jump { 
-            self.characters[character_index].character_velocity.y -= 9.18f32;
+            self.characters[character_index].character_velocity.y -=  1.2;
         }
         else {
             self.characters[character_index].character_velocity.x = 0.0;
@@ -513,18 +513,22 @@ impl Round {
             CharacterState::Blocking => {
                 if self.characters[character_index].health <= (amount/10) {
                     self.characters[character_index].health = 0;
+                    self.characters[character_index].stun += 10;
                 }
                 else {
                     self.characters[character_index].health -= amount / 10;
+                    self.characters[character_index].stun += 10;
                 }
                 self.characters[character_index].set_character_state(CharacterState::Blocking, &game_config);
             }
             _ => {
                 if self.characters[character_index].health <= amount {
                     self.characters[character_index].health = 0;
+                    self.characters[character_index].stun += 10;
                 }
                 else {
                     self.characters[character_index].health -= amount;
+                    self.characters[character_index].stun += 10;
                 }
                 if was_a_parry  {
                     self.characters[character_index].set_character_state(CharacterState::Parried, &game_config);

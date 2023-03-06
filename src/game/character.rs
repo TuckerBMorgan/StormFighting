@@ -49,7 +49,8 @@ pub enum CharacterState {
     Jump,
     Parry,
     Parried,
-    ForwardJump
+    ForwardJump,
+    Dizzie,
 }
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone, Debug)]
@@ -97,6 +98,7 @@ pub struct Character {
     pub character_velocity: Vector2<f32>, //How far it wants to move this frame
     pub screen_side: ScreenSide, //Which side of the screen it is on
     pub health: u32, //How much health it has
+    pub stun: u32,
     pub is_crouched: bool, //Is character crouched at the moment, used so we don't have a set of "crouched" states
     pub is_jumping: bool,
     pub past_inputs: Vec<ScreenSideAdjustedInput>, //A buffer that contains the last FRAME_HISTORY_LENGTH input states
@@ -115,6 +117,7 @@ impl Character {
             character_velocity: Vector2::new(0.0, 0.0),
             screen_side,
             health: 250,
+            stun: 0,
             is_crouched: false,
             is_jumping: false,
             past_inputs: vec![],

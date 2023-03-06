@@ -44,9 +44,9 @@ impl<'a> Net<'a> {
     pub fn launch_session() -> Net<'a> {
         //Connect to the Cupid server
        // let mut stream = TcpStream::connect("24.19.122.147:7878").unwrap();
-        let mut stream = TcpStream::connect("34.70.119.85:7878").unwrap();
+        let mut stream = TcpStream::connect("127.0.0.1:7878").unwrap();
 
-        let mut players = vec![String::from(stream.local_addr().unwrap().to_string())];
+        let mut players = vec![String::from("localhost")];
     
         let mut buffer = [0;512];
         let mut message = vec![];
@@ -91,7 +91,7 @@ impl<'a> Net<'a> {
         // add players
         for (i, player_addr) in players.iter().enumerate() {
             // local player
-            if *player_addr == stream.local_addr().unwrap().to_string() {
+            if *player_addr == "localhost" {
                 sess = sess.add_player(PlayerType::Local, i).unwrap();
                 local_handle = i;
             } else {

@@ -17,9 +17,43 @@ pub const FRAME_WIDTH: u32 =  290;
 
 pub const EFFECT_FRAME_WIDTH: u32 = 640;
 
-#[derive(Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Copy, Clone)]
-pub enum AnimationState {
-    Idle,
+
+
+#[macro_export]
+macro_rules! animation_state_enum {
+    ( $( $x:ident ),* ) => {
+         #[derive(Eq, PartialEq, Hash, Debug, Serialize, Deserialize, Copy, Clone)]
+          pub enum AnimationState {
+            $(
+                $x,
+            )*
+          }
+
+          impl AnimationState {
+            pub fn from_string(value:&String) -> AnimationState {
+              $(
+                if value == stringify!($x) {
+                  return AnimationState::$x;
+                }
+              )*
+                      panic!("{:?} is an unknow animation state", value);
+            }
+
+            pub fn to_string(&self) -> String {
+              match *self {
+                $(
+                AnimationState::$x => {
+                  return String::from(stringify!($x));
+                }
+                )*
+              }
+            }
+          }
+    };
+}
+
+
+animation_state_enum!(    Idle,
     ForwardRun,
     BackwardRun,
     LightAttack,
@@ -45,185 +79,9 @@ pub enum AnimationState {
     Jump,
     Parry,
     ForwardJump,
-    LightJumpingKick
-}
-
-// TODO: Just all of this :( I feel bad for this
-// I would like for there to be a way to have animations represented as a single value(enum), while at the same time being
-// able to use their names as a look up for animations. 
-impl AnimationState {
-    pub fn from_string(value: &String) -> AnimationState {
-        if value == "Idle" {
-            return AnimationState::Idle;
-        }
-        if value == "ForwardRun" {
-            return AnimationState::ForwardRun;
-        }
-        if value == "BackwardRun" {
-            return AnimationState::BackwardRun;
-        }
-        if value == "LightAttack" {
-            return AnimationState::LightAttack;
-        }
-        if value == "MediumAttack" {
-            return AnimationState::MediumAttack;
-        }
-        if value == "HeavyAttack" {
-            return AnimationState::HeavyAttack;
-        }
-        if value == "LightHitRecovery" {
-            return AnimationState::LightHitRecovery;
-        }
-        if value == "Crouched" {
-            return AnimationState::Crouched;
-        }
-        if value == "Crouching" {
-            return AnimationState::Crouching;
-        }
-        if value == "Blocking" {
-            return AnimationState::Blocking;
-        }
-        if value == "LightCrouchAttack" {
-            return AnimationState::LightCrouchAttack;
-        }
-        if value == "HeavyCrouchingAttack" {
-            return AnimationState::HeavyCrouchingAttack;
-        }
-        if value == "LightKick" {
-            return AnimationState::LightKick;
-        }
-        if value == "MediumKick" {
-            return AnimationState::MediumKick;
-        }
-        if value == "HeavyKick"{
-            return AnimationState::HeavyKick;
-        }
-        if value == "ForwardDash" {
-            return AnimationState::ForwardDash;
-        }
-        if value == "BackwardDash" {
-            return AnimationState::BackwardDash;
-        }
-        if value == "Special1" {
-            return AnimationState::Special1;
-        }
-        if value == "Won" {
-            return AnimationState::Won;
-        }
-        if value == "Lost" {
-            return AnimationState::Lost;
-        }
-        if value == "Jump" {
-            return AnimationState::Jump;
-        }
-        if value == "Parry" {
-            return AnimationState::Parry;
-        }
-        if value == "ForwardJump" {
-            return AnimationState::ForwardJump;
-        }
-        if value == "HeavyCrouchKick" {
-            return AnimationState::HeavyCrouchKick;
-        }
-        if value == "MediumCrouchKick" {
-            return AnimationState::MediumCrouchKick;
-        }
-        if value == "LightCrouchKick" {
-            return AnimationState::LightCrouchKick;
-        }
-        if value == "LightJumpingKick" {
-            return AnimationState::LightJumpingKick;
-        }
-        panic!("{:?} is an unknow animation state", value);
-    }
-
-    pub fn to_string(&self) -> String {
-        match *self {
-            AnimationState::Idle => {
-                return String::from("Idle");
-            }
-            AnimationState::ForwardRun => {
-                return String::from("ForwardRun");
-            }
-            AnimationState::BackwardRun => {
-                return String::from("BackwardRun");
-            }
-            AnimationState::LightAttack => {
-                return String::from("LightAttack");
-            }
-            AnimationState::MediumAttack => {
-                return String::from("MediumAttack");
-            }
-            AnimationState::HeavyAttack => {
-                return String::from("HeavyAttack");
-            }
-            AnimationState::LightHitRecovery => {
-                return String::from("LightHitRecovery");
-            }
-            AnimationState::Crouched => {
-                return String::from("Crouched");
-            }
-            AnimationState::Crouching => {
-                return String::from("Crouching");
-            }
-            AnimationState::Blocking => {
-                return String::from("Blocking");
-            }
-            AnimationState::LightCrouchAttack => {
-                return String::from("LightCrouchAttack");
-            }
-            AnimationState::HeavyCrouchingAttack => {
-                return String::from("HeavyCrouchingAttack");
-            }
-            AnimationState::LightKick => {
-                return String::from("LightKick");
-            }
-            AnimationState::MediumKick => {
-                return String::from("MediumKick");
-            }
-            AnimationState::HeavyKick => {
-                return String::from("HeavyKick");
-            }
-            AnimationState::ForwardDash => {
-                return String::from("ForwardDash");
-            }
-            AnimationState::BackwardDash => {
-                return String::from("BackwardDash");
-            }
-            AnimationState::Special1 => {
-                return String::from("Special1");
-            }
-            AnimationState::Won => {
-                return String::from("Won");
-            }
-            AnimationState::Lost => {
-                return String::from("Lost");
-            }
-            AnimationState::Jump => {
-                return String::from("Jump");
-            }
-            AnimationState::Parry => {
-                return String::from("Parry");
-            }
-            AnimationState::ForwardJump => {
-                return String::from("ForwardJump");
-            }
-            AnimationState::LightCrouchKick => {
-                return String::from("LightCrouchKick");
-            }
-            AnimationState::MediumCrouchKick => {
-                return String::from("MediumCrouchKick");
-            }
-            AnimationState::HeavyCrouchKick => {
-                return String::from("HeavyCrouchKick");
-            },
-            AnimationState::LightJumpingKick => {
-                return String::from("LightJumpingKick");
-            }
-        }
-    }
-}
-
+    LightJumpingKick,
+    JumpingLightPunch,
+    Dizzie);
 
 #[derive(Eq, PartialEq, Hash, Serialize, Deserialize, Copy, Clone)]
 //A frame number based timer for sprites IE: Does not use delta timer/real time it is an monotonic timer
