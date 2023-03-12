@@ -63,7 +63,7 @@ impl SpriteShaderPass {
         SpriteShaderPass {
             uniform: Uniform::new(ctx, SpriteUniform::new(ortho)),
             atlas: ctx.default_texture(),
-            scanline: Texture::from_png(ctx, include_bytes!("../.../../../../resources/scanline_5.png"), TextureFiltering::none()),
+            scanline: Texture::from_png(ctx, include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"),  "/resources/scanline_5.png")), TextureFiltering::none()),
             buffer: Buffer::new(ctx),
         }
     }
