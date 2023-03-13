@@ -1,4 +1,3 @@
-#![feature(int_abs_diff)]
 use core::convert::{From};
 use core::time::Duration;
 
