@@ -46,7 +46,7 @@ pub struct Menu {
 }
 
 impl Menu {
-    pub fn new(ctx: &mut Context<FighthingApp>, button_texture: Texture) -> Menu {
+    pub fn new(ctx: &mut Context<FightingApp>, button_texture: Texture) -> Menu {
         let (text_shader_pass, text_shader) = setup_round_timer_text(ctx);
         let fonts = [Font::from_bytes(FONT, Default::default()).unwrap()];
         let (button_sprites, button_shader_pass) = setup_join_game_button(ctx, button_texture);
@@ -70,7 +70,7 @@ impl Menu {
         }
     }
     
-    pub fn files_loaded(ctx: &mut Context<FighthingApp>, app: &mut FighthingApp, loaded_assets: Vec<Asset>)  {
+    pub fn files_loaded(ctx: &mut Context<FightingApp>, app: &mut FightingApp, loaded_assets: Vec<Asset>)  {
         let mut landing_screen: Option<Texture> = None;
         //let mut button: Option<Texture> = None;
         for (index, asset) in loaded_assets.iter().enumerate() {
@@ -102,7 +102,7 @@ impl Menu {
         ];
     }
 
-    pub fn tick(&mut self, ctx: &mut Context<FighthingApp>) -> GameState {
+    pub fn tick(&mut self, ctx: &mut Context<FightingApp>) -> GameState {
         if self.button.confirmed_click  {
             return GameState::Game;
         }

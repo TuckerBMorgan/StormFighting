@@ -1,7 +1,7 @@
 use storm::Context;
 use storm::graphics::{Buffer, std140, Shader, ShaderDescriptor, Texture, Uniform, TextureFiltering
 };
-use crate::FighthingApp;
+use crate::FightingApp;
 use crate::shaders::{PalleteSprite};
 use cgmath::Matrix4;
 
@@ -41,7 +41,7 @@ pub struct PalleteSpriteShader {
 }
 
 impl PalleteSpriteShader {
-    pub fn new(ctx: &mut Context<FighthingApp>) -> PalleteSpriteShader {
+    pub fn new(ctx: &mut Context<FightingApp>) -> PalleteSpriteShader {
         PalleteSpriteShader {
             shader: Shader::new(ctx),
         }
@@ -62,7 +62,7 @@ pub struct PalleteSpriteShaderPass {
 }
 
 impl PalleteSpriteShaderPass {
-    pub fn new(ortho: Matrix4<f32>, ctx: &mut Context<FighthingApp>, pallete: [cgmath::Vector3<f32>;256]) -> PalleteSpriteShaderPass {
+    pub fn new(ortho: Matrix4<f32>, ctx: &mut Context<FightingApp>, pallete: [cgmath::Vector3<f32>;256]) -> PalleteSpriteShaderPass {
         PalleteSpriteShaderPass {
             uniform: Uniform::new(ctx, PalleteSpriteUniform::new(ortho, pallete)),
             atlas: ctx.default_texture(),

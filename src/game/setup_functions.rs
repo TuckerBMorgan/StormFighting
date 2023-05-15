@@ -13,7 +13,7 @@ use crate::*;
 
 
 //Reusable function that loads the character sprite, the shader to render it, and where on the screen it will be
-pub fn load_character_sprite(animation_library: &AnimationTextureLibrary, character: &mut Character, ctx: &mut Context<FighthingApp>, pallete: [cgmath::Vector3<f32>; 256]) -> ([PalleteSprite; 1], PalleteSpriteShaderPass) { 
+pub fn load_character_sprite(animation_library: &AnimationTextureLibrary, character: &mut Character, ctx: &mut Context<FightingApp>, pallete: [cgmath::Vector3<f32>; 256]) -> ([PalleteSprite; 1], PalleteSpriteShaderPass) {
     let mut transform = OrthographicCamera::new(ctx.window_logical_size());
     transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
     let mut sprite_1 = PalleteSpriteShaderPass::new(transform.matrix(), ctx, pallete);
@@ -38,7 +38,7 @@ pub fn load_character_sprite(animation_library: &AnimationTextureLibrary, charac
 }
 
 //Load the background, this is a bad function, redo it
-pub fn setup_background(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], SpriteShaderPass) {
+pub fn setup_background(ctx: &mut Context<FightingApp>) -> ([Sprite; 1], SpriteShaderPass) {
     let mut transform = OrthographicCamera::new(ctx.window_logical_size());
     transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
     let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix(), ctx);
@@ -58,7 +58,7 @@ pub fn setup_background(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], Sprite
     return (background_sprite, background_sprite_pass);
 }
 
-pub fn setup_ui_backplate(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], SpriteShaderPass) {
+pub fn setup_ui_backplate(ctx: &mut Context<FightingApp>) -> ([Sprite; 1], SpriteShaderPass) {
     let mut transform = OrthographicCamera::new(ctx.window_logical_size());
     transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
     let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix(), ctx);
@@ -79,7 +79,7 @@ pub fn setup_ui_backplate(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], Spri
     return (background_sprite, background_sprite_pass);
 }
 
-pub fn setup_join_game_button(ctx: &mut Context<FighthingApp>, button_texture: Texture) -> ([Sprite; 1], SpriteShaderPass) {
+pub fn setup_join_game_button(ctx: &mut Context<FightingApp>, button_texture: Texture) -> ([Sprite; 1], SpriteShaderPass) {
     let mut transform = OrthographicCamera::new(ctx.window_logical_size());
     transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
     let mut background_sprite_pass = SpriteShaderPass::new(transform.matrix(), ctx);
@@ -105,7 +105,7 @@ pub struct UI {
 }
 
 
-pub fn setup_health_bars(ctx: &mut Context<FighthingApp>) -> ([Sprite; 2], SpriteShaderPass){
+pub fn setup_health_bars(ctx: &mut Context<FightingApp>) -> ([Sprite; 2], SpriteShaderPass){
     let mut transform = OrthographicCamera::new(ctx.window_logical_size());
     transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
     let mut health_bar_render_pass = SpriteShaderPass::new(transform.matrix(), ctx);
@@ -134,7 +134,7 @@ pub fn setup_health_bars(ctx: &mut Context<FighthingApp>) -> ([Sprite; 2], Sprit
 }
 
 //Load the sprites for te health bars, and there shader pass
-pub fn setup_ui(ctx: &mut Context<FighthingApp>) -> UI {
+pub fn setup_ui(ctx: &mut Context<FightingApp>) -> UI {
     UI {
         backplate: setup_ui_backplate(ctx),
         healthbars: setup_health_bars(ctx),
@@ -143,7 +143,7 @@ pub fn setup_ui(ctx: &mut Context<FighthingApp>) -> UI {
 }
 
 //Load the sprites for te health bars, and there shader pass
-pub fn setup_fireball(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], SpriteShaderPass){
+pub fn setup_fireball(ctx: &mut Context<FightingApp>) -> ([Sprite; 1], SpriteShaderPass){
     let mut transform = OrthographicCamera::new(ctx.window_logical_size());
     transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
     let mut fireball_render_pass = SpriteShaderPass::new(transform.matrix(), ctx);
@@ -160,7 +160,7 @@ pub fn setup_fireball(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], SpriteSh
 }
 
 
-pub fn setup_light_hit_effect(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], SpriteShaderPass){
+pub fn setup_light_hit_effect(ctx: &mut Context<FightingApp>) -> ([Sprite; 1], SpriteShaderPass){
     let mut transform = OrthographicCamera::new(ctx.window_logical_size());
     transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
     let mut fireball_render_pass = SpriteShaderPass::new(transform.matrix(), ctx);
@@ -178,7 +178,7 @@ pub fn setup_light_hit_effect(ctx: &mut Context<FighthingApp>) -> ([Sprite; 1], 
 
 
 //Load the sprites and the text shader pass used for the timer
-pub fn setup_round_timer_text(ctx: &mut Context<FighthingApp>) -> (TextShaderPass, TextShader) {
+pub fn setup_round_timer_text(ctx: &mut Context<FightingApp>) -> (TextShaderPass, TextShader) {
     let mut transform = OrthographicCamera::new(ctx.window_logical_size());
     transform.set().translation = Vector3::new(-(WIDTH as f32 / 2.0), -(HEIGHT as f32 / 2.0), 0.0);
     let text_shader = TextShader::new(ctx);

@@ -83,7 +83,7 @@ fn main() {
     //I am initing this logger to avoid an error on mac
     let _ = SimpleLogger::init(LevelFilter::Warn, Config::default());
     // Create the engine context and describe the window.
-    start::<FighthingApp>(
+    start::<FightingApp>(
         WindowSettings {
             title: String::from("Storm Fighting"),
             display_mode: DisplayMode::Windowed {
@@ -96,14 +96,14 @@ fn main() {
     );
 }
 
-pub struct FighthingApp {
+pub struct FightingApp {
     pub game_state: GameState,
     pub transitioning: bool,
     pub game: Option<Game<'static>>,
     pub menu: Option<Menu>
 }
 
-impl App for FighthingApp {
+impl App for FightingApp {
     fn new(ctx: &mut Context<Self>) -> Self {
         ctx.wait_periodic(Some(Duration::from_secs_f32(1.0 / 60.0)));
         let game_state = GameState::Loading;
@@ -112,7 +112,7 @@ impl App for FighthingApp {
 
         ctx.read(&Menu::files_needed_to_start(), Menu::files_loaded);
 
-        FighthingApp {
+        FightingApp {
             game_state,
             game,
             menu,

@@ -4,7 +4,7 @@ use storm::graphics::Texture;
 use storm::graphics::TextureFiltering;
 use storm::graphics::TextureSection;
 use storm::*;
-use crate::FighthingApp;
+use crate::FightingApp;
 
 // TODO: load these normally
 pub static BACKGROUND_CASTLE: &[u8] = include_bytes!("../../resources/background_castle.png");
@@ -166,7 +166,7 @@ impl AnimationTextureLibrary {
 
     // Given atlas(a u8 representation of the image we want) and the animation state we want
     // Build a mapping between the two so that we can look it up later
-    pub fn load_animation(&mut self, atlas: &[u8], animation_state: AnimationState, ctx: &mut Context<FighthingApp>) {
+    pub fn load_animation(&mut self, atlas: &[u8], animation_state: AnimationState, ctx: &mut Context<FightingApp>) {
         if self.animations.contains_key(&animation_state) {
             panic!("{:?} was already in animation dictionary", animation_state);
         }
@@ -215,7 +215,7 @@ impl EffectAnimationTextureLibrary {
 
     // Given atlas(a u8 representation of the image we want) and the animation state we want
     // Build a mapping between the two so that we can look it up later
-    pub fn load_animation(&mut self, atlas: &[u8], animation_state: EffectAnimationState, ctx: &mut Context<FighthingApp>) {
+    pub fn load_animation(&mut self, atlas: &[u8], animation_state: EffectAnimationState, ctx: &mut Context<FightingApp>) {
         if self.animations.contains_key(&animation_state) {
             panic!("{:?} was already in animation dictionary", animation_state);
         }

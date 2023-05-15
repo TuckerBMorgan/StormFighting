@@ -1,7 +1,7 @@
 use storm::Context;
 use storm::graphics::{Buffer, std140,DrawMode, Shader, ShaderDescriptor, Texture, Uniform, TextureFiltering
 };
-use crate::FighthingApp;
+use crate::FightingApp;
 use crate::shaders::sprite::Sprite;
 use cgmath::Matrix4;
 
@@ -39,7 +39,7 @@ pub struct SpriteShader {
 }
 
 impl SpriteShader {
-    pub fn new(ctx: &mut Context<FighthingApp>) -> SpriteShader {
+    pub fn new(ctx: &mut Context<FightingApp>) -> SpriteShader {
         SpriteShader {
             shader: Shader::new(ctx),
         }
@@ -59,7 +59,7 @@ pub struct SpriteShaderPass {
 }
 
 impl SpriteShaderPass {
-    pub fn new(ortho: Matrix4<f32>, ctx: &mut Context<FighthingApp>) -> SpriteShaderPass {
+    pub fn new(ortho: Matrix4<f32>, ctx: &mut Context<FightingApp>) -> SpriteShaderPass {
         SpriteShaderPass {
             uniform: Uniform::new(ctx, SpriteUniform::new(ortho)),
             atlas: ctx.default_texture(),

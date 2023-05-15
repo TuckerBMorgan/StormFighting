@@ -102,7 +102,7 @@ pub struct Game<'a> {
 
 impl<'a> Game<'a> {
     
-    pub fn load_game_with_config(ctx: &mut Context<FighthingApp>, mut game_config: GameConfig) -> Game<'a> {
+    pub fn load_game_with_config(ctx: &mut Context<FightingApp>, mut game_config: GameConfig) -> Game<'a> {
 
         
         let mut current_round = Round::new_with_animation_lib(&mut game_config.animation_configs);
@@ -196,7 +196,7 @@ impl<'a> Game<'a> {
         }
     }
 
-    pub fn update(&mut self, ctx: &mut Context<FighthingApp>) {
+    pub fn update(&mut self, ctx: &mut Context<FightingApp>) {
 
 
         ctx.clear(ClearMode::new().with_color(RGBA8::BLUE).with_depth(0.0, DepthTest::Greater));
