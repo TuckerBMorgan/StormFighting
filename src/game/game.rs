@@ -102,11 +102,11 @@ pub struct Game<'a> {
 
 impl<'a> Game<'a> {
     
-    pub fn load_game_with_config(ctx: &mut Context<FightingApp>, mut game_config: GameConfig) -> Game<'a> {
+    pub fn load_game_with_config(ctx: &mut Context<FightingApp>, mut game_config: GameConfig, cupid_ip_addr: &str) -> Game<'a> {
 
         
         let mut current_round = Round::new_with_animation_lib(&mut game_config.animation_configs);
-        let net = Net::launch_session();
+        let net = Net::launch_session(cupid_ip_addr);
 
         let (background_sprite, background_sprite_pass) = setup_background(ctx);
         let sprite_shader = SpriteShader::new(ctx);

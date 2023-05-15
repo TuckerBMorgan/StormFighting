@@ -8,6 +8,7 @@ use std::net::SocketAddr;
 use crate::*;
 
 pub const FPS: f64 = 60.0;
+pub const CUPID_PORT: &str = "7878";
 
 
 pub enum NetState {
@@ -41,10 +42,10 @@ impl<'a> Net<'a> {
         self.session.as_mut().unwrap().add_local_input(handle, inputs).unwrap();
     }
 
-    pub fn launch_session() -> Net<'a> {
+    pub fn launch_session(cupid_ip_addr: &str) -> Net<'a> {
         //Connect to the Cupid server
-       // let mut stream = TcpStream::connect("24.19.122.147:7878").unwrap();
-        let mut stream = TcpStream::connect("127.0.0.1:7878").unwrap();
+        let cupid_socket = cupid_ip_addr.to_string() + ":" + CUPID_PORT;
+        let mut stream = TcpStream::connect(cupid_socket).unwrap();
 
         let mut players = vec![String::from("localhost")];
     

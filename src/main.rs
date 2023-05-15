@@ -1,21 +1,24 @@
-use core::convert::{From};
-use core::time::Duration;
-
 extern crate simplelog;
-use simplelog::*;
-use hashbrown::HashMap;
-use storm::graphics::*;
-use storm::event::*;
-use storm::*;
+extern crate structopt;
 
-mod game;
-mod shaders;
+use core::convert::From;
+use core::time::Duration;
+use std::{env, ffi::OsString, fs::{self, DirEntry}, path::Path};
+use std::fs::File;
+use std::io::{self, BufRead};
+
+use hashbrown::HashMap;
+use simplelog::*;
+use storm::*;
+use storm::event::*;
+use storm::graphics::*;
+use structopt::StructOpt;
 
 use game::*;
 use shaders::*;
 
-use std::fs::File;
-use std::io::{self, BufRead};
+mod game;
+mod shaders;
 
 static FONT: &[u8] = include_bytes!("../resources/gomarice_game_continue_02.ttf");
 static FIREBALL: &[u8] = include_bytes!("../resources/fireball_main.png");
@@ -45,7 +48,15 @@ pub enum GameState {
     Game
 }
 
-use std::{fs::{self, DirEntry}, path::Path, ffi::OsString};
+// Example: cargo run --release -- -c 127.0.0.1
+#[derive(Debug, StructOpt)]
+#[structopt(name = "command_line_args", about = "Command line arguments for Storm Fighting.")]
+struct Opt {
+    #[structopt(short = "c", long, default_value="127.0.0.1",
+    help="IP Address where Cupid is running.")]
+    cupid_ip_addr: String,
+}
+
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
 where P: AsRef<Path>, {
     let file = File::open(filename)?;
@@ -78,8 +89,9 @@ fn read_palletes() -> Vec<Vec<cgmath::Vector3<f32>>> {
 }
 
 fn main() {
-    let test_image = storm::image::Image::from_vec(vec![1, 2, 3, 4, 5, 6], 3, 2);
-    
+    let opt = Opt::from_args();
+    println!("Running Storm Fighting with arguments: {:?}", opt);
+
     //I am initing this logger to avoid an error on mac
     let _ = SimpleLogger::init(LevelFilter::Warn, Config::default());
     // Create the engine context and describe the window.
@@ -136,7 +148,6 @@ impl App for FightingApp {
                 if desired_game_state != GameState::Menu && self.transitioning == false {
                     self.game_state = desired_game_state;
                     self.transitioning = true;
-                    //self.game = Some(Game::load_basic_game(ctx));
 
                     ctx.read(&[String::from(RESOURCE_PATH) + &String::from("ryu_character_sheet.json")], move |ctx, _app, assets|{
                         for asset in assets {
@@ -164,7 +175,7 @@ impl App for FightingApp {
                                                 }
                                             }
                                         }
-                                        app.transitioning = false;  
+                                        app.transitioning = false;
 
                                         let mut animation_for_character_state_library = HashMap::new();
                                         animation_for_character_state_library.insert(CharacterState::Idle, AnimationStateForCharacterState::new(AnimationState::Crouched, AnimationState::Idle, AnimationState::Idle));
@@ -189,7 +200,7 @@ impl App for FightingApp {
                                         animation_for_character_state_library.insert(CharacterState::Parried, AnimationStateForCharacterState::new(AnimationState::LightHitRecovery, AnimationState::LightHitRecovery, AnimationState::LightHitRecovery));
                                         animation_for_character_state_library.insert(CharacterState::ForwardJump, AnimationStateForCharacterState::new(AnimationState::ForwardJump, AnimationState::ForwardJump, AnimationState::ForwardJump));
                                         animation_for_character_state_library.insert(CharacterState::Dizzie, AnimationStateForCharacterState::new(AnimationState::Dizzie, AnimationState::Dizzie, AnimationState::Dizzie));
-                                        
+
                                         let animation_state = vec![
                                             AnimationState::Idle,
                                             AnimationState::ForwardRun,
@@ -218,7 +229,7 @@ impl App for FightingApp {
                                             AnimationState::MediumCrouchKick,
                                             AnimationState::HeavyCrouchKick
                                         ];
-                                        
+
                                         let mut animation_configs = HashMap::new();
                                         for state in animation_state {
                                             animation_configs.insert(state, AnimationConfig::new(character_sheet.animations.get(&state.to_string()).unwrap().frame_lengths.clone()));
@@ -230,7 +241,7 @@ impl App for FightingApp {
                                         }
                                         let game_config = GameConfig::new(CollisionLibrary::new_from_sheet(&character_sheet), ComboLibrary::default(), animation_texture_library, animation_for_character_state_library, animation_configs, character_sheet.clone(), pallete);
 
-                                        app.game = Some(Game::load_game_with_config(ctx, game_config));
+                                        app.game = Some(Game::load_game_with_config(ctx, game_config, &Opt::from_args().cupid_ip_addr));
                                         app.game_state = GameState::Game;
                                     });
                                 },
@@ -247,7 +258,6 @@ impl App for FightingApp {
         }
     }
 
-    
     fn on_key_pressed(&mut self, ctx: &mut Context<Self>, key: event::KeyboardButton, _is_repeat: bool) {
         match key {
             KeyboardButton::Escape => ctx.request_stop(),
@@ -282,7 +292,7 @@ impl App for FightingApp {
                 self.menu.as_mut().unwrap().mouse_down(normalized_pos);
             },
              _ => {
-                 
+
              }
         }
     }
@@ -299,7 +309,7 @@ impl App for FightingApp {
                 self.menu.as_mut().unwrap().mouse_up(normalized_pos);
             },
              _ => {
-                 
+
              }
         }
     }
